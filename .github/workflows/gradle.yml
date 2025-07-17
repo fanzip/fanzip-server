@@ -2,7 +2,7 @@ name: Fanzip Server CI/CD with Docker
 
 on:
   push:
-    branches: [ "cicd" ] # main 브랜치에 push할 때 실행
+    branches: [ "feat/cicd" ] # main 브랜치에 push할 때 실행
 
 jobs:
   deploy:
