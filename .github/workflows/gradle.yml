@@ -69,6 +69,10 @@ jobs:
           port: ${{ secrets.EC2_SSH_PORT }}
           timeout: 60s
           script: |
+            # 기존 단일 컨테이너 정리 (Docker Compose 실행 전)
+            sudo docker stop fanzip-server || true
+            sudo docker rm fanzip-server || true
+            
             # Docker Compose 파일 생성
             cat > docker-compose.yml << 'EOF'
             version: '3.8'
