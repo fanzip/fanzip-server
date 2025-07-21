@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: fanzip-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  app:
+    image: ekhanz/fanzip-server
+    container_name: fanzip-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    restart: unless-stopped
+
+volumes:
+  redis_data:
