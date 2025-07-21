@@ -4,8 +4,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!--결제 등록-->
-<mapper namespace="org.example.fanzip.mapper.PaymentsMapper">
-    <resultMap id="PaymentResultMap" type="org.example.fanzip.dto.PaymentsDto">
+<mapper namespace="org.example.fanzip.payment.mapper.PaymentsMapper">
+    <resultMap id="PaymentResultMap" type="org.example.fanzip.payment.dto.PaymentsDto">
         <id property="paymentId" column="payment_id"/>
         <result property="orderId" column="order_id"/>
         <result property="reservationId" column="reservation_id"/>
@@ -20,7 +20,7 @@
         <result property="refundedAt" column="refunded_at"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
-    <insert id="insertPayment" parameterType="org.example.fanzip.dto.PaymentsDto">
+    <insert id="insertPayment" parameterType="org.example.fanzip.payment.dto.PaymentsDto">
         INSERT INTO payments(
             order_id, reservation_id, membership_id, payment_type,
             payment_method, amount, status, transaction_id,

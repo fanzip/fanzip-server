@@ -16,7 +16,7 @@ import org.springframework.web.servlet.view.JstlView;
 import java.util.List;
 
 @EnableWebMvc
-@ComponentScan(basePackages = {"org.example.fanzip.controller"})
+@ComponentScan(basePackages = {"org.example.fanzip"})
 public class ServletConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
