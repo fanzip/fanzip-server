@@ -6,9 +6,11 @@ import org.example.fanzip.payment.dto.PaymentsResponseDto;
 import org.example.fanzip.payment.mapper.PaymentsMapper;
 import org.springframework.stereotype.Service;
 import org.example.fanzip.payment.domain.Payments;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PaymentServiceImpl implements PaymentService{
     private final PaymentsMapper paymentsMapper;
 
