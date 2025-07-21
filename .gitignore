@@ -44,3 +44,6 @@ bin/
 
 ### 환경 변수 ###
 .env
+
+# workspace.xml 로컬 설정 파일
+.idea/workspace.xml
