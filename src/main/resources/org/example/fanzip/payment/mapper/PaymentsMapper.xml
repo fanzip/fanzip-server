@@ -20,7 +20,8 @@
         <result property="refundedAt" column="refunded_at"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
-    <insert id="insertPayment" parameterType="org.example.fanzip.payment.domain.Payments">
+    <insert id="insertPayment" parameterType="org.example.fanzip.payment.domain.Payments"
+            useGeneratedKeys="true" keyProperty="paymentId">
         INSERT INTO payments(
             order_id, reservation_id, membership_id, payment_type,
             payment_method, amount, status, transaction_id,
