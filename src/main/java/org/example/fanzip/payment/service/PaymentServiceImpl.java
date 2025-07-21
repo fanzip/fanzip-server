@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.fanzip.payment.dto.PaymentsRequestDto;
 import org.example.fanzip.payment.dto.PaymentsResponseDto;
 import org.example.fanzip.payment.mapper.PaymentsMapper;
+import org.example.fanzip.payment.repository.PaymentsRepository;
 import org.springframework.stereotype.Service;
 import org.example.fanzip.payment.domain.Payments;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,24 +13,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional
 public class PaymentServiceImpl implements PaymentService{
-    private final PaymentsMapper paymentsMapper;
+    private final PaymentsRepository paymentsRepository;
 
     @Override
     public PaymentsResponseDto createPayment(PaymentsRequestDto requestDto) {
-        // RequestDto → Domain 변환
         Payments payments = requestDto.toEntity();
-
-        // Mapper에 저장
-        paymentsMapper.insertPayment(payments);
-
-        // Domain → ResponseDto 반환
+        paymentsRepository.save(payments);
         return PaymentsResponseDto.from(payments);
     }
 
 
     @Override
     public PaymentsResponseDto getPayment(Long paymentId) {
-        Payments payments = paymentsMapper.selectPayment(paymentId);
+        Payments payments = paymentsRepository.findById(paymentId);
         return PaymentsResponseDto.from(payments);
     }
 }
