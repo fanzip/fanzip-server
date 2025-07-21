@@ -1,8 +1,8 @@
-package org.example.fanzip.service;
+package org.example.fanzip.payment.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.fanzip.dto.PaymentsDto;
-import org.example.fanzip.mapper.PaymentsMapper;
+import org.example.fanzip.payment.dto.PaymentsDto;
+import org.example.fanzip.payment.mapper.PaymentsMapper;
 import org.springframework.stereotype.Service;
 
 @Service

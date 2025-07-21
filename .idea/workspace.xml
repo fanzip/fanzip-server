@@ -5,14 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3ac45213-2472-4efe-b708-944b3d12a2ca" name="Changes" comment="[chore] spring legacy 초기 설정 #1">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/mybatis-config.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/mybatis.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/org/example/fanzip/config/RootConfigTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/RootConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/RootConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/ServletConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/ServletConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/controller/PaymentsController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/controller/PaymentsController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/dto/PaymentsDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/dto/PaymentsDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/mapper/PaymentsMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/mapper/PaymentsMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/repository/PaymentsRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/repository/PaymentsRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/service/PaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/service/PaymentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/service/PaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/service/PaymentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/mybatis-config.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/mybatis-config.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/example/fanzip/mapper/PaymentsMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/example/fanzip/payment/mapper/PaymentsMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/org/example/fanzip/config/RootConfigTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/org/example/fanzip/payment/config/RootConfigTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +95,7 @@
     "Tomcat Server.Tomcat 9.executor": "Run",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
-    "git-widget-placeholder": "chore/project-structure",
+    "git-widget-placeholder": "feat/payment-basic",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -107,13 +114,20 @@
       <recent name="" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/org/example/fanzip/payment" />
+      <recent name="$PROJECT_DIR$/src/main/resources/org/example/fanzip" />
+      <recent name="$PROJECT_DIR$/src/main/resources/org/example/fanzip/payment/mapper" />
       <recent name="$PROJECT_DIR$/src/main/resources" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="org.example.fanzip.payment.mapper" />
+      <recent name="org.example.fanzip.payment.controller" />
     </key>
     <key name="CreateTestDialog.RecentsKey">
       <recent name="org.example.fanzip.config" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.RootConfigTest">
+  <component name="RunManager" selected="Tomcat Server.Tomcat 9">
     <configuration name="RootConfigTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -254,5 +268,16 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="[chore] spring legacy 초기 설정 #1" />
     <option name="LAST_COMMIT_MESSAGE" value="[chore] spring legacy 초기 설정 #1" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/build.gradle</url>
+          <line>32</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

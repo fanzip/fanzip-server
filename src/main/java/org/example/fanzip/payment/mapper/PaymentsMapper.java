@@ -1,7 +1,7 @@
-package org.example.fanzip.mapper;
+package org.example.fanzip.payment.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.example.fanzip.dto.PaymentsDto;
+import org.example.fanzip.payment.dto.PaymentsDto;
 
 import java.util.Map;
 

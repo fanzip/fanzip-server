@@ -10,7 +10,8 @@ spring:
     port: ${REDIS_PORT:6379}
 
 mybatis:
-  mapper-locations: classpath:mapper/**/*.xml
-  type-aliases-package: org.example.fanzip.dto
+  config-location: classpath:mybatis-config.xml
+  mapper-locations: classpath:org/example/fanzip/payment/mapper/*.xml
+  type-aliases-package: org.example.fanzip.payment.dto
   configuration:
     map-underscore-to-camel-case: true

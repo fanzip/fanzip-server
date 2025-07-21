@@ -1,4 +1,4 @@
-package org.example.fanzip.dto;
+package org.example.fanzip.payment.dto;
 
 import lombok.Getter;
 import lombok.Setter;

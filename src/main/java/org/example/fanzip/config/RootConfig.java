@@ -18,8 +18,8 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource(value = "classpath:application.yml", factory = YamlPropertySourceFactory.class)
-@MapperScan(basePackages = {"org.example.fanzip.mapper"})
-@ComponentScan(basePackages = {"org.example.fanzip"})
+@MapperScan(basePackages = {"org.example.fanzip.payment.mapper"})
+@ComponentScan(basePackages = {"org.example.fanzip.payment"})
 public class RootConfig {
 
     @Value("${spring.datasource.driver-class-name}")
