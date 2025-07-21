@@ -1,0 +1,125 @@
+name: Fanzip Server CI/CD with Docker
+
+on:
+  push:
+    branches: ['develop'] # main 브랜치에 push할 때 실행
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Spring Legacy Build (WAR)
+      - name: Spring Legacy Build
+        run: ./gradlew clean build -x test
+
+      # Docker Image Build
+      - name: Docker Image Build
+        run: docker build -t ekhanz/fanzip-server .
+
+      # DockerHub Login
+      - name: Docker Hub Login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Docker Hub push
+      - name: Docker Hub Push
+        run: docker push ekhanz/fanzip-server
+
+      # GET GitHub IP
+      - name: Get GitHub IP
+        id: ip
+        uses: haythem/public-ip@v1.2
+
+      # Configure AWS Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Add GitHub IP to AWS
+        run: |
+          echo "Using Security Group ID: ${{ secrets.AWS_SG_ID }}"
+          echo "Current AWS Account:"
+          aws sts get-caller-identity
+          echo "Available Security Groups:"
+          aws ec2 describe-security-groups --query 'SecurityGroups[*].[GroupId,GroupName]' --output table
+          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+
+      # AWS EC2 Server Connect & Docker Deploy
+      - name: AWS EC2 Connection
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          timeout: 60s
+          script: |
+            # 기존 단독 redis 컨테이너 정리
+            sudo docker stop fanzip-redis || true
+            sudo docker rm fanzip-redis ||true
+            
+            # 기존 단일 컨테이너 정리 (Docker Compose 실행 전)
+            sudo docker stop fanzip-server || true
+            sudo docker rm fanzip-server || true
+
+            # Docker Compose 파일 생성
+            cat > docker-compose.yml << 'EOF'
+            version: '3.8'
+            services:
+              redis:
+                image: redis:7-alpine
+                container_name: fanzip-redis
+                ports:
+                  - "6379:6379"
+                volumes:
+                  - redis_data:/data
+                restart: unless-stopped
+                command: redis-server --appendonly yes
+
+              app:
+                image: ekhanz/fanzip-server
+                container_name: fanzip-server
+                ports:
+                  - "8080:8080"
+                depends_on:
+                  - redis
+                environment:
+                  - REDIS_HOST=redis
+                  - REDIS_PORT=6379
+                restart: unless-stopped
+
+            volumes:
+              redis_data:
+            EOF
+
+            # 기존 컨테이너들 정리
+            sudo docker-compose down || true
+
+            # 최신 이미지 다운로드
+            sudo docker pull ekhanz/fanzip-server
+
+            # Docker Compose로 서비스 시작
+            sudo docker-compose up -d
+
+            # 컨테이너 상태 확인
+            sudo docker ps
+
+      # Remove GitHub IP from Security Group
+      - name: Remove IP FROM security group
+        run: |
+          aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
