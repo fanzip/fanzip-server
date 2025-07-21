@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--결제 등록-->
+<mapper namespace="org.example.fanzip.mapper.PaymentMapper">
+    <resultMap id="PaymentResultMap" type="org.example.fanzip.dto.PaymentsDto">
+        <id property="paymentId" column="payment_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="reservationId" column="reservation_id"/>
+        <result property="membershipId" column="membership_id"/>
+        <result property="paymentType" column="payment_type"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="amount" column="amount"/>
+        <result property="status" column="status"/>
+        <result property="transactionId" column="transaction_id"/>
+        <result property="paidAt" column="paid_at"/>
+        <result property="cancelledAt" column="cancelled_at"/>
+        <result property="refundedAt" column="refunded_at"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    <insert id="insertPayment" parameterType="org.example.fanzip.dto.PaymentsDto">
+        INSERT INTO payments(
+            order_id, reservation_id, membership_id, payment_type,
+            payment_method, amount, status, transaction_id,
+            paid_at, cancelled_at, refunded_at, created_at
+        )
+        VALUES (
+                   #{orderId}, #{reservationId}, #{membershipId}, #{paymentType},
+                   #{paymentMethod}, #{amount}, #{status}, #{transactionId},
+                   #{paidAt}, #{cancelledAt}, #{refundedAt}, #{createdAt}
+               )
+    </insert>
+    <!--결제 조회-->
+    <select id="selectPayment" resultMap="PaymentResultMap">
+        SELECT *
+        FROM payments
+        WHERE payment_id = #{paymentId}
+    </select>
+
+    <!--결제 상태 변경-->
+    <update id="updatePayment" parameterType="map">
+        UPDATE payments
+        SET status = #{status}
+        WHERE payment_id = #{paymentId}
+    </update>
+
+</mapper>
