@@ -4,15 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ac45213-2472-4efe-b708-944b3d12a2ca" name="Changes" comment="[chore] spring legacy 초기 설정 #1">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/mybatis-config.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/mybatis.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/org/example/fanzip/config/RootConfigTest.java" afterDir="false" />
+    <list default="true" id="3ac45213-2472-4efe-b708-944b3d12a2ca" name="Changes" comment="[feat] .idea 폴더 git ignore에 추가&#10;&#10;-">
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/RootConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/RootConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,6 +18,26 @@
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
     </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="fanzip" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -75,7 +90,9 @@
   &quot;associatedIndex&quot;: 3
 }</component>
   <component name="ProjectId" id="2zwg1LoSZzA7ULSvCHV4VWpyQOn" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
@@ -85,10 +102,11 @@
     "Gradle.RootConfigTest.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "Tomcat Server.Tomcat 9.executor": "Run",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
-    "git-widget-placeholder": "chore/project-structure",
+    "git-widget-placeholder": "feat/cicd2",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -98,7 +116,7 @@
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "reference.projectsettings.compiler.annotationProcessors",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -227,13 +245,21 @@
     </configuration>
     <list>
       <item itemvalue="Gradle.RootConfigTest" />
-      <item itemvalue="Tomcat Server.Tomcat 9" />
+      <item itemvalue="Tomcat 서버.Tomcat 9" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.RootConfigTest" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.24978.46" />
+        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-IU-243.24978.46" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -245,7 +271,66 @@
       <updated>1752647333253</updated>
       <workItem from="1752647334379" duration="587000" />
       <workItem from="1752647956829" duration="1043000" />
+      <workItem from="1752744802250" duration="3000" />
+      <workItem from="1753058494473" duration="2652000" />
     </task>
+    <task id="LOCAL-00001" summary="[fix] 브렌치 경로 수정 &#10;&#10;- cicd -&gt; feat/cicd로 경로 변경">
+      <option name="closed" value="true" />
+      <created>1752736606942</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1752736606942</updated>
+    </task>
+    <task id="LOCAL-00002" summary="[fix] aws 지역 수정&#10;&#10;- ap-notrheast-2 -&gt; ap-southeast-2로 변경.">
+      <option name="closed" value="true" />
+      <created>1752739483088</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1752739483088</updated>
+    </task>
+    <task id="LOCAL-00003" summary="[test] 로깅 코드 생성 #4&#10;&#10;- 현재 CI/CD 과정에 문제가 발생해 원인 분석을 위해 디벅싱 코드 생성">
+      <option name="closed" value="true" />
+      <created>1752740804001</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1752740804001</updated>
+    </task>
+    <task id="LOCAL-00004" summary="[fix] gradle.yml 오류 해결 #4&#10;&#10;- Add GitHub IP to AWS에 run이 들여쓰기가 되어 있지 않은 점을 확인 후 수정.">
+      <option name="closed" value="true" />
+      <created>1752741164694</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1752741164694</updated>
+    </task>
+    <task id="LOCAL-00005" summary="[fix] branch 경로 수정 #4&#10;&#10;- 테스트 완료 후 브랜치 경로를 develop으로 수정">
+      <option name="closed" value="true" />
+      <created>1753058639384</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1753058639384</updated>
+    </task>
+    <task id="LOCAL-00006" summary="[feat] redis 컨테이너 정리 코드 추가 #4&#10;&#10;- 오류 발생할 여지가 있어서 안정성 확보.">
+      <option name="closed" value="true" />
+      <created>1753060806652</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1753060806652</updated>
+    </task>
+    <task id="LOCAL-00007" summary="[feat] .idea 폴더 git ignore에 추가&#10;&#10;-">
+      <option name="closed" value="true" />
+      <created>1753062704452</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1753062704452</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -253,6 +338,13 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="[chore] spring legacy 초기 설정 #1" />
-    <option name="LAST_COMMIT_MESSAGE" value="[chore] spring legacy 초기 설정 #1" />
+    <MESSAGE value="[fix] 브렌치 경로 수정 &#10;&#10;- cicd -&gt; feat/cicd로 경로 변경" />
+    <MESSAGE value="[fix] aws 지역 수정&#10;&#10;- ap-notrheast-2 -&gt; ap-southeast-2로 변경." />
+    <MESSAGE value="[test] 로깅 코드 생성 #4&#10;&#10;- 현재 CI/CD 과정에 문제가 발생해 원인 분석을 위해 디벅싱 코드 생성" />
+    <MESSAGE value="[fix] gradle.yml 오류 해결 #4&#10;&#10;- Add GitHub IP to AWS에 run이 들여쓰기가 되어 있지 않은 점을 확인 후 수정." />
+    <MESSAGE value="[fix] branch 경로 수정 #4&#10;&#10;- 테스트 완료 후 브랜치 경로를 develop으로 수정" />
+    <MESSAGE value="[feat] redis 컨테이너 정리 코드 추가 #4&#10;&#10;- 오류 발생할 여지가 있어서 안정성 확보." />
+    <MESSAGE value="[feat] .idea 폴더 git ignore에 추가&#10;&#10;-" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat] .idea 폴더 git ignore에 추가&#10;&#10;-" />
   </component>
 </project>
