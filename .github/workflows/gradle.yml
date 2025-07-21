@@ -19,6 +19,9 @@ jobs:
           distribution: 'temurin'
 
       # Spring Legacy Build (WAR)
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
       - name: Spring Legacy Build
         run: ./gradlew clean build -x test
 
