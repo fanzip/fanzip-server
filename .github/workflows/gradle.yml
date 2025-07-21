@@ -2,7 +2,7 @@ name: Fanzip Server CI/CD with Docker
 
 on:
   push:
-    branches: [ "develop" ] # main 브랜치에 push할 때 실행
+    branches: ['develop'] # main 브랜치에 push할 때 실행
 
 jobs:
   deploy:
@@ -65,26 +65,55 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
-          password: ${{ secrets.EC2_PASSWORD }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: ${{ secrets.EC2_SSH_PORT }}
           timeout: 60s
           script: |
-            # 기존 컨테이너 정리 (오류 무시)
+            # 기존 단일 컨테이너 정리 (Docker Compose 실행 전)
             sudo docker stop fanzip-server || true
             sudo docker rm fanzip-server || true
-            
+
+            # Docker Compose 파일 생성
+            cat > docker-compose.yml << 'EOF'
+            version: '3.8'
+            services:
+              redis:
+                image: redis:7-alpine
+                container_name: fanzip-redis
+                ports:
+                  - "6379:6379"
+                volumes:
+                  - redis_data:/data
+                restart: unless-stopped
+                command: redis-server --appendonly yes
+
+              app:
+                image: ekhanz/fanzip-server
+                container_name: fanzip-server
+                ports:
+                  - "8080:8080"
+                depends_on:
+                  - redis
+                environment:
+                  - REDIS_HOST=redis
+                  - REDIS_PORT=6379
+                restart: unless-stopped
+
+            volumes:
+              redis_data:
+            EOF
+
+            # 기존 컨테이너들 정리
+            sudo docker-compose down || true
+
             # 최신 이미지 다운로드
             sudo docker pull ekhanz/fanzip-server
-            
-            # 새 컨테이너 실행
-            sudo docker run -d \
-              --name fanzip-server \
-              -p 8080:8080 \
-              --restart unless-stopped \
-              ekhanz/fanzip-server
-            
+
+            # Docker Compose로 서비스 시작
+            sudo docker-compose up -d
+
             # 컨테이너 상태 확인
-            sudo docker ps | grep fanzip-server
+            sudo docker ps
 
       # Remove GitHub IP from Security Group
       - name: Remove IP FROM security group
