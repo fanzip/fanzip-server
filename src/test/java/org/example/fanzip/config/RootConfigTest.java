@@ -22,7 +22,7 @@ import java.sql.Connection;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = RootConfig.class)
 @Slf4j
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:application.yml")
 class RootConfigTest {
     @Autowired
     private SqlSessionFactory sqlSessionFactory;
