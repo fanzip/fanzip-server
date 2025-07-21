@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!--결제 등록-->
-<mapper namespace="org.example.fanzip.mapper.PaymentMapper">
+<mapper namespace="org.example.fanzip.mapper.PaymentsMapper">
     <resultMap id="PaymentResultMap" type="org.example.fanzip.dto.PaymentsDto">
         <id property="paymentId" column="payment_id"/>
         <result property="orderId" column="order_id"/>
