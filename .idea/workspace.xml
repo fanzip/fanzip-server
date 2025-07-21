@@ -4,22 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3ac45213-2472-4efe-b708-944b3d12a2ca" name="Changes" comment="[chore] spring legacy 초기 설정 #1">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="3ac45213-2472-4efe-b708-944b3d12a2ca" name="Changes" comment="[move] 폴더 구조 이동 #16">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/domain/Payments.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/domain/enums/PaymentMethod.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/domain/enums/PaymentStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/domain/enums/PaymentType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/dto/PaymentsRequestDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/dto/PaymentsResponseDto.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/RootConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/RootConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/ServletConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/config/ServletConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/controller/PaymentsController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/controller/PaymentsController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/dto/PaymentsDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/dto/PaymentsDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/mapper/PaymentsMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/mapper/PaymentsMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/repository/PaymentsRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/repository/PaymentsRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/service/PaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/service/PaymentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/service/PaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/service/PaymentServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/mybatis-config.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/mybatis-config.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/org/example/fanzip/mapper/PaymentsMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/example/fanzip/payment/mapper/PaymentsMapper.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/org/example/fanzip/config/RootConfigTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/org/example/fanzip/payment/config/RootConfigTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/controller/PaymentsController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/controller/PaymentsController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/dto/PaymentsDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/mapper/PaymentsMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/mapper/PaymentsMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/repository/PaymentsRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/repository/PaymentsRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/service/PaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/service/PaymentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/service/PaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/fanzip/payment/service/PaymentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/example/fanzip/payment/mapper/PaymentsMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/example/fanzip/payment/mapper/PaymentsMapper.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,8 +33,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="JUnit5 Test Class" />
+        <option value="package-info" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -260,6 +260,15 @@
       <workItem from="1752647334379" duration="587000" />
       <workItem from="1752647956829" duration="1043000" />
     </task>
+    <task id="LOCAL-00001" summary="[move] 폴더 구조 이동 #16">
+      <option name="closed" value="true" />
+      <created>1753102824955</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1753102824955</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -267,7 +276,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="[chore] spring legacy 초기 설정 #1" />
-    <option name="LAST_COMMIT_MESSAGE" value="[chore] spring legacy 초기 설정 #1" />
+    <MESSAGE value="[move] 폴더 구조 이동 #16" />
+    <option name="LAST_COMMIT_MESSAGE" value="[move] 폴더 구조 이동 #16" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

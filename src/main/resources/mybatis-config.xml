@@ -4,6 +4,6 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
     <typeAliases>
-        <typeAlias alias="PaymentsDto" type="org.example.fanzip.payment.dto.PaymentsDto"></typeAlias>
+        <typeAlias alias="Payments" type="org.example.fanzip.payment.domain.Payments"></typeAlias>
     </typeAliases>
 </configuration>
