@@ -38,6 +38,13 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     @Override
+    public PaymentsResponseDto cancelledPaymentById(Long paymentId){
+        Payments payments = paymentsRepository.findById(paymentId);
+        payments.cancel();
+        paymentsRepository.updateStatus(paymentId, payments.getStatus());
+        return PaymentsResponseDto.from(payments);
+    }
+    @Override
     public PaymentsResponseDto getPayment(Long paymentId) {
         Payments payments = paymentsRepository.findById(paymentId);
         return PaymentsResponseDto.from(payments);
