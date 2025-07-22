@@ -28,4 +28,9 @@ public class PaymentsController {
         PaymentsResponseDto responseDto = paymentService.failedPaymentById(paymentId);
         return ResponseEntity.ok(responseDto);
     }
+    @PostMapping("/{paymentId}/cancelled")
+    public ResponseEntity<PaymentsResponseDto> ccancelled(@PathVariable Long paymentId){
+        PaymentsResponseDto responseDto= paymentService.cancelledPaymentById(paymentId);
+        return ResponseEntity.ok(responseDto);
+    }
 }

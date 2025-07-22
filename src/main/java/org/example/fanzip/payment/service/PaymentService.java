@@ -7,5 +7,7 @@ public interface PaymentService {
     PaymentsResponseDto approvePaymentById(Long paymentId); // 결제 승인
 
     PaymentsResponseDto failedPaymentById(Long paymentId);
+
+    PaymentsResponseDto cancelledPaymentById(Long paymentId);
     PaymentsResponseDto getPayment(Long paymentId);
 }

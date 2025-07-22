@@ -54,5 +54,9 @@ public class Payments {
     public void failed(){
         this.status = PaymentStatus.FAILED;
     }
+    public void cancel(){
+        this.status = PaymentStatus.CANCELLED;
+        this.cancelledAt = LocalDateTime.now();
+    }
 }
 
