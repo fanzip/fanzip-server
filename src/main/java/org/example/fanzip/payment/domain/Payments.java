@@ -48,23 +48,34 @@ public class Payments {
         this.createdAt = createdAt;
     }
     public void approve(){
+        if(this.status != PaymentStatus.PENDING){
+            throw new IllegalStateException("결제 대기 상태(PENDING)에서만 승인할 수 있습니다.");
+        }
         updateStatus(PaymentStatus.PAID);
         this.paidAt = LocalDateTime.now();
     }
     public void failed(){
+        if(this.status != PaymentStatus.PENDING){
+            throw new IllegalStateException("결제 대기 상태(PENDING)에서만 실패 처리할 수 있습니다.");
+        }
         this.status = PaymentStatus.FAILED;
     }
     public void cancel(){
+        if(this.status != PaymentStatus.PENDING){
+            throw new IllegalStateException("결제 대기 상태(PENDING)에서만 취소할 수 있습니다.");
+        }
         updateStatus(PaymentStatus.CANCELLED);
         this.cancelledAt = LocalDateTime.now();
     }
     public void refund(){
+        if(this.status != PaymentStatus.PAID){
+            throw new IllegalStateException("결제 완료(PAID)에서만 환불 가능합니다");
+        }
         updateStatus(PaymentStatus.REFUNDED);
         this.refundedAt = LocalDateTime.now();
     }
     private void updateStatus(PaymentStatus paymentStatus){
         this.status = paymentStatus;
     }
-
 }
 
