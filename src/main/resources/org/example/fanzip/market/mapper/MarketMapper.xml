@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.fanzip.market.mapper.MarketMapper">
+
+    <!-- VO 필드 ↔ 컬럼 매핑 -->
+    <resultMap id="MarketResultMap" type="org.example.fanzip.market.domain.MarketVO">
+        <id     column="product_id"        property="productId"/>
+        <result column="name"              property="name"/>
+        <result column="price"             property="price"/>
+        <result column="discounted_price"  property="discountedPrice"/>
+        <result column="discount_rate"     property="discountRate"/>
+        <result column="thumbnail_image"   property="thumbnailImage"/>
+        <result column="is_sold_out"       property="isSoldOut"/>
+    </resultMap>
+
+    <!-- limit 개수만큼 최신 상품 조회 -->
+    <select id="getAllProducts" resultMap="MarketResultMap">
+        SELECT
+            product_id,
+            name,
+            price,
+            discounted_price,
+            discount_rate,
+            thumbnail_image,
+            CASE WHEN stock = 0 THEN TRUE ELSE FALSE END AS is_sold_out
+        FROM Products
+        ORDER BY product_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- lastProductId 이후 커서 페이징 -->
+    <select id="getProductsAfter" resultMap="MarketResultMap">
+        SELECT
+            product_id,
+            name,
+            price,
+            discounted_price,
+            discount_rate,
+            thumbnail_image,
+            CASE WHEN stock = 0 THEN TRUE ELSE FALSE END AS is_sold_out
+        FROM Products
+        WHERE product_id &lt; #{lastProductId}
+        ORDER BY product_id DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
