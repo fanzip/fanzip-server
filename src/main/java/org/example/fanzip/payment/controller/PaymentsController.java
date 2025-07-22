@@ -29,8 +29,13 @@ public class PaymentsController {
         return ResponseEntity.ok(responseDto);
     }
     @PostMapping("/{paymentId}/cancelled")
-    public ResponseEntity<PaymentsResponseDto> ccancelled(@PathVariable Long paymentId){
+    public ResponseEntity<PaymentsResponseDto> cancelled(@PathVariable Long paymentId){
         PaymentsResponseDto responseDto= paymentService.cancelledPaymentById(paymentId);
+        return ResponseEntity.ok(responseDto);
+    }
+    @PostMapping("/{paymentId}/refunded")
+    public ResponseEntity<PaymentsResponseDto> refunded(@PathVariable Long paymentId){
+        PaymentsResponseDto responseDto = paymentService.refundedPaymentById(paymentId);
         return ResponseEntity.ok(responseDto);
     }
 }

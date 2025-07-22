@@ -44,6 +44,14 @@ public class PaymentServiceImpl implements PaymentService{
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
         return PaymentsResponseDto.from(payments);
     }
+
+    @Override
+    public PaymentsResponseDto refundedPaymentById(Long paymentId){
+        Payments payments = paymentsRepository.findById(paymentId);
+        payments.refund();
+        paymentsRepository.updateStatus(paymentId, payments.getStatus());
+        return PaymentsResponseDto.from(payments);
+    }
     @Override
     public PaymentsResponseDto getPayment(Long paymentId) {
         Payments payments = paymentsRepository.findById(paymentId);
