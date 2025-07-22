@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentsController {
     private final PaymentService paymentService;
 
-    @PostMapping("")
+    @PostMapping("/request")
     public ResponseEntity<PaymentsResponseDto> createPayment(@RequestBody PaymentsRequestDto requestDto){
         PaymentsResponseDto responseDto = paymentService.createPayment(requestDto);
         return ResponseEntity.ok(responseDto);
