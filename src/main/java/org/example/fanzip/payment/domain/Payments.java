@@ -48,19 +48,23 @@ public class Payments {
         this.createdAt = createdAt;
     }
     public void approve(){
-        this.status = PaymentStatus.PAID;
+        updateStatus(PaymentStatus.PAID);
         this.paidAt = LocalDateTime.now();
     }
     public void failed(){
         this.status = PaymentStatus.FAILED;
     }
     public void cancel(){
-        this.status = PaymentStatus.CANCELLED;
+        updateStatus(PaymentStatus.CANCELLED);
         this.cancelledAt = LocalDateTime.now();
     }
     public void refund(){
-        this.status = PaymentStatus.REFUNDED;
+        updateStatus(PaymentStatus.REFUNDED);
         this.refundedAt = LocalDateTime.now();
     }
+    private void updateStatus(PaymentStatus paymentStatus){
+        this.status = paymentStatus;
+    }
+
 }
 
