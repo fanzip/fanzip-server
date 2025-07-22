@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-// 상품 목록 조회를 위한 VO
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,4 +19,9 @@ public class MarketVO {
     private BigDecimal discountRate;
     private String thumbnailImage;
     private Boolean isSoldOut;
+
+    // 상세 페이지용 필드
+    private BigDecimal shippingPrice;
+    private String description;
+    private String detailImages; // JSON 배열 형태로 들어올 경우 String으로 처리
 }
