@@ -48,7 +48,8 @@ public class Payments {
         this.createdAt = createdAt;
     }
     public void approve(){
-        this.status = PaymentStatus.APPROVED;
+        this.status = PaymentStatus.PAID;
+        this.paidAt = LocalDateTime.now();
     }
 }
 
