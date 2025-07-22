@@ -46,4 +46,18 @@
         LIMIT #{limit}
     </select>
 
+    <select id="findProductById" resultType="org.example.fanzip.market.domain.MarketVO">
+        SELECT
+            product_id AS productId,
+            name,
+            price,
+            discounted_price AS discountedPrice,
+            shipping_price AS shippingPrice,
+            description,
+            thumbnail_image AS thumbnailImage,
+            detail_images,
+            stock = 0 AS isSoldOut
+        FROM products
+        WHERE product_id = #{productId}
+    </select>
 </mapper>
