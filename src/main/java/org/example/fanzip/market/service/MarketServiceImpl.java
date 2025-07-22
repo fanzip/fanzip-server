@@ -28,5 +28,4 @@ public class MarketServiceImpl implements MarketService {
                 ? marketMapper.getAllProducts(limit)
                 : marketMapper.getProductsAfter(lastProductId, limit);
     }
-
 }
