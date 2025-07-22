@@ -18,4 +18,9 @@ public class PaymentsController {
         PaymentsResponseDto responseDto = paymentService.createPayment(requestDto);
         return ResponseEntity.ok(responseDto);
     }
+    @PostMapping("/{paymentId}/approve")
+    public ResponseEntity<PaymentsResponseDto> approvePayment(@PathVariable Long paymentId){
+        PaymentsResponseDto responseDto = paymentService.approvePaymentById(paymentId);
+        return ResponseEntity.ok(responseDto);
+    }
 }

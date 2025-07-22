@@ -21,6 +21,13 @@ public class PaymentServiceImpl implements PaymentService{
         paymentsRepository.save(payments);
         return PaymentsResponseDto.from(payments);
     }
+    @Override
+    public PaymentsResponseDto approvePaymentById(Long paymentId){
+        Payments payments = paymentsRepository.findById(paymentId);
+        payments.approve();
+        paymentsRepository.updateStatus(paymentId, payments.getStatus());
+        return PaymentsResponseDto.from(payments);
+    }
 
     @Override
     public PaymentsResponseDto getPayment(Long paymentId) {
@@ -41,4 +48,5 @@ public class PaymentServiceImpl implements PaymentService{
             throw new IllegalArgumentException("orderId, reservationId, membershipId 중 정확히 하나만 존재해야 한다.");
         }
     }
+
 }
