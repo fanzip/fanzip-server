@@ -24,6 +24,9 @@ public class MarketServiceImpl implements MarketService {
 
     @Override
     public List<MarketVO> getProductsAfter(Long lastProductId, int limit) {
-        return marketMapper.getProductsAfter(lastProductId, limit);
+        return (lastProductId == null)
+                ? marketMapper.getAllProducts(limit)
+                : marketMapper.getProductsAfter(lastProductId, limit);
     }
+
 }
