@@ -34,7 +34,7 @@
                )
     </insert>
     <!--결제 조회-->
-    <select id="selectPayment" parameterType="org.example.fanzip.payment.domain.Payments">
+    <select id="selectPayment" parameterType="long" resultMap="PaymentResultMap">
         SELECT *
         FROM payments
         WHERE payment_id = #{paymentId}
