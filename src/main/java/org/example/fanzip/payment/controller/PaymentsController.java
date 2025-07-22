@@ -23,4 +23,9 @@ public class PaymentsController {
         PaymentsResponseDto responseDto = paymentService.approvePaymentById(paymentId);
         return ResponseEntity.ok(responseDto);
     }
+    @PostMapping("/{paymentId}/fail")
+    public ResponseEntity<PaymentsResponseDto> failedPayment(@PathVariable Long paymentId){
+        PaymentsResponseDto responseDto = paymentService.failedPaymentById(paymentId);
+        return ResponseEntity.ok(responseDto);
+    }
 }
