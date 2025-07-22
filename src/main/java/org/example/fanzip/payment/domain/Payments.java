@@ -51,5 +51,8 @@ public class Payments {
         this.status = PaymentStatus.PAID;
         this.paidAt = LocalDateTime.now();
     }
+    public void failed(){
+        this.status = PaymentStatus.FAILED;
+    }
 }
 
