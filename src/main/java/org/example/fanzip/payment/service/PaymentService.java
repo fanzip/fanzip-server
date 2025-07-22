@@ -9,5 +9,7 @@ public interface PaymentService {
     PaymentsResponseDto failedPaymentById(Long paymentId);
 
     PaymentsResponseDto cancelledPaymentById(Long paymentId);
+
+    PaymentsResponseDto refundedPaymentById(Long paymentId);
     PaymentsResponseDto getPayment(Long paymentId);
 }
