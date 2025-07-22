@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductVO {
+public class MarketVO {
     private Long productId;
     private String name;
     private BigDecimal price;
