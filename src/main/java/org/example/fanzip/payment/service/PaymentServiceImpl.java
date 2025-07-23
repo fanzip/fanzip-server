@@ -90,6 +90,7 @@ public class PaymentServiceImpl implements PaymentService{
         Payments payments = paymentsRepository.findById(paymentId);
         payments.refund();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
+        rollbackStock(payments);
         return PaymentsResponseDto.from(payments);
     }
     @Override
