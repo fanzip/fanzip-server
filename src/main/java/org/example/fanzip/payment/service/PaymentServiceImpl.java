@@ -3,6 +3,7 @@ package org.example.fanzip.payment.service;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.payment.dto.PaymentsRequestDto;
 import org.example.fanzip.payment.dto.PaymentsResponseDto;
+import org.example.fanzip.payment.mapper.PaymentsMapper;
 import org.example.fanzip.payment.repository.PaymentsRepository;
 import org.springframework.stereotype.Service;
 import org.example.fanzip.payment.domain.Payments;
@@ -13,13 +14,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class PaymentServiceImpl implements PaymentService{
     private final PaymentsRepository paymentsRepository;
+    private final PaymentsMapper paymentsMapper;
 
     @Override
     public PaymentsResponseDto createPayment(PaymentsRequestDto requestDto) {
-        validateForeignKey(requestDto);
-        validateStockAvailability(requestDto);
+        validateForeignKey(requestDto); // 외래키 유효성 검사
+        validateStockAvailability(requestDto); // 재고/좌석/멤버십 체크
+        if (paymentsMapper.existsByTransactionId(requestDto.getTransactionId())) { // 중복 결제 체크
+            throw new IllegalArgumentException("이미 처리된 결제입니다.");
+        }
         Payments payments = requestDto.toEntity();
         paymentsRepository.save(payments);
+//        if (true) throw new RuntimeException("트랜잭션 롤백 테스트");
         return PaymentsResponseDto.from(payments);
     }
     @Override
@@ -27,6 +33,7 @@ public class PaymentServiceImpl implements PaymentService{
         Payments payments = paymentsRepository.findById(paymentId);
         payments.approve();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
+//        if(true) throw new RuntimeException("강제 예외"); rollback 확인
         return PaymentsResponseDto.from(payments);
     }
 

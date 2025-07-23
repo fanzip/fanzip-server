@@ -10,4 +10,5 @@ public interface PaymentsMapper {
     void insertPayment(Payments payments);
     Payments selectPayment(Long paymentId);
     void updatePayment(Map<String, Object> param);
+    boolean existsByTransactionId(String transactionId);
 }

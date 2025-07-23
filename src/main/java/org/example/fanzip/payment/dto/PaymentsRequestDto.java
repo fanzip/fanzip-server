@@ -20,6 +20,7 @@ public class PaymentsRequestDto {
     private Long orderId;
     private Long reservationId;
     private Long membershipId;
+    private String transactionId;
     private PaymentType paymentType;
     private PaymentMethod paymentMethod;
     private BigDecimal amount;
@@ -28,6 +29,7 @@ public class PaymentsRequestDto {
                 .orderId(orderId)
                 .reservationId(reservationId)
                 .membershipId(membershipId)
+                .transactionId(transactionId)
                 .paymentType(paymentType)
                 .paymentMethod(paymentMethod)
                 .amount(amount)
