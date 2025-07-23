@@ -47,9 +47,6 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public PaymentsResponseDto approvePaymentById(Long paymentId){
         Payments payments = paymentsRepository.findById(paymentId);
-        if (payments.getStatus() != PaymentStatus.PENDING) { // PENDING 상태 확인
-            throw new IllegalStateException("승인할 수 없는 상태입니다.");
-        }
         validateStockAvailability(payments.getOrderId(), payments.getReservationId(), payments.getMembershipId()); // 결제 승인 시 재고 수량 검사 홤수
         // TODO : 주문 금액과 결제 요청 금액이 맞는지 로직 변경 필요
         Long expectedAmount = getExpectedAmountMock(payments);
