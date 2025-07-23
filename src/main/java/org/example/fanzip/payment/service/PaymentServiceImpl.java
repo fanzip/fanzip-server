@@ -1,6 +1,7 @@
 package org.example.fanzip.payment.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.fanzip.payment.domain.enums.PaymentStatus;
 import org.example.fanzip.payment.dto.PaymentsRequestDto;
 import org.example.fanzip.payment.dto.PaymentsResponseDto;
 import org.example.fanzip.payment.repository.PaymentsRepository;
@@ -46,10 +47,14 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public PaymentsResponseDto approvePaymentById(Long paymentId){
         Payments payments = paymentsRepository.findById(paymentId);
+        if (payments.getStatus() != PaymentStatus.PENDING) { // PENDING 상태 확인
+            throw new IllegalStateException("승인할 수 없는 상태입니다.");
+        }
         validateStockAvailability(payments.getOrderId(), payments.getReservationId(), payments.getMembershipId()); // 결제 승인 시 재고 수량 검사 홤수
+        // TODO : 주문 금액과 결제 요청 금액이 맞는지 확인 로직 들어가야
         payments.approve();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
-//        if(true) throw new RuntimeException("강제 예외"); rollback 확인
+        // if(true) throw new RuntimeException("강제 예외"); rollback 확인
         /*  TODO: 멤버십 생성 or 갱신 로직 (Memberships 테이블 생기면 구현
         if (payments.getPaymentType() == PaymentType.MEMBERSHIP) {
          */
