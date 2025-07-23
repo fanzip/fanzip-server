@@ -5,9 +5,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.fanzip.payment.domain.Payments;
-import org.example.fanzip.payment.domain.enums.PaymentMethod;
-import org.example.fanzip.payment.domain.enums.PaymentStatus;
-import org.example.fanzip.payment.domain.enums.PaymentType;
+import org.example.fanzip.payment.domain.enums.PaymentsMethod;
+import org.example.fanzip.payment.domain.enums.PaymentsStatus;
+import org.example.fanzip.payment.domain.enums.PaymentsType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,8 +22,8 @@ public class PaymentsRequestDto {
     private Long reservationId;
     private Long membershipId;
     private String transactionId;
-    private PaymentType paymentType;
-    private PaymentMethod paymentMethod;
+    private PaymentsType paymentsType;
+    private PaymentsMethod paymentsMethod;
     private BigDecimal amount;
     public Payments toEntity() {
         return Payments.builder()
@@ -32,10 +32,10 @@ public class PaymentsRequestDto {
                 .reservationId(reservationId)
                 .membershipId(membershipId)
                 .transactionId(transactionId)
-                .paymentType(paymentType)
-                .paymentMethod(paymentMethod)
+                .paymentsType(paymentsType)
+                .paymentsMethod(paymentsMethod)
                 .amount(amount)
-                .status(PaymentStatus.PENDING) // 기본값 설정
+                .status(PaymentsStatus.PENDING) // 기본값 설정
                 .createdAt(LocalDateTime.now()) // 생성 시간 자동 할당
                 .build();
     }

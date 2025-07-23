@@ -2,7 +2,7 @@ package org.example.fanzip.payment.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.payment.domain.Payments;
-import org.example.fanzip.payment.domain.enums.PaymentStatus;
+import org.example.fanzip.payment.domain.enums.PaymentsStatus;
 import org.example.fanzip.payment.mapper.PaymentsMapper;
 import org.springframework.stereotype.Repository;
 
@@ -28,7 +28,7 @@ public class PaymentsRepository {
         return paymentsMapper.selectPaymentsByUserId(userId);
     }
 
-    public void updateStatus(Long paymentId, PaymentStatus status) {
+    public void updateStatus(Long paymentId, PaymentsStatus status) {
         Map<String, Object> param = new HashMap<>();
         param.put("paymentId", paymentId);
         param.put("status", status.name()); // enum to String (DB 저장용)
