@@ -7,6 +7,7 @@
 <mapper namespace="org.example.fanzip.payment.mapper.PaymentsMapper">
     <resultMap id="PaymentResultMap" type="org.example.fanzip.payment.domain.Payments">
         <id property="paymentId" column="payment_id"/>
+        <result property="userId" column="user_id"/>
         <result property="orderId" column="order_id"/>
         <result property="reservationId" column="reservation_id"/>
         <result property="membershipId" column="membership_id"/>
@@ -23,12 +24,12 @@
     <insert id="insertPayment" parameterType="org.example.fanzip.payment.domain.Payments"
             useGeneratedKeys="true" keyProperty="paymentId">
         INSERT INTO payments(
-            order_id, reservation_id, membership_id, payment_type,
+            user_id, order_id, reservation_id, membership_id, payment_type,
             payment_method, amount, status, transaction_id,
             paid_at, cancelled_at, refunded_at, created_at
         )
         VALUES (
-                   #{orderId}, #{reservationId}, #{membershipId}, #{paymentType},
+                   #{userId}, #{orderId}, #{reservationId}, #{membershipId}, #{paymentType},
                    #{paymentMethod}, #{amount}, #{status}, #{transactionId},
                    #{paidAt}, #{cancelledAt}, #{refundedAt}, #{createdAt}
                )
@@ -39,7 +40,24 @@
         FROM payments
         WHERE payment_id = #{paymentId}
     </select>
-
+    <!-- 사용자 ID로 결제 목록 조회 -->
+    <select id="selectPaymentsByUserId" parameterType="long" resultMap="PaymentResultMap">
+        SELECT *
+        FROM payments
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+    <!--멤버십 결제 유무 확인-->
+    <select id="existsByMembershipId" resultType="boolean" parameterType="map">
+        SELECT EXISTS (
+            SELECT 1
+            FROM payments
+            WHERE user_id = #{userId}
+              AND membership_id = #{membershipId}
+              AND payment_type = 'MEMBERSHIP'
+              AND status IN ('PENDING', 'PAID')
+        )
+    </select>
     <!--결제 상태 변경-->
     <update id="updatePayment" parameterType="map">
         UPDATE payments
