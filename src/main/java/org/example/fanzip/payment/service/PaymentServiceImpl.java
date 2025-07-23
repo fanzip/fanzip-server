@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PaymentServiceImpl implements PaymentService{
     private final PaymentsRepository paymentsRepository;
 
+    @Transactional
     @Override
     public PaymentsResponseDto createPayment(PaymentsRequestDto requestDto) {
         if(paymentsRepository.existsByTransactionId(requestDto.getTransactionId())){
@@ -44,6 +44,7 @@ public class PaymentServiceImpl implements PaymentService{
 //        if (true) throw new RuntimeException("트랜잭션 롤백 테스트");
         return PaymentsResponseDto.from(payments);
     }
+    @Transactional
     @Override
     public PaymentsResponseDto approvePaymentById(Long paymentId){
         Payments payments = paymentsRepository.findById(paymentId);
@@ -62,6 +63,7 @@ public class PaymentServiceImpl implements PaymentService{
         return PaymentsResponseDto.from(payments);
     }
 
+    @Transactional
     @Override
     public PaymentsResponseDto failedPaymentById(Long paymentId){
         Payments payments = paymentsRepository.findById(paymentId);
@@ -74,6 +76,7 @@ public class PaymentServiceImpl implements PaymentService{
         return PaymentsResponseDto.from(payments);
     }
 
+    @Transactional
     @Override
     public PaymentsResponseDto cancelledPaymentById(Long paymentId){
         Payments payments = paymentsRepository.findById(paymentId);
@@ -82,6 +85,7 @@ public class PaymentServiceImpl implements PaymentService{
         return PaymentsResponseDto.from(payments);
     }
 
+    @Transactional
     @Override
     public PaymentsResponseDto refundedPaymentById(Long paymentId){
         Payments payments = paymentsRepository.findById(paymentId);
@@ -90,12 +94,15 @@ public class PaymentServiceImpl implements PaymentService{
         rollbackStock(payments);
         return PaymentsResponseDto.from(payments);
     }
+
+    @Transactional(readOnly = true)
     @Override
     public PaymentsResponseDto getPayment(Long paymentId) {
         Payments payments = paymentsRepository.findById(paymentId);
         return PaymentsResponseDto.from(payments);
     }
 
+    @Transactional(readOnly = true)
     public List<PaymentsResponseDto> getMyPayments(Long userId){
         List<Payments> paymentsList = paymentsRepository.findByUserId(userId);
         return paymentsList.stream()
