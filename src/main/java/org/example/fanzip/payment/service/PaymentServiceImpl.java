@@ -50,6 +50,9 @@ public class PaymentServiceImpl implements PaymentService{
         payments.approve();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
 //        if(true) throw new RuntimeException("강제 예외"); rollback 확인
+        /*  TODO: 멤버십 생성 or 갱신 로직 (Memberships 테이블 생기면 구현
+        if (payments.getPaymentType() == PaymentType.MEMBERSHIP) {
+         */
         return PaymentsResponseDto.from(payments);
     }
 
