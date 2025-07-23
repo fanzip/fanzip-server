@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -13,15 +14,23 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class MarketVO {
     private Long productId;
+    private Long influencerId;
     private String name;
+    private String description;
     private BigDecimal price;
     private BigDecimal discountedPrice;
     private BigDecimal discountRate;
     private String thumbnailImage;
+
+    private Integer stock;
     private Boolean isSoldOut;
 
-    // 상세 페이지용 필드
     private BigDecimal shippingPrice;
-    private String description;
-    private String detailImages; // JSON 배열 형태로 들어올 경우 String으로 처리
+    private String detailImages;
+
+    private LocalDateTime whiteOpenTime;
+    private LocalDateTime silverOpenTime;
+    private LocalDateTime goldOpenTime;
+    private LocalDateTime vipOpenTime;
+    private LocalDateTime generalOpenTime;
 }

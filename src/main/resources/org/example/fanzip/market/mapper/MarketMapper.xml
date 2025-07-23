@@ -4,15 +4,26 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.fanzip.market.mapper.MarketMapper">
 
-    <!-- VO 필드 ↔ 컬럼 매핑 -->
+    <!-- VO 필드 <-> 컬럼 매핑 -->
     <resultMap id="MarketResultMap" type="org.example.fanzip.market.domain.MarketVO">
-        <id     column="product_id"        property="productId"/>
-        <result column="name"              property="name"/>
-        <result column="price"             property="price"/>
-        <result column="discounted_price"  property="discountedPrice"/>
-        <result column="discount_rate"     property="discountRate"/>
-        <result column="thumbnail_image"   property="thumbnailImage"/>
-        <result column="is_sold_out"       property="isSoldOut"/>
+        <id     column="product_id"         property="productId"/>
+        <result column="influencer_id"      property="influencerId"/>
+        <result column="name"               property="name"/>
+        <result column="description"        property="description"/>
+        <result column="price"              property="price"/>
+        <result column="discounted_price"   property="discountedPrice"/>
+        <result column="discount_rate"      property="discountRate"/>
+        <result column="thumbnail_image"    property="thumbnailImage"/>
+        <result column="stock"              property="stock"/>
+        <result column="stock"              property="isSoldOut"
+                typeHandler="org.apache.ibatis.type.BooleanTypeHandler"/>
+        <result column="shipping_price"     property="shippingPrice"/>
+        <result column="detail_images"      property="detailImages"/>
+        <result column="white_open_time"    property="whiteOpenTime"/>
+        <result column="silver_open_time"   property="silverOpenTime"/>
+        <result column="gold_open_time"     property="goldOpenTime"/>
+        <result column="vip_open_time"      property="vipOpenTime"/>
+        <result column="general_open_time"  property="generalOpenTime"/>
     </resultMap>
 
     <!-- limit 개수만큼 최신 상품 조회 -->
@@ -24,7 +35,7 @@
             discounted_price,
             discount_rate,
             thumbnail_image,
-            CASE WHEN stock = 0 THEN TRUE ELSE FALSE END AS is_sold_out
+            stock
         FROM Products
         ORDER BY product_id DESC
         LIMIT #{limit}
@@ -39,25 +50,67 @@
             discounted_price,
             discount_rate,
             thumbnail_image,
-            CASE WHEN stock = 0 THEN TRUE ELSE FALSE END AS is_sold_out
+            stock
         FROM Products
         WHERE product_id &lt; #{lastProductId}
         ORDER BY product_id DESC
         LIMIT #{limit}
     </select>
 
-    <select id="findProductById" resultType="org.example.fanzip.market.domain.MarketVO">
+    <!-- 상세 상품 내역 조회 -->
+    <select id="findProductById" resultMap="MarketResultMap">
         SELECT
-            product_id AS productId,
+            product_id,
+            influencer_id,
             name,
-            price,
-            discounted_price AS discountedPrice,
-            shipping_price AS shippingPrice,
             description,
-            thumbnail_image AS thumbnailImage,
+            price,
+            discounted_price,
+            discount_rate,
+            shipping_price,
+            stock,
+            thumbnail_image,
             detail_images,
-            stock = 0 AS isSoldOut
+            white_open_time,
+            silver_open_time,
+            gold_open_time,
+            vip_open_time,
+            general_open_time
         FROM products
         WHERE product_id = #{productId}
+    </select>
+
+    <!-- 검색 -->
+    <select id="searchProducts" resultMap="MarketResultMap">
+        select
+            product_id,
+            name,
+            price,
+            discounted_price,
+            discount_rate,
+            thumbnail_image,
+            stock
+        from products
+        where status = 'ACTIVE'
+            AND name LIKE CONCAT('%', #{keyword}, '%')
+        order by product_id desc
+        limit #{limit}
+    </select>
+
+    <select id="searchProductsAfter" resultMap="MarketResultMap">
+        select
+            product_id,
+            name,
+            price,
+            discounted_price,
+            discount_rate,
+            thumbnail_image,
+            stock
+        from products
+        where product_id &lt; #{lastProductId}
+          and status = 'ACTIVE'
+          and name LIKE CONCAT('%', #{keyword}, '%')
+        order by product_id desc
+        limit #{limit}
     </select>
 </mapper>

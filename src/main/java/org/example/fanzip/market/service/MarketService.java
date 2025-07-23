@@ -13,5 +13,9 @@ public interface MarketService {
     List<MarketVO> getProductsAfter(Long lastProductId, int limit);
 
     // 상세 상품 조회
-    ProductDetailResponseDto getProductDetail(Long productId);
+    ProductDetailResponseDto getProductDetail(Long userId, Long productId);
+
+    // 검색
+    List<MarketVO> searchProducts(String keyword, Long lastProductId, int limit);
+
 }
