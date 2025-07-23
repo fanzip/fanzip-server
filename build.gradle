@@ -69,6 +69,16 @@ dependencies {
   implementation 'org.springframework.data:spring-data-redis:2.7.5'
   implementation 'redis.clients:jedis:3.9.0'
 
+  //jjwt
+  implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+  runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+  implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
+  //jackson
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+
+  implementation 'org.yaml:snakeyaml:2.0'
+
   // JSON
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
   implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
