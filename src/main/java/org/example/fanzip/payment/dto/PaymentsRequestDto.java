@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class PaymentsRequestDto {
+    private Long userId;
     private Long orderId;
     private Long reservationId;
     private Long membershipId;
@@ -26,6 +27,7 @@ public class PaymentsRequestDto {
     private BigDecimal amount;
     public Payments toEntity() {
         return Payments.builder()
+                .userId(userId)
                 .orderId(orderId)
                 .reservationId(reservationId)
                 .membershipId(membershipId)
