@@ -31,6 +31,7 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public PaymentsResponseDto approvePaymentById(Long paymentId){
         Payments payments = paymentsRepository.findById(paymentId);
+        validateStockAvailability(payments); // 결제 승인 시 재고 수량 검사 홤수
         payments.approve();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
 //        if(true) throw new RuntimeException("강제 예외"); rollback 확인
@@ -76,7 +77,7 @@ public class PaymentServiceImpl implements PaymentService{
             throw new IllegalArgumentException("orderId, reservationId, membershipId 중 정확히 하나만 존재해야 한다.");
         }
     }
-    private void validateStockAvailability(PaymentsRequestDto dto){ // 재고 수량 검사 홤수
+    private void validateStockAvailability(PaymentsRequestDto dto){ // 결제 요청 시 재고 수량 검사 홤수
         if(dto.getOrderId() != null){
             int mockStock = 10; // 임의 재고 수량, 실제 구현 시 각 Repository Mapper에서 findById() 호출 하기
             if(mockStock <= 0){
@@ -90,6 +91,26 @@ public class PaymentServiceImpl implements PaymentService{
             }
         }
         if(dto.getMembershipId() != null){
+            boolean isMember = true; // 멤버십 가입된 사람
+            if(!isMember){
+                throw new IllegalStateException("멤버십 가입 정보가 없습니다.");
+            }
+        }
+    }
+    private void validateStockAvailability(Payments payments){ // 결제 승인 시 재고 수량 검사 홤수
+        if(payments.getOrderId() != null){
+            int mockStock = 10; // 임의 재고 수량, 실제 구현 시 각 Repository Mapper에서 findById() 호출 하기
+            if(mockStock <= 0){
+                throw new IllegalStateException("상품 재고가 부족합니다");
+            }
+        }
+        if(payments.getReservationId() != null){ // 예매 가능 좌석
+            int mockSeats = 5;
+            if(mockSeats <= 0){
+                throw new IllegalStateException("예약 가능한 인원이 없습니다");
+            }
+        }
+        if(payments.getMembershipId() != null){
             boolean isMember = true; // 멤버십 가입된 사람
             if(!isMember){
                 throw new IllegalStateException("멤버십 가입 정보가 없습니다.");
