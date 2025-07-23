@@ -4,9 +4,9 @@ package org.example.fanzip.payment.dto;
 import lombok.Builder;
 import lombok.Getter;
 import org.example.fanzip.payment.domain.Payments;
-import org.example.fanzip.payment.domain.enums.PaymentMethod;
-import org.example.fanzip.payment.domain.enums.PaymentStatus;
-import org.example.fanzip.payment.domain.enums.PaymentType;
+import org.example.fanzip.payment.domain.enums.PaymentsMethod;
+import org.example.fanzip.payment.domain.enums.PaymentsStatus;
+import org.example.fanzip.payment.domain.enums.PaymentsType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,10 +19,10 @@ public class PaymentsResponseDto {
     private Long orderId;
     private Long reservationId;
     private Long membershipId;
-    private PaymentType paymentType;
-    private PaymentMethod paymentMethod;
+    private PaymentsType paymentsType;
+    private PaymentsMethod paymentsMethod;
     private BigDecimal amount;
-    private PaymentStatus status;
+    private PaymentsStatus status;
     private String transactionId;
     private LocalDateTime paidAt;
     private LocalDateTime cancelledAt;
@@ -35,8 +35,8 @@ public class PaymentsResponseDto {
                 .orderId(payments.getOrderId())
                 .reservationId(payments.getReservationId())
                 .membershipId(payments.getMembershipId())
-                .paymentType(payments.getPaymentType())
-                .paymentMethod(payments.getPaymentMethod())
+                .paymentsType(payments.getPaymentsType())
+                .paymentsMethod(payments.getPaymentsMethod())
                 .amount(payments.getAmount())
                 .status(payments.getStatus())
                 .transactionId(payments.getTransactionId())

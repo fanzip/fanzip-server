@@ -4,7 +4,7 @@ import org.example.fanzip.payment.dto.PaymentsResponseDto;
 
 import java.util.List;
 
-public interface PaymentService {
+public interface PaymentsService {
     PaymentsResponseDto createPayment(PaymentsRequestDto requestDto); // 결제 생성
     PaymentsResponseDto approvePaymentById(Long paymentId); // 결제 승인
     PaymentsResponseDto failedPaymentById(Long paymentId);
