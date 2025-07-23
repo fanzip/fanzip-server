@@ -19,7 +19,7 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public PaymentsResponseDto createPayment(PaymentsRequestDto requestDto) {
         validateForeignKey(requestDto); // 외래키 유효성 검사
-        validateStockAvailability(requestDto); // 재고/좌석/멤버십 체크
+        validateStockAvailability(requestDto.getOrderId(), requestDto.getReservationId(), requestDto.getMembershipId()); // 재고/좌석/멤버십 체크
         if (paymentsMapper.existsByTransactionId(requestDto.getTransactionId())) { // 중복 결제 체크
             throw new IllegalArgumentException("이미 처리된 결제입니다.");
         }
@@ -31,7 +31,7 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public PaymentsResponseDto approvePaymentById(Long paymentId){
         Payments payments = paymentsRepository.findById(paymentId);
-        validateStockAvailability(payments); // 결제 승인 시 재고 수량 검사 홤수
+        validateStockAvailability(payments.getOrderId(), payments.getReservationId(), payments.getMembershipId()); // 결제 승인 시 재고 수량 검사 홤수
         payments.approve();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
 //        if(true) throw new RuntimeException("강제 예외"); rollback 확인
@@ -43,6 +43,8 @@ public class PaymentServiceImpl implements PaymentService{
         Payments payments = paymentsRepository.findById(paymentId);
         payments.failed();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
+
+        rollbackStock(payments);
         return PaymentsResponseDto.from(payments);
     }
 
@@ -77,44 +79,35 @@ public class PaymentServiceImpl implements PaymentService{
             throw new IllegalArgumentException("orderId, reservationId, membershipId 중 정확히 하나만 존재해야 한다.");
         }
     }
-    private void validateStockAvailability(PaymentsRequestDto dto){ // 결제 요청 시 재고 수량 검사 홤수
-        if(dto.getOrderId() != null){
+    private void validateStockAvailability(Long orderId, Long reservationId, Long membershipId){ // 결제 요청 시 재고 수량 검사 홤수
+        if(orderId != null){
             int mockStock = 10; // 임의 재고 수량, 실제 구현 시 각 Repository Mapper에서 findById() 호출 하기
             if(mockStock <= 0){
                 throw new IllegalStateException("상품 재고가 부족합니다");
             }
         }
-        if(dto.getReservationId() != null){ // 예매 가능 좌석
+        if(reservationId!= null){ // 예매 가능 좌석
             int mockSeats = 5;
             if(mockSeats <= 0){
                 throw new IllegalStateException("예약 가능한 인원이 없습니다");
             }
         }
-        if(dto.getMembershipId() != null){
+        if(membershipId != null){
             boolean isMember = true; // 멤버십 가입된 사람
             if(!isMember){
                 throw new IllegalStateException("멤버십 가입 정보가 없습니다.");
             }
         }
     }
-    private void validateStockAvailability(Payments payments){ // 결제 승인 시 재고 수량 검사 홤수
+
+    private void rollbackStock(Payments payments){
         if(payments.getOrderId() != null){
-            int mockStock = 10; // 임의 재고 수량, 실제 구현 시 각 Repository Mapper에서 findById() 호출 하기
-            if(mockStock <= 0){
-                throw new IllegalStateException("상품 재고가 부족합니다");
-            }
+            // orderMapper.restoreStock(payments.getOrderId(), 수량);
+            System.out.println("주문 ID" + payments.getOrderId() + "재고 복원 합니다.");
         }
-        if(payments.getReservationId() != null){ // 예매 가능 좌석
-            int mockSeats = 5;
-            if(mockSeats <= 0){
-                throw new IllegalStateException("예약 가능한 인원이 없습니다");
-            }
-        }
-        if(payments.getMembershipId() != null){
-            boolean isMember = true; // 멤버십 가입된 사람
-            if(!isMember){
-                throw new IllegalStateException("멤버십 가입 정보가 없습니다.");
-            }
-        }
+        if(payments.getReservationId() != null){
+            // reservationMapper.restoreSeats(payments.getReservationId()), 수량);
+            System.out.println("예약 ID" + payments.getReservationId() + "좌석 복원 합니다.");
+        } // 멤버십은 복원 대상X
     }
 }
