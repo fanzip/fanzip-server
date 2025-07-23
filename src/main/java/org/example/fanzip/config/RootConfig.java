@@ -1,5 +1,6 @@
 package org.example.fanzip.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -18,21 +19,19 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource(value = "classpath:application.yml", factory = YamlPropertySourceFactory.class)
-@MapperScan(basePackages = {"org.example.fanzip.payment.mapper"})
-@ComponentScan(basePackages = {"org.example.fanzip.payment"})
+@MapperScan(basePackages = {
+        "org.example.fanzip.user.mapper",
+        "org.example.fanzip.payment.mapper"})
+@ComponentScan(basePackages = {
+        "org.example.fanzip",
+        "org.example.fanzip.user.service",
+        "org.example.fanzip.payment"
+})
 public class RootConfig {
-
-    @Value("${spring.datasource.driver-class-name}")
-    private String driver;
-
-    @Value("${spring.datasource.url}")
-    private String url;
-
-    @Value("${spring.datasource.username}")
-    private String username;
-
-    @Value("${spring.datasource.password}")
-    private String password;
+    @Value("${spring.datasource.driver-class-name}") String driver;
+    @Value("${spring.datasource.url}") String url;
+    @Value("${spring.datasource.username}") String username;
+    @Value("${spring.datasource.password}") String password;
 
 
     @Bean
@@ -62,5 +61,10 @@ public class RootConfig {
     public DataSourceTransactionManager transactionManager(){
         DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
         return manager;
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }
