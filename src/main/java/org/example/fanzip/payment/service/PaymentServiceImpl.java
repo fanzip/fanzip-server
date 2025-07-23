@@ -3,25 +3,40 @@ package org.example.fanzip.payment.service;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.payment.dto.PaymentsRequestDto;
 import org.example.fanzip.payment.dto.PaymentsResponseDto;
-import org.example.fanzip.payment.mapper.PaymentsMapper;
 import org.example.fanzip.payment.repository.PaymentsRepository;
 import org.springframework.stereotype.Service;
 import org.example.fanzip.payment.domain.Payments;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class PaymentServiceImpl implements PaymentService{
     private final PaymentsRepository paymentsRepository;
-    private final PaymentsMapper paymentsMapper;
 
     @Override
     public PaymentsResponseDto createPayment(PaymentsRequestDto requestDto) {
+        if(paymentsRepository.existsByTransactionId(requestDto.getTransactionId())){
+            throw new IllegalStateException("이미 처리된 결제 입니다.");
+        }
         validateForeignKey(requestDto); // 외래키 유효성 검사
-        validateStockAvailability(requestDto.getOrderId(), requestDto.getReservationId(), requestDto.getMembershipId()); // 재고/좌석/멤버십 체크
-        if (paymentsMapper.existsByTransactionId(requestDto.getTransactionId())) { // 중복 결제 체크
-            throw new IllegalArgumentException("이미 처리된 결제입니다.");
+        switch (requestDto.getPaymentType()) { // 결제 유형별 처리
+            case MEMBERSHIP:
+                if (paymentsRepository.existsMembershipPayment(requestDto.getUserId(), requestDto.getMembershipId())) { // 이미 구독중인지 검사
+                    throw new IllegalArgumentException("이미 구독 중인 멤버십입니다.");
+                }
+                break;
+            case ORDER:
+                validateStockAvailability(requestDto.getOrderId(), null, null);
+                break;
+            case RESERVATION:
+                validateStockAvailability(null, requestDto.getReservationId(), null);
+                break;
+            default:
+                throw new IllegalArgumentException("지원하지 않는 결제 유형입니다.");
         }
         Payments payments = requestDto.toEntity();
         paymentsRepository.save(payments);
@@ -67,6 +82,13 @@ public class PaymentServiceImpl implements PaymentService{
     public PaymentsResponseDto getPayment(Long paymentId) {
         Payments payments = paymentsRepository.findById(paymentId);
         return PaymentsResponseDto.from(payments);
+    }
+
+    public List<PaymentsResponseDto> getMyPayments(Long userId){
+        List<Payments> paymentsList = paymentsRepository.findByUserId(userId);
+        return paymentsList.stream()
+                .map(PaymentsResponseDto::from)
+                .collect(Collectors.toList());
     }
 
     private void validateForeignKey(PaymentsRequestDto dto) { // orderId, reservationId, membershipId null 확인 함수
