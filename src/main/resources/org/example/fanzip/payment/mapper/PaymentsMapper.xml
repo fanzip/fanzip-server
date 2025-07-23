@@ -46,5 +46,10 @@
         SET status = #{status}
         WHERE payment_id = #{paymentId}
     </update>
-
+    <!--transacionId 중복 검사-->
+    <select id="existsByTransactionId" resultType="boolean" parameterType="string">
+        SELECT COUNT(*) > 0
+        FROM payments
+        WHERE transaction_id = #{transactionId}
+    </select>
 </mapper>
