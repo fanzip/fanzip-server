@@ -68,9 +68,11 @@ public class PaymentServiceImpl implements PaymentService{
     @Override
     public PaymentsResponseDto failedPaymentById(Long paymentId){
         Payments payments = paymentsRepository.findById(paymentId);
+        if (payments.getStatus() != PaymentStatus.PENDING) {
+            throw new IllegalStateException("PENDING이 아닌 상태에서 실패 처리할 수 없습니다.");
+        }
         payments.failed();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
-
         rollbackStock(payments);
         return PaymentsResponseDto.from(payments);
     }
