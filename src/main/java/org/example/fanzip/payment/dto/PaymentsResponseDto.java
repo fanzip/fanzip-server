@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class PaymentsResponseDto {
+    private Long userId;
     private Long paymentId;
     private Long orderId;
     private Long reservationId;
@@ -29,6 +30,7 @@ public class PaymentsResponseDto {
     private LocalDateTime createdAt;
     public static PaymentsResponseDto from(Payments payments) {
         return PaymentsResponseDto.builder()
+                .userId(payments.getUserId())
                 .paymentId(payments.getPaymentId())
                 .orderId(payments.getOrderId())
                 .reservationId(payments.getReservationId())

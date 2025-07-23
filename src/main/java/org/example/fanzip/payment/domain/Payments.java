@@ -8,6 +8,7 @@ import org.example.fanzip.payment.domain.enums.PaymentStatus;
 import org.example.fanzip.payment.domain.enums.PaymentType;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Getter
@@ -27,11 +28,12 @@ public class Payments {
     private LocalDateTime cancelledAt;
     private LocalDateTime refundedAt;
     private LocalDateTime createdAt;
+    private Long userId;
     public Payments(Long paymentId, Long orderId, Long reservationId, Long membershipId,
                     String paymentType, String paymentMethod, BigDecimal amount,
                     String status, String transactionId,
                     LocalDateTime paidAt, LocalDateTime cancelledAt,
-                    LocalDateTime refundedAt, LocalDateTime createdAt) {
+                    LocalDateTime refundedAt, LocalDateTime createdAt, Long userId) {
 
         this.paymentId = paymentId;
         this.orderId = orderId;
@@ -46,6 +48,7 @@ public class Payments {
         this.cancelledAt = cancelledAt;
         this.refundedAt = refundedAt;
         this.createdAt = createdAt;
+        this.userId = userId;
     }
     public void approve(){
         if(this.status != PaymentStatus.PENDING){
