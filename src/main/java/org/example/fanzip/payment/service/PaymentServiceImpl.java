@@ -51,7 +51,11 @@ public class PaymentServiceImpl implements PaymentService{
             throw new IllegalStateException("승인할 수 없는 상태입니다.");
         }
         validateStockAvailability(payments.getOrderId(), payments.getReservationId(), payments.getMembershipId()); // 결제 승인 시 재고 수량 검사 홤수
-        // TODO : 주문 금액과 결제 요청 금액이 맞는지 확인 로직 들어가야
+        // TODO : 주문 금액과 결제 요청 금액이 맞는지 로직 변경 필요
+        Long expectedAmount = getExpectedAmountMock(payments);
+        if (!payments.getAmount().equals(expectedAmount)) {
+            throw new IllegalArgumentException("결제 요청 금액이 실제 금액과 일치하지 않습니다.");
+        }
         payments.approve();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
         // if(true) throw new RuntimeException("강제 예외"); rollback 확인
@@ -129,7 +133,18 @@ public class PaymentServiceImpl implements PaymentService{
             }
         }
     }
-
+    private Long getExpectedAmountMock(Payments payments) {
+        if (payments.getOrderId() != null) {
+            return 38000L; // 주문 총 금액 mock
+        }
+        if (payments.getReservationId() != null) {
+            return 12000L; // 예매 금액 mock
+        }
+        if (payments.getMembershipId() != null) {
+            return 10000L; // 멤버십 월 구독료 mock
+        }
+        throw new IllegalStateException("결제 대상이 유효하지 않습니다.");
+    }
     private void rollbackStock(Payments payments){
         if(payments.getOrderId() != null){
             // orderMapper.restoreStock(payments.getOrderId(), 수량);
