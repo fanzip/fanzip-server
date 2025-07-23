@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.fanzip.membership.mapper.MembershipMapper">
+
+    <resultMap id="membershipMap" type="org.example.fanzip.membership.domain.MembershipVO">
+        <id column="membership_id" property="membershipId"/>
+        <result column="user_id" property="userId"/>
+        <result column="influencer_id" property="influencerId"/>
+        <result column="grade_id" property="gradeId"/>
+        <result column="status" property="status"/>
+        <result column="subscription_start" property="subscriptionStart"/>
+        <result column="subscription_end" property="subscriptionEnd"/>
+        <result column="monthly_amount" property="monthlyAmount"/>
+        <result column="total_paid_amount" property="totalPaidAmount"/>
+        <result column="auto_renewal" property="autoRenewal"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+
+    <!-- 구독 INSERT: 모든 컬럼 포함 -->
+    <insert id="insertMembership"
+            parameterType="org.example.fanzip.membership.domain.MembershipVO"
+            useGeneratedKeys="true" keyProperty="membershipId">
+        INSERT INTO test_db.memberships (
+            user_id, influencer_id, grade_id, status,
+            subscription_start, subscription_end,
+            monthly_amount, total_paid_amount, auto_renewal,
+            created_at, updated_at
+        )
+        VALUES (
+                   #{userId}, #{influencerId}, #{gradeId}, #{status},
+                   NOW(), DATE_ADD(NOW(), INTERVAL 1 MONTH),
+                   #{monthlyAmount}, #{totalPaidAmount}, #{autoRenewal},
+                   NOW(), NOW()
+               )
+    </insert>
+
+    <!-- 구독 정보 조회: resultMap 사용 -->
+    <select id="findByUserIdAndInfluencerId"
+            resultMap="membershipMap">
+        SELECT *
+        FROM test_db.memberships
+        WHERE user_id = #{userId} AND influencer_id = #{influencerId}
+    </select>
+</mapper>
