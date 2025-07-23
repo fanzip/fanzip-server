@@ -3,7 +3,6 @@ package org.example.fanzip.membership.dto;
 import lombok.*;
 import org.example.fanzip.membership.domain.MembershipVO;
 
-import java.math.BigInteger;
 
 @Getter
 @AllArgsConstructor
