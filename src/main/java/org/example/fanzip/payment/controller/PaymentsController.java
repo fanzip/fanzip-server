@@ -7,6 +7,8 @@ import org.example.fanzip.payment.service.PaymentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
@@ -38,9 +40,14 @@ public class PaymentsController {
         PaymentsResponseDto responseDto = paymentService.refundedPaymentById(paymentId);
         return ResponseEntity.ok(responseDto);
     }
-    @GetMapping("/{paymentId}")
+    @GetMapping("/payment/{paymentId}")
     public ResponseEntity<PaymentsResponseDto> getPaymentDetail(@PathVariable Long paymentId){
         PaymentsResponseDto responseDto = paymentService.getPayment(paymentId);
         return ResponseEntity.ok(responseDto);
+    }
+    @GetMapping("/user/{userId}") // 로그인 인증 구현 후 변경 예정
+    public ResponseEntity<List<PaymentsResponseDto>> getMyPaymentDetail(@PathVariable Long userId){
+        List<PaymentsResponseDto> responseDtoList = paymentService.getMyPayments(userId);
+        return ResponseEntity.ok(responseDtoList);
     }
 }
