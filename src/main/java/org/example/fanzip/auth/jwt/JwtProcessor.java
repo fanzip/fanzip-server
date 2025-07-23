@@ -31,7 +31,7 @@ public class JwtProcessor {
 //    private Key key=Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
 //    private Key key=Keys.secretKeyFor(SignatureAlgorithm.HS256);
     //JWT 생성
-    public String genereteToken(String socialType, String socialId){
+    public String generateToken(String socialType, String socialId){
 //        System.out.println("key:"+key);
 
         return Jwts.builder()

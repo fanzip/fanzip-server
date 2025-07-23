@@ -23,7 +23,7 @@ public class OAuthController {
     public ResponseEntity<?> kakaoCallback(@RequestParam String code) throws Exception{
         System.out.println("code:"+code);
         KakaoUserDTO kakaoUser= kakaoOAuthService.login(code);
-        String jwt=jwtProcessor.genereteToken(kakaoUser.getSocialType(),kakaoUser.getSocialId());
+        String jwt=jwtProcessor.generateToken(kakaoUser.getSocialType(),kakaoUser.getSocialId());
 
         if(kakaoUser.isRegistered()){//가입한 유저
             return ResponseEntity.ok().
