@@ -7,17 +7,25 @@
 
     <resultMap id="membershipMap" type="org.example.fanzip.membership.domain.MembershipVO">
         <id column="membership_id" property="membershipId"/>
+
         <result column="user_id" property="userId"/>
         <result column="influencer_id" property="influencerId"/>
         <result column="grade_id" property="gradeId"/>
         <result column="status" property="status"/>
-        <result column="subscription_start" property="subscriptionStart"/>
-        <result column="subscription_end" property="subscriptionEnd"/>
+
+        <!-- 날짜 타입: LocalDate → DATE -->
+        <result column="subscription_start" property="subscriptionStart" jdbcType="DATE"/>
+        <result column="subscription_end" property="subscriptionEnd" jdbcType="DATE"/>
+
         <result column="monthly_amount" property="monthlyAmount"/>
         <result column="total_paid_amount" property="totalPaidAmount"/>
-        <result column="auto_renewal" property="autoRenewal"/>
-        <result column="created_at" property="createdAt"/>
-        <result column="updated_at" property="updatedAt"/>
+
+        <!-- Boolean 타입 (MySQL에서 BOOLEAN은 실제로 TINYINT(1) = BIT) -->
+        <result column="auto_renewal" property="autoRenewal" jdbcType="BIT"/>
+
+        <!-- 날짜/시간 타입: LocalDateTime → TIMESTAMP -->
+        <result column="created_at" property="createdAt" jdbcType="TIMESTAMP"/>
+        <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP"/>
     </resultMap>
 
 
@@ -34,7 +42,8 @@
         VALUES (
                    #{userId}, #{influencerId}, #{gradeId}, #{status},
                    NOW(), DATE_ADD(NOW(), INTERVAL 1 MONTH),
-                   #{monthlyAmount}, #{totalPaidAmount}, #{autoRenewal},
+                   #{monthlyAmount}, #{totalPaidAmount},
+                   #{autoRenewal, jdbcType=BIT},
                    NOW(), NOW()
                )
     </insert>
@@ -46,4 +55,10 @@
         FROM test_db.memberships
         WHERE user_id = #{userId} AND influencer_id = #{influencerId}
     </select>
+
+    <delete id="deleteByUserIdAndInfluencerId">
+        DELETE FROM test_db.memberships
+        WHERE user_id = #{userId} AND influencer_id = #{influencerId}
+    </delete>
+
 </mapper>
