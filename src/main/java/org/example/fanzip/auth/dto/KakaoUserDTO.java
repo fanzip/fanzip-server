@@ -13,5 +13,6 @@ public class KakaoUserDTO {
     private String socialType;
     private String socialId;
     private String email;
+    private Long userId;
     private boolean isRegistered;
 }
