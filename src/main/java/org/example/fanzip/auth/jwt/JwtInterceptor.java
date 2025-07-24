@@ -31,8 +31,8 @@ public class JwtInterceptor implements HandlerInterceptor {
             Jws<Claims> claims= jwtProcessor.parseToken(token);
 
             System.out.println("claims:"+claims);
-            String userID=claims.getBody().get("userID", String.class);
-            request.setAttribute("userID", userID);
+            String userId=claims.getBody().get("userId", String.class);
+            request.setAttribute("userId", userId);
             return true;
         }catch (JwtException e){
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
