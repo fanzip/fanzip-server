@@ -28,7 +28,7 @@ class JwtProcessorTest {
     @Test
     void getUserId() {
         String token= "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjksImlhdCI6MTc1MzMzMDQ1NSwiZXhwIjoxNzUzMzMyMjU1fQ.xrCrKujMwXBNo9Fk3C3j8KxBxWMoA6prkomxcTI3Qr4";
-        String userId=jwtProcessor.getUserId(token);
+        Long userId=jwtProcessor.getUserId(token);
         log.info("userId:{}",userId);
         assertNotNull(userId);
     }

@@ -41,13 +41,13 @@ public class JwtProcessor {
     }
 
     //JWT Subject(username) 추출
-    public String getUserId(String token){
+    public Long getUserId(String token){
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .get("userId").toString();
+                .get("userId",Long.class);
     }
     //JWT 검증(유효 기간 검증)-해석 불가인 경우 예외 발생
     public boolean validateToken(String token){
