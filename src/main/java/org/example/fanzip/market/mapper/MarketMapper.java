@@ -21,15 +21,7 @@ public interface MarketMapper {
     // 상품 상세 페이지 조회
     MarketVO findProductById(@Param("productId") Long productId);
 
-    // 인플루언서별 구독 등급 찾기
-    @Select("""
-                select grade_id
-                from memberships
-                where user_id = #{userId}
-                  and influencer_id = #{influencerId}
-                  and status = 'ACTIVE'
-                limit 1
-            """)
+    // 등급 확인
     Integer findMyGrade(
             @Param("userId") Long userId,
             @Param("influencerId") Long influencerId
@@ -47,4 +39,7 @@ public interface MarketMapper {
             @Param("lastProductId") Long lastProductId,
             @Param("limit") int limit
     );
+
+    // 재고 조회
+    int getStock(@Param("productId") Long productId);
 }

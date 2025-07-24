@@ -58,6 +58,15 @@
     </select>
 
     <!-- 상세 상품 내역 조회 -->
+    <select id="findMyGrade" resultType="java.lang.Integer">
+        select grade_id
+        from memberships
+        where user_id = #{userId}
+          and influencer_id = #{influencerId}
+          and status = 'ACTIVE'
+        limit 1
+    </select>
+
     <select id="findProductById" resultMap="MarketResultMap">
         SELECT
             product_id,
@@ -112,5 +121,12 @@
           and name LIKE CONCAT('%', #{keyword}, '%')
         order by product_id desc
         limit #{limit}
+    </select>
+
+    <!-- 재고 조회 -->
+    <select id="getStock" resultMap="MarketResultMap">
+        select stock
+        from products
+        where product_id = #{productId}
     </select>
 </mapper>

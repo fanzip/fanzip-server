@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.fanzip.cart.mapper.CartMapper">
+    <!-- 사용자별 장바구니 ID 조회 -->
+    <select id="findCartIdByUserId" resultType="java.lang.Long" parameterType="java.lang.Long">
+        select cart_id
+        from cart
+        where user_id = #{userId}
+    </select>
+
+    <!-- 장바구니 없는 경우 생성 -->
+    <insert id="createCart" parameterType="java.lang.Long" useGeneratedKeys="true" keyProperty="cartId">
+        insert into Cart (user_id, created_at, updated_at)
+        values (#{userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    </insert>
+
+    <!-- 장바구니에 항목 추가 -->
+    <insert id="insertCartItem" parameterType="map" useGeneratedKeys="true" keyProperty="cartId">
+        insert into cartitems (cart_id, product_id, quantity, added_at, is_selected)
+        values (#{cartId}, #{productId}, #{quantity}, CURRENT_TIMESTAMP, true)
+    </insert>
+
+    <!-- 장바구니 전체 항목 조회 -->
+    <select id="findItemsByUser" resultType="org.example.fanzip.cart.dto.CartItemDto">
+        select
+            c.cart_item_id      as cartItemId,
+            p.product_id        as productId,
+            p.name              as productName,
+            p.thumbnail_image   as thumbnailImage,
+            p.price             as unitPrice,
+            p.discounted_price  as discountedPrice,
+            c.quantity          as quantity,
+            c.is_selected       as isSelected,
+            i.influencer_id     as influencerId,
+            i.influencer_name   as influencerName
+        from cartitems c join products p on c.product_id = p.product_id
+                    join influencers i on i.influencer_id = p.influencer_id
+        where c.cart_id = (
+            select cart_id from cart where user_id = #{userId}
+            )
+    </select>
+
+    <!-- 단일 항목 조회 -->
+    <select id="findItemById" parameterType="long" resultType="org.example.fanzip.cart.dto.CartItemDto">
+        select
+            c.cart_item_id                      as cartItemId,
+            c.product_id                        as productId,
+            c.quantity                          as quantity,
+            c.is_selected                       as isSelected,
+            p.name                              as productName,
+            p.thumbnail_image                   as thumbnailImage,
+            p.discounted_price                  as discountedPrice,
+            (c.quantity * p.discounted_price)   as totalPrice
+        from cartitems c join products p on c.product_id=p.product_id
+        where c.cart_item_id=#{cartItemId}
+    </select>
+
+    <!-- 소유 체크 -->
+    <select id="checkOwnership" resultType="int">
+        select 1
+        from cartitems ci join cart c on ci.cart_id = c.cart_id
+        where ci.cart_item_id = #{cartItemId}
+            and c.user_id = #{userId}
+    </select>
+
+    <!-- 수량, 선택 업데이트 -->
+    <select id="updateCartItem">
+        update cartitems
+        set quantity = #{quantity},
+            is_selected = #{isSelected}
+        where cart_item_id = #{cartItemId}
+
+    </select>
+    
+    <!-- 전체 선택, 해제 -->
+    <update id="updateAllSelection">
+        update cartitems ci
+        join cart c on ci.cart_id = c.cart_id
+        set ci.is_selected = #{selectAll}
+        where c.user_id = #{userId}
+    </update>
+
+    <!-- 항목 삭제 -->
+    <delete id="deleteCartItem">
+        delete from cartitems
+        where cart_item_id=#{cartItemId}
+    </delete>
+
+</mapper>
