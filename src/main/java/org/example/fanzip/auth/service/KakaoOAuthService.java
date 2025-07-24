@@ -45,12 +45,14 @@ public class KakaoOAuthService implements OAuthService {
         UserDTO user=userService.findBySocialTypeAndSocialId(socialType,socialId);
 
         boolean isRegistered=(user!=null);
+        Long userId=isRegistered?user.getUserId():null;
 
         return KakaoUserDTO.builder()
                 .socialType(socialType)
                 .socialId(socialId)
                 .email(email)
                 .isRegistered(isRegistered)
+                .userId(userId)
                 .build();
     }
 //    private KakaoTokenResponse refreshAccessToken(String socialId) throws IOException {
