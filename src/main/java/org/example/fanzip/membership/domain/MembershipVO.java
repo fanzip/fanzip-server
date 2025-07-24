@@ -6,7 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.fanzip.membership.domain.enums.MembershipStatus;
 
-import java.util.Date;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 
 @Data
 @NoArgsConstructor
@@ -14,17 +17,17 @@ import java.util.Date;
 @Builder
 public class MembershipVO {
 
-    public Long membershipId;
-    public Long userId;
-    public Long influencerId;
-    public Integer gradeId;
-    public MembershipStatus status;
-    public Date subscriptionStart;
-    public Date subscriptionEnd;
+    private Long membershipId;
+    private Long userId;
+    private Long influencerId;
+    private Integer gradeId;
+    private MembershipStatus status;
+    private LocalDate subscriptionStart;
+    private LocalDate subscriptionEnd;
 
-    private Double monthlyAmount;
-    private Double totalPaidAmount;
+    private BigDecimal monthlyAmount;
+    private BigDecimal totalPaidAmount;
     private Boolean autoRenewal;
-    private Date createdAt;
-    private Date updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

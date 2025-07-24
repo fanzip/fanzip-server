@@ -5,7 +5,8 @@ import lombok.*;
 import org.example.fanzip.membership.domain.MembershipVO;
 import org.example.fanzip.membership.domain.enums.MembershipStatus;
 
-import java.util.Date;
+// 수정
+import java.time.LocalDate;
 
 
 @Getter
@@ -15,8 +16,8 @@ import java.util.Date;
 public class MembershipSubscribeResponseDTO {
     private long membershipId;
     private MembershipStatus status;
-    private Date subscriptionStart;
-    private Date subscriptionEnd;
+    private LocalDate subscriptionStart;
+    private LocalDate subscriptionEnd;
 
 
     public static MembershipSubscribeResponseDTO from(MembershipVO membershipVO){
