@@ -51,7 +51,7 @@ public class ServletConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/oauth/**", "/resources/**");
+                .excludePathPatterns("/oauth/**", "/resources/**","/api/users/**");
     }
 
     @Override
