@@ -18,6 +18,9 @@ public class PaymentCreationService {
             throw new IllegalStateException("이미 처리된 결제 입니다.");
         }
         validateForeignKey(requestDto); // 외래키 유효성 검사
+        if (requestDto.getPaymentsType() == null) {
+            throw new IllegalArgumentException("결제 유형이 존재하지 않습니다.");
+        }
         switch (requestDto.getPaymentsType()) { // 결제 유형별 처리
             case MEMBERSHIP:
                 if (paymentsRepository.existsMembershipPayment(requestDto.getUserId(), requestDto.getMembershipId())) { // 이미 구독중인지 검사
@@ -40,7 +43,7 @@ public class PaymentCreationService {
     }
 
 
-    private void validateForeignKey(PaymentsRequestDto dto) { // orderId, reservationId, membershipId null 확인 함수
+    protected void validateForeignKey(PaymentsRequestDto dto) { // orderId, reservationId, membershipId null 확인 함수
         int nonNullCount = 0;
         if (dto.getOrderId() != null) nonNullCount++;
         if (dto.getReservationId() != null) nonNullCount++;
@@ -50,7 +53,7 @@ public class PaymentCreationService {
             throw new IllegalArgumentException("orderId, reservationId, membershipId 중 정확히 하나만 존재해야 한다.");
         }
     }
-    private void validateStockAvailability(Long orderId, Long reservationId, Long membershipId){ // 결제 요청 시 재고 수량 검사 홤수
+    protected void validateStockAvailability(Long orderId, Long reservationId, Long membershipId){ // 결제 요청 시 재고 수량 검사 홤수
         if(orderId != null){
             int mockStock = 10; // 임의 재고 수량, 실제 구현 시 각 Repository Mapper에서 findById() 호출 하기
             if(mockStock <= 0){
