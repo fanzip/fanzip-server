@@ -22,7 +22,6 @@ public class JwtProcessor {
     //JWT 생성
     public String generateToken(Long userId) {
         JwtBuilder builder= Jwts.builder()
-                .claim("userId", userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime()+TOKEN_VALID_MILISECOND))
                 .signWith(key, SignatureAlgorithm.HS256);
