@@ -7,6 +7,9 @@
         insert into Users
             (social_type, social_id, name, phone, email)
         values (#{socialType}, #{socialId}, #{name}, #{phone}, #{email})
+        <selectKey resultType="Long" keyProperty="userId" keyColumn="user_id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
     </insert>
     <update id="updateAdditionalInfo">
         update Users
