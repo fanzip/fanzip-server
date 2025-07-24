@@ -34,7 +34,23 @@ class PaymentsApproveServiceTest {
         PaymentsResponseDto result = approveService.approvePaymentById(1L);
         assertEquals(PaymentsStatus.PAID, result.getStatus());
     }
+    @Test
+    @DisplayName("approvePaymentById - 이미 PAID 상태인 경우 예외")
+    void testApproveAlreadyPaidPayment() {
+        Payments payment = Payments.builder()
+                .paymentId(10L)
+                .status(PaymentsStatus.PAID)
+                .paymentsType(PaymentsType.ORDER)
+                .orderId(1L)
+                .amount(BigDecimal.valueOf(38000L))
+                .build();
 
+        when(mockRepository.findById(10L)).thenReturn(payment);
+
+        assertThrows(IllegalStateException.class, () -> {
+            approveService.approvePaymentById(10L);
+        });
+    }
     @Test
     @DisplayName("failedPaymentById - 성공")
     void testFailedPayment() {
@@ -50,7 +66,20 @@ class PaymentsApproveServiceTest {
         PaymentsResponseDto result = approveService.failedPaymentById(2L);
         assertEquals(PaymentsStatus.FAILED, result.getStatus());
     }
+    @Test
+    @DisplayName("failPaymentById - 이미 FAILED 상태에서 호출 시 예외")
+    void testFailAlreadyFailedPayment() {
+        Payments payment = Payments.builder()
+                .paymentId(11L)
+                .status(PaymentsStatus.FAILED)
+                .build();
 
+        when(mockRepository.findById(11L)).thenReturn(payment);
+
+        assertThrows(IllegalStateException.class, () -> {
+            approveService.failedPaymentById(11L);
+        });
+    }
     @Test
     @DisplayName("cancelledPaymentById - 성공")
     void testCancelledPayment() {
@@ -64,7 +93,20 @@ class PaymentsApproveServiceTest {
         PaymentsResponseDto result = approveService.cancelledPaymentById(3L);
         assertEquals(PaymentsStatus.CANCELLED, result.getStatus());
     }
+    @Test
+    @DisplayName("cancelledPaymentById - 이미 CANCELLED 상태에서 호출 시 예외")
+    void testCancelAlreadyCancelledPayment() {
+        Payments payment = Payments.builder()
+                .paymentId(12L)
+                .status(PaymentsStatus.CANCELLED)
+                .build();
 
+        when(mockRepository.findById(12L)).thenReturn(payment);
+
+        assertThrows(IllegalStateException.class, () -> {
+            approveService.cancelledPaymentById(12L);
+        });
+    }
     @Test
     @DisplayName("approvePaymentById - 금액 불일치 예외")
     void testApprovePaymentWithWrongAmount() {
@@ -79,6 +121,15 @@ class PaymentsApproveServiceTest {
         when(mockRepository.findById(4L)).thenReturn(payment);
         assertThrows(IllegalArgumentException.class, () -> {
             approveService.approvePaymentById(4L);
+        });
+    }
+    @Test
+    @DisplayName("approvePaymentById - 존재하지 않는 결제 ID")
+    void testApprovePaymentNotFound() {
+        when(mockRepository.findById(999L)).thenReturn(null);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            approveService.approvePaymentById(999L);
         });
     }
 }

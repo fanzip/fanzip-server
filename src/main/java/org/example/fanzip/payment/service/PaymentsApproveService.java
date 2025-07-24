@@ -19,6 +19,9 @@ public class PaymentsApproveService {
     @Transactional
     public PaymentsResponseDto approvePaymentById(Long paymentId) {
         Payments payments = paymentsRepository.findById(paymentId);
+        if (payments == null) {
+            throw new IllegalArgumentException("해당 결제 정보를 찾을 수 없습니다. paymentId=" + paymentId);
+        }
         validateStockAvailability(payments.getOrderId(), payments.getReservationId(), payments.getMembershipId()); // 결제 승인 시 재고 수량 검사 홤수
         // TODO : 주문 금액과 결제 요청 금액이 맞는지 로직 변경 필요
         BigDecimal expectedAmount = getExpectedAmountMock(payments);
@@ -27,7 +30,7 @@ public class PaymentsApproveService {
         }
         payments.approve();
         paymentsRepository.updateStatus(paymentId, payments.getStatus());
-        // if(true) throw new RuntimeException("강제 예외"); rollback 확인
+//        if(true) throw new RuntimeException("강제 예외");
         /*  TODO: 멤버십 생성 or 갱신 로직 (Memberships 테이블 생기면 구현
         if (payments.getPaymentType() == PaymentType.MEMBERSHIP) {
          */
@@ -54,7 +57,7 @@ public class PaymentsApproveService {
         return PaymentsResponseDto.from(payments);
     }
 
-    private void validateStockAvailability(Long orderId, Long reservationId, Long membershipId) { // 결제 요청 시 재고 수량 검사 홤수
+    protected void validateStockAvailability(Long orderId, Long reservationId, Long membershipId) { // 결제 요청 시 재고 수량 검사 홤수
         if (orderId != null) {
             int mockStock = 10; // 임의 재고 수량, 실제 구현 시 각 Repository Mapper에서 findById() 호출 하기
             if (mockStock <= 0) {
