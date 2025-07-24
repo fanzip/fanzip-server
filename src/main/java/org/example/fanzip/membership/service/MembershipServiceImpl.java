@@ -8,10 +8,11 @@ import org.example.fanzip.membership.dto.MembershipSubscribeResponseDTO;
 import org.example.fanzip.membership.mapper.MembershipMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
-import java.math.BigInteger;
-import java.util.Calendar;
-import java.util.Date;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -22,41 +23,21 @@ public class MembershipServiceImpl implements MembershipService{
 
     @Override
     public MembershipSubscribeResponseDTO subscribe(
-            MembershipSubscribeRequestDTO requestDTO, BigInteger userId) {
+            MembershipSubscribeRequestDTO requestDTO, long userId) {
 
         MembershipVO existingMembership = membershipMapper
                 .findByUserIdAndInfluencerId(userId, requestDTO.getInfluencerId());
 
         if (existingMembership != null) {
-            return MembershipSubscribeResponseDTO.from(existingMembership);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 구독 중입니다.");
         }
 
-
-        // 날짜 설정
-        Date now = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(now);
-        calendar.add(Calendar.MONTH, 1);
-        Date oneMonthLater = calendar.getTime();
-
-
-        MembershipVO membershipVO = MembershipVO.builder()  // DTO -> VO
-                .userId(userId.longValue())
-                .influencerId(requestDTO.getInfluencerId())
-                .gradeId(requestDTO.getGradeId())
-                .status(MembershipStatus.ACTIVE)
-                .subscriptionStart(now)
-                .subscriptionEnd(oneMonthLater)
-                .monthlyAmount(3000.0)
-                .totalPaidAmount(3000.0)
-                .build();
+        MembershipVO membershipVO = requestDTO.toEntity(userId);
 
         membershipMapper.insertMembership(membershipVO);
 
-        MembershipVO inserted = membershipMapper.findByUserIdAndInfluencerId(
-                userId, requestDTO.getInfluencerId());
+        MembershipVO inserted = membershipMapper.findByUserIdAndInfluencerId(userId, requestDTO.getInfluencerId());
 
         return MembershipSubscribeResponseDTO.from(inserted);
     }
-
 }
