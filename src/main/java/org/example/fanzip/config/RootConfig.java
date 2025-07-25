@@ -17,9 +17,9 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import javax.sql.DataSource;
 
 @Configuration
-@PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {"org.example.fanzip.mapper"})
-@ComponentScan(basePackages = {"org.example.fanzip"})
+@PropertySource(value = "classpath:/application.yml", factory = YamlPropertySourceFactory.class)
+@MapperScan(basePackages = {"org.example.fanzip.fancard.mapper"})
+@ComponentScan(basePackages = {"org.example.fanzip"}, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
     @Value("${jdbc.url}") String url;
@@ -46,10 +46,11 @@ public class RootConfig {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
         sqlSessionFactory.setConfigLocation(
                 applicationContext.getResource("classpath:/mybatis-config.xml"));
+        sqlSessionFactory.setMapperLocations(
+                applicationContext.getResources("classpath:/mappers/*.xml"));
         sqlSessionFactory.setDataSource(dataSource());
         return (SqlSessionFactory) sqlSessionFactory.getObject();
     }
-
     @Bean
     public DataSourceTransactionManager transactionManager(){
         DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
