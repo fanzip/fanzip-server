@@ -59,7 +59,7 @@
 
     <!-- 소유 체크 -->
     <select id="checkOwnership" resultType="int">
-        select 1
+        select *
         from cartitems ci join cart c on ci.cart_id = c.cart_id
         where ci.cart_item_id = #{cartItemId}
             and c.user_id = #{userId}
@@ -71,7 +71,6 @@
         set quantity = #{quantity},
             is_selected = #{isSelected}
         where cart_item_id = #{cartItemId}
-
     </select>
     
     <!-- 전체 선택, 해제 -->

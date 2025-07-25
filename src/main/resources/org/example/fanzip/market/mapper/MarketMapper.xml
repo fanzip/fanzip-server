@@ -59,7 +59,8 @@
 
     <!-- 상세 상품 내역 조회 -->
     <select id="findMyGrade" resultType="java.lang.Integer">
-        select grade_id
+        select
+            grade_id  as grade_id
         from memberships
         where user_id = #{userId}
           and influencer_id = #{influencerId}
@@ -124,7 +125,7 @@
     </select>
 
     <!-- 재고 조회 -->
-    <select id="getStock" resultMap="MarketResultMap">
+    <select id="getStock" parameterType="long" resultType="int">
         select stock
         from products
         where product_id = #{productId}

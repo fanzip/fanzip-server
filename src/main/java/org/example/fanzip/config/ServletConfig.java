@@ -23,7 +23,9 @@ import java.util.List;
         "org.example.fanzip.controller",
         "org.example.fanzip.auth.controller",
         "org.example.fanzip.user.controller",
-        "org.example.fanzip"
+        "org.example.fanzip",
+        "org.example.fanzip.cart.controller",
+        "org.example.fanzip.market.controller"
 })
 @RequiredArgsConstructor
 public class ServletConfig implements WebMvcConfigurer {
@@ -51,7 +53,7 @@ public class ServletConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/oauth/**", "/resources/**","/api/users/**");
+                .excludePathPatterns("/oauth/**", "/resources/**","/api/users/**", "/api/cart/**", "/api/market/**","/api/payment/**");
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.example.fanzip.market.controller;
 
+import org.example.fanzip.auth.jwt.JwtProcessor;
 import org.example.fanzip.market.domain.MarketVO;
 import org.example.fanzip.market.dto.ProductDetailResponseDto;
 import org.example.fanzip.market.service.MarketService;
@@ -14,12 +15,15 @@ import java.util.List;
 public class MarketController {
 
     private final MarketService marketService;
+    private final JwtProcessor jwtProcessor;
 
     @Autowired
-    public MarketController(MarketService marketService) {
+    public MarketController(MarketService marketService, JwtProcessor jwtProcessor) {
         this.marketService = marketService;
+        this.jwtProcessor = jwtProcessor;
     }
 
+    // 전체 상품 조회
     @GetMapping("/products")
     public List<MarketVO> getProducts(
             @RequestParam(value = "limit", defaultValue = "20") int limit,
@@ -36,11 +40,15 @@ public class MarketController {
         return marketService.getProductsAfter(lastProductId, limit);
     }
 
+    // 상세 상품 조회
     @GetMapping("/products/{productId}")
     public ResponseEntity<ProductDetailResponseDto> getProductDetail(
-            @RequestHeader("X-User-Id") Long userId,
+            //@RequestHeader("Authorization") String header,
+            @RequestHeader("X-USER-ID") Long userId,
             @PathVariable Long productId
     ) {
+//        String token = header.substring(7);
+//        Long userId = jwtProcessor.getUserId(token);
         ProductDetailResponseDto dto = marketService.getProductDetail(userId, productId);
         return ResponseEntity.ok(dto);
     }
