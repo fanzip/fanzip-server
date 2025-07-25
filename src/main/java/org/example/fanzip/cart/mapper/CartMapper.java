@@ -31,8 +31,8 @@ public interface CartMapper {
             @Param("cartItemId") Long cartItemId
     );
 
-    //
-    void checkOwnership(
+    // 장바구니 소유 여부/개수 확인
+    Integer checkOwnership(
             @Param("userId") Long userId,
             @Param("cartItemId") Long cartItemId
     );
