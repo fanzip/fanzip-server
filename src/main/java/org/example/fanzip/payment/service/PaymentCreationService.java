@@ -2,28 +2,28 @@ package org.example.fanzip.payment.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.payment.domain.Payments;
-import org.example.fanzip.payment.dto.PaymentsRequestDto;
-import org.example.fanzip.payment.dto.PaymentsResponseDto;
-import org.example.fanzip.payment.repository.PaymentsRepository;
+import org.example.fanzip.payment.dto.PaymentRequestDto;
+import org.example.fanzip.payment.dto.PaymentResponseDto;
+import org.example.fanzip.payment.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentCreationService {
-    private final PaymentsRepository paymentsRepository;
+    private final PaymentRepository paymentRepository;
     @Transactional
-    public PaymentsResponseDto createPayment(PaymentsRequestDto requestDto) {
-        if(paymentsRepository.existsByTransactionId(requestDto.getTransactionId())){
+    public PaymentResponseDto createPayment(PaymentRequestDto requestDto) {
+        if(paymentRepository.existsByTransactionId(requestDto.getTransactionId())){
             throw new IllegalStateException("이미 처리된 결제 입니다.");
         }
         validateForeignKey(requestDto); // 외래키 유효성 검사
-        if (requestDto.getPaymentsType() == null) {
+        if (requestDto.getPaymentType() == null) {
             throw new IllegalArgumentException("결제 유형이 존재하지 않습니다.");
         }
-        switch (requestDto.getPaymentsType()) { // 결제 유형별 처리
+        switch (requestDto.getPaymentType()) { // 결제 유형별 처리
             case MEMBERSHIP:
-                if (paymentsRepository.existsMembershipPayment(requestDto.getUserId(), requestDto.getMembershipId())) { // 이미 구독중인지 검사
+                if (paymentRepository.existsMembershipPayment(requestDto.getUserId(), requestDto.getMembershipId())) { // 이미 구독중인지 검사
                     throw new IllegalArgumentException("이미 구독 중인 멤버십입니다.");
                 }
                 break;
@@ -37,13 +37,12 @@ public class PaymentCreationService {
                 throw new IllegalArgumentException("지원하지 않는 결제 유형입니다.");
         }
         Payments payments = requestDto.toEntity();
-        paymentsRepository.save(payments);
-//        if (true) throw new RuntimeException("트랜잭션 롤백 테스트");
-        return PaymentsResponseDto.from(payments);
+        paymentRepository.save(payments);
+        return PaymentResponseDto.from(payments);
     }
 
 
-    protected void validateForeignKey(PaymentsRequestDto dto) { // orderId, reservationId, membershipId null 확인 함수
+    protected void validateForeignKey(PaymentRequestDto dto) { // orderId, reservationId, membershipId null 확인 함수
         int nonNullCount = 0;
         if (dto.getOrderId() != null) nonNullCount++;
         if (dto.getReservationId() != null) nonNullCount++;

@@ -2,22 +2,22 @@ package org.example.fanzip.payment.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.payment.domain.Payments;
-import org.example.fanzip.payment.dto.PaymentsResponseDto;
-import org.example.fanzip.payment.repository.PaymentsRepository;
+import org.example.fanzip.payment.dto.PaymentResponseDto;
+import org.example.fanzip.payment.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentsRollbackService {
-    private final PaymentsRepository paymentsRepository;
+public class PaymentRollbackService {
+    private final PaymentRepository paymentRepository;
     @Transactional
-    public PaymentsResponseDto refundedPaymentById(Long paymentId){
-        Payments payments = paymentsRepository.findById(paymentId);
+    public PaymentResponseDto refundedPaymentById(Long paymentId){
+        Payments payments = paymentRepository.findById(paymentId);
         payments.refund();
-        paymentsRepository.updateStatus(paymentId, payments.getStatus());
+        paymentRepository.updateStatus(paymentId, payments.getStatus());
         rollbackStock(payments);
-        return PaymentsResponseDto.from(payments);
+        return PaymentResponseDto.from(payments);
     }
     public void rollbackStock(Payments payments){
         if(payments.getOrderId() != null){

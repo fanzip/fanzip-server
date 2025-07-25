@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!--결제 등록-->
-<mapper namespace="org.example.fanzip.payment.mapper.PaymentsMapper">
+<mapper namespace="org.example.fanzip.payment.mapper.PaymentMapper">
     <resultMap id="PaymentResultMap" type="org.example.fanzip.payment.domain.Payments">
         <id property="paymentId" column="payment_id"/>
         <result property="userId" column="user_id"/>
@@ -65,9 +65,9 @@
         WHERE payment_id = #{paymentId}
     </update>
     <!--transacionId 중복 검사-->
-    <select id="existsByTransactionId" resultType="boolean" parameterType="string">
-        SELECT COUNT(*) > 0
-        FROM payments
-        WHERE transaction_id = #{transactionId}
+    <select id="existsByTransactionId" parameterType="string" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM payments WHERE transaction_id = #{transactionId}
+        )
     </select>
 </mapper>

@@ -3,9 +3,9 @@ package org.example.fanzip.payment.domain;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.example.fanzip.payment.domain.enums.PaymentsMethod;
-import org.example.fanzip.payment.domain.enums.PaymentsStatus;
-import org.example.fanzip.payment.domain.enums.PaymentsType;
+import org.example.fanzip.payment.domain.enums.PaymentMethod;
+import org.example.fanzip.payment.domain.enums.PaymentStatus;
+import org.example.fanzip.payment.domain.enums.PaymentType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,10 +18,10 @@ public class Payments {
     private Long orderId;
     private Long reservationId;
     private Long membershipId;
-    private PaymentsType paymentsType;
-    private PaymentsMethod paymentsMethod;
+    private PaymentType paymentType;
+    private PaymentMethod paymentMethod;
     private BigDecimal amount;
-    private PaymentsStatus status;
+    private PaymentStatus status;
     private String transactionId;
     private LocalDateTime paidAt;
     private LocalDateTime cancelledAt;
@@ -38,9 +38,9 @@ public class Payments {
         this.orderId = orderId;
         this.reservationId = reservationId;
         this.membershipId = membershipId;
-        this.paymentsType = PaymentsType.valueOf(paymentType); // String -> enum
-        this.paymentsMethod = PaymentsMethod.valueOf(paymentMethod);
-        this.status = PaymentsStatus.valueOf(status);
+        this.paymentType = PaymentType.valueOf(paymentType); // String -> enum
+        this.paymentMethod = PaymentMethod.valueOf(paymentMethod);
+        this.status = PaymentStatus.valueOf(status);
         this.transactionId = transactionId;
         this.amount = amount;
         this.paidAt = paidAt;
@@ -50,34 +50,34 @@ public class Payments {
         this.userId = userId;
     }
     public void approve(){
-        if(this.status != PaymentsStatus.PENDING){
+        if(this.status != PaymentStatus.PENDING){
             throw new IllegalStateException("결제 대기 상태(PENDING)에서만 승인할 수 있습니다.");
         }
-        updateStatus(PaymentsStatus.PAID);
+        updateStatus(PaymentStatus.PAID);
         this.paidAt = LocalDateTime.now();
     }
     public void failed(){
-        if(this.status != PaymentsStatus.PENDING){
+        if(this.status != PaymentStatus.PENDING){
             throw new IllegalStateException("결제 대기 상태(PENDING)에서만 실패 처리할 수 있습니다.");
         }
-        this.status = PaymentsStatus.FAILED;
+        this.status = PaymentStatus.FAILED;
     }
     public void cancel(){
-        if(this.status != PaymentsStatus.PENDING){
+        if(this.status != PaymentStatus.PENDING){
             throw new IllegalStateException("결제 대기 상태(PENDING)에서만 취소할 수 있습니다.");
         }
-        updateStatus(PaymentsStatus.CANCELLED);
+        updateStatus(PaymentStatus.CANCELLED);
         this.cancelledAt = LocalDateTime.now();
     }
     public void refund(){
-        if(this.status != PaymentsStatus.PAID){
+        if(this.status != PaymentStatus.PAID){
             throw new IllegalStateException("결제 완료(PAID)에서만 환불 가능합니다");
         }
-        updateStatus(PaymentsStatus.REFUNDED);
+        updateStatus(PaymentStatus.REFUNDED);
         this.refundedAt = LocalDateTime.now();
     }
-    private void updateStatus(PaymentsStatus paymentsStatus){
-        this.status = paymentsStatus;
+    private void updateStatus(PaymentStatus paymentStatus){
+        this.status = paymentStatus;
     }
 }
 
