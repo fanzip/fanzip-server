@@ -6,6 +6,7 @@
 <configuration>
     <settings>
         <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <setting name="jdbcTypeForNull" value="NULL"/>
     </settings>
 
     <typeAliases>
@@ -17,5 +18,4 @@
         <mapper resource="org/example/fanzip/membership/mapper/MembershipMapper.xml"/>
         <mapper resource="org/example/fanzip/market/mapper/MarketMapper.xml"/>
     </mappers>
-
 </configuration>

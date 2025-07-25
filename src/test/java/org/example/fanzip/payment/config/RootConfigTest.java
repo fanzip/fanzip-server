@@ -24,6 +24,7 @@ import java.sql.Connection;
 @ContextConfiguration(classes = RootConfig.class)
 @Slf4j
 @PropertySource("classpath:application.yml")
+@PropertySource(value = "classpath:application-test.yml", factory = YamlPropertySourceFactory.class)
 class RootConfigTest {
     @Autowired
     private SqlSessionFactory sqlSessionFactory;
