@@ -4,101 +4,108 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.fanzip.market.mapper.MarketMapper">
 
-    <!-- VO 필드 <-> 컬럼 매핑 -->
-    <resultMap id="MarketResultMap" type="org.example.fanzip.market.domain.MarketVO">
-        <id     column="product_id"         property="productId"/>
-        <result column="influencer_id"      property="influencerId"/>
-        <result column="name"               property="name"/>
-        <result column="description"        property="description"/>
-        <result column="price"              property="price"/>
-        <result column="discounted_price"   property="discountedPrice"/>
-        <result column="discount_rate"      property="discountRate"/>
-        <result column="thumbnail_image"    property="thumbnailImage"/>
-        <result column="stock"              property="stock"/>
-        <result column="stock"              property="isSoldOut"
-                typeHandler="org.apache.ibatis.type.BooleanTypeHandler"/>
-        <result column="shipping_price"     property="shippingPrice"/>
-        <result column="detail_images"      property="detailImages"/>
-        <result column="white_open_time"    property="whiteOpenTime"/>
-        <result column="silver_open_time"   property="silverOpenTime"/>
-        <result column="gold_open_time"     property="goldOpenTime"/>
-        <result column="vip_open_time"      property="vipOpenTime"/>
-        <result column="general_open_time"  property="generalOpenTime"/>
-    </resultMap>
-
-    <!-- limit 개수만큼 최신 상품 조회 -->
-    <select id="getAllProducts" resultMap="MarketResultMap">
-        SELECT
-            product_id,
+    <!-- limit 개수만큼 최신 상품 조회 (1페이지) -->
+    <select id="getAllProducts"
+            resultType="org.example.fanzip.market.dto.ProductListDto"
+            parameterType="int">
+        select
+            product_id          as productId,
             name,
             price,
-            discounted_price,
-            discount_rate,
-            thumbnail_image,
+            discounted_price    as discountedPrice,
+            discount_rate       as discountRate,
+            thumbnail_image     as thumbnailImage,
             stock
-        FROM Products
-        ORDER BY product_id DESC
+        from Products
+        where status='ACTIVE'
+        order by product_id DESC
         LIMIT #{limit}
     </select>
 
     <!-- lastProductId 이후 커서 페이징 -->
-    <select id="getProductsAfter" resultMap="MarketResultMap">
-        SELECT
-            product_id,
+    <select id="getProductsAfter"
+            resultType="org.example.fanzip.market.dto.ProductListDto"
+            parameterType="map">
+        select
+            product_id          as productId,
             name,
             price,
-            discounted_price,
-            discount_rate,
-            thumbnail_image,
+            discounted_price    as discountedPrice,
+            discount_rate       as discountRate,
+            thumbnail_image     as thumbnailImage,
             stock
         FROM Products
-        WHERE product_id &lt; #{lastProductId}
+        WHERE status = 'ACTIVE'
+            and product_id &lt; #{lastProductId}
         ORDER BY product_id DESC
         LIMIT #{limit}
     </select>
 
+<!--    &lt;!&ndash; 내등급 확인 &ndash;&gt;-->
+<!--    <select id="findMyGrade"-->
+<!--            resultType="java.lang.Integer"-->
+<!--            parameterType="map">-->
+<!--        select grade_id  as gradeId-->
+<!--        from memberships-->
+<!--        where user_id = #{userId}-->
+<!--          and influencer_id = #{influencerId}-->
+<!--          and status = 'ACTIVE'-->
+<!--        limit 1-->
+<!--    </select>-->
+
     <!-- 상세 상품 내역 조회 -->
-    <select id="findMyGrade" resultType="java.lang.Integer">
+    <select id="findProductById"
+            resultType="org.example.fanzip.market.dto.ProductDetailDto"
+            parameterType="map">
         select
-            grade_id  as grade_id
-        from memberships
-        where user_id = #{userId}
-          and influencer_id = #{influencerId}
-          and status = 'ACTIVE'
-        limit 1
+            p.product_id            as productId,
+            p.influencer_id         as influencerId,
+            p.name,
+            p.description,
+            p.price,
+            p.discounted_price      as discountedPrice,
+            p.discount_rate         as discountRate,
+            p.shipping_price        as shippingPrice,
+            p.stock,
+            p.thumbnail_image       as thumbnailImage,
+            p.detail_images         as detailImages,
+            p.description_images    as descriptionImages,
+            m.grade_id              as gradeId,
+            case m.grade_id
+                when 1 then p.white_open_time
+                when 2 then p.silver_open_time
+                when 3 then p.gold_open_time
+                when 4 then p.vip_open_time
+                else p.general_open_time
+            end                     as openTime,
+            case
+                when now() >= case m.grade_id
+                    when 1 then p.white_open_time
+                    when 2 then p.silver_open_time
+                    when 3 then p.gold_open_time
+                    when 4 then p.vip_open_time
+                    else p.general_open_time
+                    end
+                then true else false
+            end                  as isAvailable
+        from products p left join memberships m
+            on m.user_id = #{userId}
+            and m.influencer_id = p.influencer_id
+            and m.status = 'ACTIVE'
+        where p.product_id = #{productId}
     </select>
 
-    <select id="findProductById" resultMap="MarketResultMap">
-        SELECT
-            product_id,
-            influencer_id,
-            name,
-            description,
-            price,
-            discounted_price,
-            discount_rate,
-            shipping_price,
-            stock,
-            thumbnail_image,
-            detail_images,
-            white_open_time,
-            silver_open_time,
-            gold_open_time,
-            vip_open_time,
-            general_open_time
-        FROM products
-        WHERE product_id = #{productId}
-    </select>
-
-    <!-- 검색 -->
-    <select id="searchProducts" resultMap="MarketResultMap">
+    <!-- 검색(1페이지) -->
+    <select id="searchProducts"
+            parameterType="map"
+            resultType="org.example.fanzip.market.dto.ProductListDto">
         select
-            product_id,
+            product_id          as productId,
             name,
             price,
-            discounted_price,
-            discount_rate,
-            thumbnail_image,
+            discounted_price    as discountedPrice,
+            discount_rate       as discountRate,
+            thumbnail_image     as thumbnailImage,
             stock
         from products
         where status = 'ACTIVE'
@@ -107,14 +114,17 @@
         limit #{limit}
     </select>
 
-    <select id="searchProductsAfter" resultMap="MarketResultMap">
+    <!-- 검색(중간페이지) -->
+    <select id="searchProductsAfter"
+            parameterType="map"
+            resultType="org.example.fanzip.market.dto.ProductListDto">
         select
-            product_id,
+            product_id          as productId,
             name,
             price,
-            discounted_price,
-            discount_rate,
-            thumbnail_image,
+            discounted_price    as discountedPrice,
+            discount_rate       as discountRate,
+            thumbnail_image     as thumbnailImage,
             stock
         from products
         where product_id &lt; #{lastProductId}
@@ -125,7 +135,9 @@
     </select>
 
     <!-- 재고 조회 -->
-    <select id="getStock" parameterType="long" resultType="int">
+    <select id="getStock"
+            parameterType="long"
+            resultType="int">
         select stock
         from products
         where product_id = #{productId}
