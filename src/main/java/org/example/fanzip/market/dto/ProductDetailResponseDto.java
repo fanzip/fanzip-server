@@ -29,5 +29,6 @@ public class ProductDetailResponseDto {
     private LocalDateTime openTime;
     private boolean isAvailable;
 
-    private List<ProductOptionDto> options; // 현재는 빈 배열로 설정 (추후 구현 고려)
+    // 현재는 빈 배열로 설정 (추후 구현 고려)
+    private List<ProductOptionDto> options;
 }
