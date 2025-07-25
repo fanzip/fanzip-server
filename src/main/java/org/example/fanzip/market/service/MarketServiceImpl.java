@@ -6,7 +6,9 @@ import org.example.fanzip.market.domain.MarketVO;
 import org.example.fanzip.market.dto.ProductDetailResponseDto;
 import org.example.fanzip.market.mapper.MarketMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -38,7 +40,8 @@ public class MarketServiceImpl implements MarketService {
     public ProductDetailResponseDto getProductDetail(Long userId, Long productId) {
         MarketVO vo = marketMapper.findProductById(productId);
         if (vo == null) {
-            throw new IllegalArgumentException("해당 상품을 찾을 수 없습니다.");
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "해당 상품을 찾을 수 없습니다.");
         }
 
         Integer grade = marketMapper.findMyGrade(userId, vo.getInfluencerId());
