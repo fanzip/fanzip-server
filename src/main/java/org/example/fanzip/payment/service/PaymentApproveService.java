@@ -2,9 +2,9 @@ package org.example.fanzip.payment.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.payment.domain.Payments;
-import org.example.fanzip.payment.domain.enums.PaymentsStatus;
-import org.example.fanzip.payment.dto.PaymentsResponseDto;
-import org.example.fanzip.payment.repository.PaymentsRepository;
+import org.example.fanzip.payment.domain.enums.PaymentStatus;
+import org.example.fanzip.payment.dto.PaymentResponseDto;
+import org.example.fanzip.payment.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,49 +12,51 @@ import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
-public class PaymentsApproveService {
-    private final PaymentsRepository paymentsRepository;
-    private final PaymentsRollbackService paymentsRollbackService;
+public class PaymentApproveService {
+    private final PaymentRepository paymentRepository;
+    private final PaymentRollbackService paymentRollbackService;
 
     @Transactional
-    public PaymentsResponseDto approvePaymentById(Long paymentId) {
-        Payments payments = paymentsRepository.findById(paymentId);
+    public PaymentResponseDto approvePaymentById(Long paymentId) {
+        Payments payments = paymentRepository.findById(paymentId);
         if (payments == null) {
             throw new IllegalArgumentException("해당 결제 정보를 찾을 수 없습니다. paymentId=" + paymentId);
         }
         validateStockAvailability(payments.getOrderId(), payments.getReservationId(), payments.getMembershipId()); // 결제 승인 시 재고 수량 검사 홤수
         // TODO : 주문 금액과 결제 요청 금액이 맞는지 로직 변경 필요
         BigDecimal expectedAmount = getExpectedAmountMock(payments);
-        if (!payments.getAmount().equals(expectedAmount)) {
+        System.out.println("expectedAmount : " + expectedAmount);
+        System.out.println("payments : " + payments.getAmount());
+        if (payments.getAmount().compareTo(expectedAmount) != 0)  {
             throw new IllegalArgumentException("결제 요청 금액이 실제 금액과 일치하지 않습니다.");
         }
         payments.approve();
-        paymentsRepository.updateStatus(paymentId, payments.getStatus());
+        paymentRepository.updateStatus(paymentId, payments.getStatus());
 //        if(true) throw new RuntimeException("강제 예외");
         /*  TODO: 멤버십 생성 or 갱신 로직 (Memberships 테이블 생기면 구현
         if (payments.getPaymentType() == PaymentType.MEMBERSHIP) {
          */
-        return PaymentsResponseDto.from(payments);
+        return PaymentResponseDto.from(payments);
     }
 
     @Transactional
-    public PaymentsResponseDto failedPaymentById(Long paymentId) {
-        Payments payments = paymentsRepository.findById(paymentId);
-        if (payments.getStatus() != PaymentsStatus.PENDING) {
+    public PaymentResponseDto failedPaymentById(Long paymentId) {
+        Payments payments = paymentRepository.findById(paymentId);
+        if (payments.getStatus() != PaymentStatus.PENDING) {
             throw new IllegalStateException("PENDING이 아닌 상태에서 실패 처리할 수 없습니다.");
         }
         payments.failed();
-        paymentsRepository.updateStatus(paymentId, payments.getStatus());
-        paymentsRollbackService.rollbackStock(payments);
-        return PaymentsResponseDto.from(payments);
+        paymentRepository.updateStatus(paymentId, payments.getStatus());
+        paymentRollbackService.rollbackStock(payments);
+        return PaymentResponseDto.from(payments);
     }
 
     @Transactional
-    public PaymentsResponseDto cancelledPaymentById(Long paymentId) {
-        Payments payments = paymentsRepository.findById(paymentId);
+    public PaymentResponseDto cancelledPaymentById(Long paymentId) {
+        Payments payments = paymentRepository.findById(paymentId);
         payments.cancel();
-        paymentsRepository.updateStatus(paymentId, payments.getStatus());
-        return PaymentsResponseDto.from(payments);
+        paymentRepository.updateStatus(paymentId, payments.getStatus());
+        return PaymentResponseDto.from(payments);
     }
 
     protected void validateStockAvailability(Long orderId, Long reservationId, Long membershipId) { // 결제 요청 시 재고 수량 검사 홤수
