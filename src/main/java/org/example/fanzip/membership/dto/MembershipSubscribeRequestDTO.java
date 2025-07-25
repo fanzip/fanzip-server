@@ -13,7 +13,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 public class MembershipSubscribeRequestDTO {
-    private long userId;
     private long influencerId;
     private int gradeId;
     private boolean autoRenewal;
