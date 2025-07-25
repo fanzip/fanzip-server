@@ -6,6 +6,7 @@ import org.example.fanzip.payment.domain.enums.PaymentStatus;
 import org.example.fanzip.payment.mapper.PaymentMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +29,14 @@ public class PaymentRepository {
         return paymentMapper.selectPaymentsByUserId(userId);
     }
 
-    public void updateStatus(Long paymentId, PaymentStatus status) {
+    public void updateStatus(Long paymentId, PaymentStatus status, LocalDateTime paidAt,
+                             LocalDateTime cancelledAt, LocalDateTime refundedAt) {
         Map<String, Object> param = new HashMap<>();
         param.put("paymentId", paymentId);
-        param.put("status", status.name()); // enum to String (DB 저장용)
+        param.put("status", status.name());
+        param.put("paidAt", paidAt);
+        param.put("cancelledAt", cancelledAt);
+        param.put("refundedAt", refundedAt);
 
         paymentMapper.updatePayment(param);
     }

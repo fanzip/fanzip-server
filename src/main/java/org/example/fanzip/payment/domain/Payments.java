@@ -9,6 +9,7 @@ import org.example.fanzip.payment.domain.enums.PaymentType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Getter
 @Builder
@@ -54,12 +55,13 @@ public class Payments {
             throw new IllegalStateException("결제 대기 상태(PENDING)에서만 승인할 수 있습니다.");
         }
         updateStatus(PaymentStatus.PAID);
-        this.paidAt = LocalDateTime.now();
+        this.paidAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
     public void failed(){
         if(this.status != PaymentStatus.PENDING){
             throw new IllegalStateException("결제 대기 상태(PENDING)에서만 실패 처리할 수 있습니다.");
         }
+        updateStatus(PaymentStatus.FAILED);
         this.status = PaymentStatus.FAILED;
     }
     public void cancel(){
@@ -67,14 +69,14 @@ public class Payments {
             throw new IllegalStateException("결제 대기 상태(PENDING)에서만 취소할 수 있습니다.");
         }
         updateStatus(PaymentStatus.CANCELLED);
-        this.cancelledAt = LocalDateTime.now();
+        this.cancelledAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
     public void refund(){
         if(this.status != PaymentStatus.PAID){
             throw new IllegalStateException("결제 완료(PAID)에서만 환불 가능합니다");
         }
         updateStatus(PaymentStatus.REFUNDED);
-        this.refundedAt = LocalDateTime.now();
+        this.refundedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
     private void updateStatus(PaymentStatus paymentStatus){
         this.status = paymentStatus;
