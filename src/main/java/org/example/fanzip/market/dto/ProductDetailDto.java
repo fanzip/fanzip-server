@@ -13,17 +13,22 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductDetailResponseDto {
+public class ProductDetailDto {
     private Long productId;
+    private Long influencerId;
     private String name;
     private Integer stock;
     private BigDecimal price;
     private BigDecimal discountedPrice;
+    private BigDecimal discountRate;
     private BigDecimal shippingPrice;
 
     private String description;
     private String thumbnailImage;
-    private List<String> detailImages;
+    private String detailImages;
+    private String descriptionImages;
+    private List<String> detailImagesList;
+    private List<String> descriptionImagesList;
 
     private Integer gradeId;
     private LocalDateTime openTime;

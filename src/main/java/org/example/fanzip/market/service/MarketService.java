@@ -1,21 +1,21 @@
 package org.example.fanzip.market.service;
 
-import org.example.fanzip.market.domain.MarketVO;
-import org.example.fanzip.market.dto.ProductDetailResponseDto;
+import org.example.fanzip.market.dto.ProductDetailDto;
+import org.example.fanzip.market.dto.ProductListDto;
 
 import java.util.List;
 
 public interface MarketService {
     // 최초 또는 전체 상품 목록 조회
-    List<MarketVO> getAllProducts(int limit);
+    List<ProductListDto> getAllProducts(int limit);
 
     // 마지막으로 가져온 상품 이후 목록 조회 (커서 페이징)
-    List<MarketVO> getProductsAfter(Long lastProductId, int limit);
+    List<ProductListDto> getProductsAfter(Long lastProductId, int limit);
 
     // 상세 상품 조회
-    ProductDetailResponseDto getProductDetail(Long userId, Long productId);
+    ProductDetailDto getProductDetail(Long userId, Long productId);
 
     // 검색
-    List<MarketVO> searchProducts(String keyword, Long lastProductId, int limit);
+    List<ProductListDto> searchProducts(String keyword, Long lastProductId, int limit);
 
 }

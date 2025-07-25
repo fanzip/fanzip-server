@@ -2,8 +2,8 @@ package org.example.fanzip.market.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.example.fanzip.market.domain.MarketVO;
-import org.example.fanzip.market.dto.ProductDetailResponseDto;
+import org.example.fanzip.market.dto.ProductDetailDto;
+import org.example.fanzip.market.dto.ProductListDto;
 import org.example.fanzip.market.mapper.MarketMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,12 +24,12 @@ public class MarketServiceImpl implements MarketService {
     }
 
     @Override
-    public List<MarketVO> getAllProducts(int limit) {
+    public List<ProductListDto> getAllProducts(int limit) {
         return marketMapper.getAllProducts(limit);
     }
 
     @Override
-    public List<MarketVO> getProductsAfter(Long lastProductId, int limit) {
+    public List<ProductListDto> getProductsAfter(Long lastProductId, int limit) {
         return (lastProductId == null)
                 ? marketMapper.getAllProducts(limit)
                 : marketMapper.getProductsAfter(lastProductId, limit);
@@ -37,60 +37,48 @@ public class MarketServiceImpl implements MarketService {
 
     // 상품 상세 조회
     @Override
-    public ProductDetailResponseDto getProductDetail(Long userId, Long productId) {
-        MarketVO vo = marketMapper.findProductById(productId);
-        if (vo == null) {
+    public ProductDetailDto getProductDetail(Long userId, Long productId) {
+        ProductDetailDto detail = marketMapper.findProductById(productId, userId);
+        if (detail == null) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "해당 상품을 찾을 수 없습니다.");
         }
 
-        Integer grade = marketMapper.findMyGrade(userId, vo.getInfluencerId());
-        if(grade == null) {
-            grade = 0;
-        }
-
-        // grade: 1=white, 2=silver, 3=gold, 4=vip, default=general
-        LocalDateTime openTime = switch(grade) {
-            case 1 -> vo.getWhiteOpenTime();
-            case 2 -> vo.getSilverOpenTime();
-            case 3 -> vo.getGoldOpenTime();
-            case 4 -> vo.getVipOpenTime();
-            default -> vo.getGeneralOpenTime();
-        };
+        // JSON -> List (상세 이미지 목록)
+        ObjectMapper objectMapper = new ObjectMapper();
 
         List<String> parsedDetailImages;
         try{
-            ObjectMapper objectMapper = new ObjectMapper();
             parsedDetailImages = objectMapper.readValue(
-                    vo.getDetailImages(),
+                    detail.getDetailImages(),
                     new TypeReference<List<String>>() {}
             );
         } catch (Exception e) {
             parsedDetailImages = Collections.emptyList();
         }
+        detail.setDetailImagesList(parsedDetailImages);
 
-        return ProductDetailResponseDto.builder()
-                .productId(vo.getProductId())
-                .name(vo.getName())
-                .description(vo.getDescription())
-                .price(vo.getPrice())
-                .discountedPrice(vo.getDiscountedPrice())
-                .shippingPrice(vo.getShippingPrice())
-                .stock(vo.getStock())
-                .thumbnailImage(vo.getThumbnailImage())
-                .detailImages(parsedDetailImages)
-                .gradeId(grade)
-                .openTime(openTime)
-                .isAvailable(LocalDateTime.now().isAfter(openTime))
-                .options(Collections.emptyList()) // 옵션은 추후에 구현
-                .build();
+        // JSON -> List (설명 이미지 목록)
+        List<String> parsedDescriptionImages;
+        try{
+            parsedDescriptionImages = objectMapper.readValue(
+                    detail.getDescriptionImages(),
+                    new TypeReference<List<String>>() {}
+            );
+        } catch (Exception e) {
+            parsedDescriptionImages = Collections.emptyList();
+        }
+        detail.setDescriptionImagesList(parsedDescriptionImages);
+
+        return detail;
     }
 
     @Override
-    public List<MarketVO> searchProducts(String keyword, Long lastProductId, int limit) {
+    public List<ProductListDto> searchProducts(String keyword, Long lastProductId, int limit) {
         if(lastProductId == null) {
             return marketMapper.searchProducts(keyword, limit);
         }
         return marketMapper.searchProductsAfter(keyword, lastProductId, limit);
     }
+
 }

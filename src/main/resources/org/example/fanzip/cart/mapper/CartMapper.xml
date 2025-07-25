@@ -5,7 +5,7 @@
 <mapper namespace="org.example.fanzip.cart.mapper.CartMapper">
     <!-- 사용자별 장바구니 ID 조회 -->
     <select id="findCartIdByUserId" resultType="java.lang.Long" parameterType="java.lang.Long">
-        select cart_id
+        select cart_id as cartId
         from cart
         where user_id = #{userId}
     </select>

@@ -4,7 +4,6 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <configuration>
-
     <settings>
         <setting name="mapUnderscoreToCamelCase" value="true"/>
     </settings>
@@ -16,6 +15,7 @@
 
     <mappers>
         <mapper resource="org/example/fanzip/membership/mapper/MembershipMapper.xml"/>
+        <mapper resource="org/example/fanzip/market/mapper/MarketMapper.xml"/>
     </mappers>
 
 </configuration>

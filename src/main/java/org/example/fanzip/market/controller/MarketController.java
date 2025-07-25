@@ -1,8 +1,8 @@
 package org.example.fanzip.market.controller;
 
 import org.example.fanzip.auth.jwt.JwtProcessor;
-import org.example.fanzip.market.domain.MarketVO;
-import org.example.fanzip.market.dto.ProductDetailResponseDto;
+import org.example.fanzip.market.dto.ProductDetailDto;
+import org.example.fanzip.market.dto.ProductListDto;
 import org.example.fanzip.market.service.MarketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,7 @@ public class MarketController {
 
     // 전체 상품 조회
     @GetMapping("/products")
-    public List<MarketVO> getProducts(
+    public List<ProductListDto> getProducts(
             @RequestParam(value = "limit", defaultValue = "20") int limit,
             @RequestParam(value = "lastProductId", required = false) Long lastProductId,
             @RequestParam(value = "q", required = false) String keyword
@@ -42,14 +42,14 @@ public class MarketController {
 
     // 상세 상품 조회
     @GetMapping("/products/{productId}")
-    public ResponseEntity<ProductDetailResponseDto> getProductDetail(
+    public ResponseEntity<ProductDetailDto> getProductDetail(
             //@RequestHeader("Authorization") String header,
             @RequestHeader("X-USER-ID") Long userId,
             @PathVariable Long productId
     ) {
 //        String token = header.substring(7);
 //        Long userId = jwtProcessor.getUserId(token);
-        ProductDetailResponseDto dto = marketService.getProductDetail(userId, productId);
+        ProductDetailDto dto = marketService.getProductDetail(userId, productId);
         return ResponseEntity.ok(dto);
     }
 }

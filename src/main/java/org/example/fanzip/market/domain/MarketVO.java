@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -27,6 +28,7 @@ public class MarketVO {
 
     private BigDecimal shippingPrice;
     private String detailImages;
+    private String descriptionImages;
 
     private LocalDateTime whiteOpenTime;
     private LocalDateTime silverOpenTime;
