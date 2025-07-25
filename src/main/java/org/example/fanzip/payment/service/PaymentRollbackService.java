@@ -15,7 +15,7 @@ public class PaymentRollbackService {
     public PaymentResponseDto refundedPaymentById(Long paymentId){
         Payments payments = paymentRepository.findById(paymentId);
         payments.refund();
-        paymentRepository.updateStatus(paymentId, payments.getStatus());
+        paymentRepository.updateStatus(paymentId, payments.getStatus(), payments.getPaidAt(), payments.getCancelledAt(), payments.getRefundedAt());
         rollbackStock(payments);
         return PaymentResponseDto.from(payments);
     }

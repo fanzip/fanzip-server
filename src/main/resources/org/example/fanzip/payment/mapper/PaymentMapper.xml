@@ -61,7 +61,11 @@
     <!--결제 상태 변경-->
     <update id="updatePayment" parameterType="map">
         UPDATE payments
-        SET status = #{status}
+        SET
+            status = #{status, jdbcType=VARCHAR},
+            paid_at = #{paidAt},
+            cancelled_at = #{cancelledAt},
+            refunded_at = #{refundedAt}
         WHERE payment_id = #{paymentId}
     </update>
     <!--transacionId 중복 검사-->
