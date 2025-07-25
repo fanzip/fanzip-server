@@ -76,8 +76,12 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartItemDto updateItem(Long userId, Long cartItemId, UpdateCartItemRequestDto req) {
-        // 본인 소유 검증
-        cartMapper.checkOwnership(userId, cartItemId);
+        // 본인 소유 장바구니 개수 검증
+        Integer carts = cartMapper.checkOwnership(userId, cartItemId);
+        if(carts != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "장바구니가 한개가 아닙니다.");
+        }
 
         CartItemDto existing = cartMapper.findItemById(cartItemId);
 
