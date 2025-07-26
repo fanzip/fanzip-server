@@ -42,7 +42,7 @@ public class PaymentController {
         PaymentResponseDto responseDto = paymentService.refundedPaymentById(paymentId);
         return ResponseEntity.ok(responseDto);
     }
-    @GetMapping("/payment/{paymentId}")
+    @GetMapping("/{paymentId}")
     public ResponseEntity<PaymentResponseDto> getPaymentDetail(@PathVariable Long paymentId){
         PaymentResponseDto responseDto = paymentService.getPayment(paymentId);
         return ResponseEntity.ok(responseDto);
