@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.fanzip.market.mapper.MarketMapper">
+
+    <!-- VO 필드 <-> 컬럼 매핑 -->
+    <resultMap id="MarketResultMap" type="org.example.fanzip.market.domain.MarketVO">
+        <id     column="product_id"         property="productId"/>
+        <result column="influencer_id"      property="influencerId"/>
+        <result column="name"               property="name"/>
+        <result column="description"        property="description"/>
+        <result column="price"              property="price"/>
+        <result column="discounted_price"   property="discountedPrice"/>
+        <result column="discount_rate"      property="discountRate"/>
+        <result column="thumbnail_image"    property="thumbnailImage"/>
+        <result column="stock"              property="stock"/>
+        <result column="stock"              property="isSoldOut"
+                typeHandler="org.apache.ibatis.type.BooleanTypeHandler"/>
+        <result column="shipping_price"     property="shippingPrice"/>
+        <result column="detail_images"      property="detailImages"/>
+        <result column="white_open_time"    property="whiteOpenTime"/>
+        <result column="silver_open_time"   property="silverOpenTime"/>
+        <result column="gold_open_time"     property="goldOpenTime"/>
+        <result column="vip_open_time"      property="vipOpenTime"/>
+        <result column="general_open_time"  property="generalOpenTime"/>
+    </resultMap>
+
+    <!-- limit 개수만큼 최신 상품 조회 -->
+    <select id="getAllProducts" resultMap="MarketResultMap">
+        SELECT
+            product_id,
+            name,
+            price,
+            discounted_price,
+            discount_rate,
+            thumbnail_image,
+            stock
+        FROM Products
+        ORDER BY product_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- lastProductId 이후 커서 페이징 -->
+    <select id="getProductsAfter" resultMap="MarketResultMap">
+        SELECT
+            product_id,
+            name,
+            price,
+            discounted_price,
+            discount_rate,
+            thumbnail_image,
+            stock
+        FROM Products
+        WHERE product_id &lt; #{lastProductId}
+        ORDER BY product_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 상세 상품 내역 조회 -->
+    <select id="findMyGrade" resultType="java.lang.Integer">
+        select
+            grade_id  as grade_id
+        from memberships
+        where user_id = #{userId}
+          and influencer_id = #{influencerId}
+          and status = 'ACTIVE'
+        limit 1
+    </select>
+
+    <select id="findProductById" resultMap="MarketResultMap">
+        SELECT
+            product_id,
+            influencer_id,
+            name,
+            description,
+            price,
+            discounted_price,
+            discount_rate,
+            shipping_price,
+            stock,
+            thumbnail_image,
+            detail_images,
+            white_open_time,
+            silver_open_time,
+            gold_open_time,
+            vip_open_time,
+            general_open_time
+        FROM products
+        WHERE product_id = #{productId}
+    </select>
+
+    <!-- 검색 -->
+    <select id="searchProducts" resultMap="MarketResultMap">
+        select
+            product_id,
+            name,
+            price,
+            discounted_price,
+            discount_rate,
+            thumbnail_image,
+            stock
+        from products
+        where status = 'ACTIVE'
+            AND name LIKE CONCAT('%', #{keyword}, '%')
+        order by product_id desc
+        limit #{limit}
+    </select>
+
+    <select id="searchProductsAfter" resultMap="MarketResultMap">
+        select
+            product_id,
+            name,
+            price,
+            discounted_price,
+            discount_rate,
+            thumbnail_image,
+            stock
+        from products
+        where product_id &lt; #{lastProductId}
+          and status = 'ACTIVE'
+          and name LIKE CONCAT('%', #{keyword}, '%')
+        order by product_id desc
+        limit #{limit}
+    </select>
+
+    <!-- 재고 조회 -->
+    <select id="getStock" parameterType="long" resultType="int">
+        select stock
+        from products
+        where product_id = #{productId}
+    </select>
+</mapper>
