@@ -62,7 +62,6 @@ public class Payments {
             throw new IllegalStateException("결제 대기 상태(PENDING)에서만 실패 처리할 수 있습니다.");
         }
         updateStatus(PaymentStatus.FAILED);
-        this.status = PaymentStatus.FAILED;
     }
     public void cancel(){
         if(this.status != PaymentStatus.PENDING){
