@@ -22,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class PaymentApproveServiceTest {
     PaymentRepository mockRepository = mock(PaymentRepository.class);
     PaymentRollbackService mockRollbackService = mock(PaymentRollbackService.class);
-    PaymentApproveService approveService = new PaymentApproveService(mockRepository, mockRollbackService);
+    PaymentValidator mockValidator = mock(PaymentValidator.class);
+    PaymentApproveService approveService = new PaymentApproveService(mockRepository, mockRollbackService, mockValidator);
     PaymentRepository paymentRepository;
 
     @Test
@@ -175,10 +176,11 @@ class PaymentApproveServiceTest {
         Long sharedSeatId = 200L;
         Set<Long> reservedSeats = ConcurrentHashMap.newKeySet(); // 중복 방지용
 
-        PaymentApproveService service = new PaymentApproveService(mockRepository, mockRollbackService) {
+        // ✅ 여기서 커스터마이징한 PaymentValidator를 정의하고 주입
+        PaymentValidator testValidator = new PaymentValidator() {
             @Override
             protected void validateStockAvailability(Long orderId, Long reservationId, Long membershipId) {
-                if (reservationId != null) {   // 좌석 ID로 중복 확인
+                if (reservationId != null) {
                     boolean alreadyReserved = !reservedSeats.add(reservationId);
                     System.out.println("[검사] " + Thread.currentThread().getName()
                             + " - reservationId: " + reservationId
@@ -188,10 +190,10 @@ class PaymentApproveServiceTest {
                     }
                 }
             }
-            protected BigDecimal getExpectedAmountMock(Payments payments) {
-                return BigDecimal.valueOf(12000); // 예매 금액 mock
-            }
         };
+
+        // ✅ 이 testValidator를 주입해야 테스트에서 적용됨
+        PaymentApproveService service = new PaymentApproveService(mockRepository, mockRollbackService, testValidator);
 
         List<Payments> paymentsList = IntStream.range(0, 10)
                 .mapToObj(i -> Payments.builder()
