@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 
-public class AdditionalInfoDTO {
+public class RegisterDTO {
     private String socialType;
     private String socialId;
     private String email;
