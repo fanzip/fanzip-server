@@ -22,22 +22,22 @@ public class PaymentController {
         PaymentResponseDto responseDto = paymentService.createPayment(requestDto);
         return ResponseEntity.ok(responseDto);
     }
-    @PostMapping("/{paymentId}/approve")
+    @PatchMapping("/{paymentId}/approve")
     public ResponseEntity<PaymentResponseDto> approvePayment(@PathVariable Long paymentId){
         PaymentResponseDto responseDto = paymentService.approvePaymentById(paymentId);
         return ResponseEntity.ok(responseDto);
     }
-    @PostMapping("/{paymentId}/fail")
+    @PatchMapping("/{paymentId}/fail")
     public ResponseEntity<PaymentResponseDto> failedPayment(@PathVariable Long paymentId){
         PaymentResponseDto responseDto = paymentService.failedPaymentById(paymentId);
         return ResponseEntity.ok(responseDto);
     }
-    @PostMapping("/{paymentId}/cancelled")
+    @PatchMapping("/{paymentId}/cancelled")
     public ResponseEntity<PaymentResponseDto> cancelled(@PathVariable Long paymentId){
         PaymentResponseDto responseDto= paymentService.cancelledPaymentById(paymentId);
         return ResponseEntity.ok(responseDto);
     }
-    @PostMapping("/{paymentId}/refunded")
+    @PatchMapping("/{paymentId}/refunded")
     public ResponseEntity<PaymentResponseDto> refunded(@PathVariable Long paymentId){
         PaymentResponseDto responseDto = paymentService.refundedPaymentById(paymentId);
         return ResponseEntity.ok(responseDto);
