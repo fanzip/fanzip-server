@@ -2,7 +2,6 @@ package org.example.fanzip.user.mapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.config.RootConfig;
-import org.example.fanzip.user.dto.AdditionalInfoDTO;
 import org.example.fanzip.user.dto.UserDTO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
