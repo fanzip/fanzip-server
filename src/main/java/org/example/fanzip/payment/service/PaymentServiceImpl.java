@@ -48,6 +48,9 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public PaymentResponseDto getPayment(Long paymentId) {
         Payments payments = paymentRepository.findById(paymentId);
+        if (payments == null) {
+            throw new IllegalArgumentException("해당 결제 정보를 찾을 수 없습니다. paymentId=" + paymentId);
+        }
         return PaymentResponseDto.from(payments);
     }
 
