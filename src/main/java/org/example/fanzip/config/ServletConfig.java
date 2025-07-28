@@ -53,7 +53,13 @@ public class ServletConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/oauth/**", "/resources/**","/api/users/**", "/api/cart/**", "/api/market/**","/api/payments/**");
+                .excludePathPatterns(
+                        "/resources/**",
+                        "/api/auth/oauth/**",
+                        "/api/auth/reissue/**",
+                        "/api/users/register/**",
+//                 TODO: 아래 api는 개발 편의상 넣어 놓은 것. 추후 삭제 필요
+                 "/api/cart/**", "/api/market/**","/api/payments/**");
     }
 
     @Override
@@ -66,6 +72,16 @@ public class ServletConfig implements WebMvcConfigurer {
                 new MappingJackson2HttpMessageConverter(mapper);
 
         converters.add(converter);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        System.out.println("cors 설정");
+        registry.addMapping("/**")//전체 경로에 대해
+                .allowedOrigins("http://localhost:5173")
+                .allowedMethods("GET", "POST")
+                .allowCredentials(true)
+                .exposedHeaders("Authorization");
     }
 }
 
