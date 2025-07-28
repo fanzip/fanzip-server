@@ -31,7 +31,7 @@ public class PaymentApproveService {
             throw new IllegalArgumentException("결제 요청 금액이 실제 금액과 일치하지 않습니다.");
         }
         payments.approve();
-        paymentRepository.updateStatus(paymentId, payments.getStatus(), payments.getPaidAt(), payments.getCancelledAt(), payments.getRefundedAt());
+        paymentRepository.updateStatus(payments);
 //        if(true) throw new RuntimeException("강제 예외");
         /*  TODO: 멤버십 생성 or 갱신 로직 (Memberships 테이블 생기면 구현
         if (payments.getPaymentType() == PaymentType.MEMBERSHIP) {
@@ -46,7 +46,7 @@ public class PaymentApproveService {
             throw new IllegalStateException("PENDING이 아닌 상태에서 실패 처리할 수 없습니다.");
         }
         payments.failed();
-        paymentRepository.updateStatus(paymentId, payments.getStatus(), payments.getPaidAt(), payments.getCancelledAt(), payments.getRefundedAt());
+        paymentRepository.updateStatus(payments);
         paymentRollbackService.rollbackStock(payments);
         return PaymentResponseDto.from(payments);
     }
@@ -55,7 +55,7 @@ public class PaymentApproveService {
     public PaymentResponseDto cancelledPaymentById(Long paymentId) {
         Payments payments = paymentRepository.findById(paymentId);
         payments.cancel();
-        paymentRepository.updateStatus(paymentId, payments.getStatus(), payments.getPaidAt(), payments.getCancelledAt(), payments.getRefundedAt());
+        paymentRepository.updateStatus(payments);
         return PaymentResponseDto.from(payments);
     }
 
