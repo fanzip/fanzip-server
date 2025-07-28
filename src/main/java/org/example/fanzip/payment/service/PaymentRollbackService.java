@@ -14,6 +14,9 @@ public class PaymentRollbackService {
     @Transactional
     public PaymentResponseDto refundedPaymentById(Long paymentId){
         Payments payments = paymentRepository.findById(paymentId);
+        if (payments == null) {
+            throw new IllegalArgumentException("해당 결제 정보를 찾을 수 없습니다. paymentId=" + paymentId);
+        }
         payments.refund();
         paymentRepository.updateStatus(paymentId, payments.getStatus(), payments.getPaidAt(), payments.getCancelledAt(), payments.getRefundedAt());
         rollbackStock(payments);
