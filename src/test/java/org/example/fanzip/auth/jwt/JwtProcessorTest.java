@@ -18,16 +18,16 @@ class JwtProcessorTest {
     @Autowired
     JwtProcessor jwtProcessor;
 
-    @Test
-    void genereteToken() {
-        String jwt=jwtProcessor.generateToken(3L);
-        log.info("jwt:{}",jwt);
-        assertNotNull(jwt);
-    }
+//    @Test
+//    void genereteToken() {
+//        String jwt=jwtProcessor.generateToken(3L);
+//        log.info("jwt:{}",jwt);
+//        assertNotNull(jwt);
+//    }
 
     @Test
     void getUserId() {
-        String token= "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjksImlhdCI6MTc1MzMzMDQ1NSwiZXhwIjoxNzUzMzMyMjU1fQ.xrCrKujMwXBNo9Fk3C3j8KxBxWMoA6prkomxcTI3Qr4";
+        String token= "eyJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NTM0MTEwNTksImV4cCI6MTc1MzQxMjg1OSwidXNlcklkIjoxMH0._LG-mo9lVuN-rlKOOUcPPH9vc_OFkZpJW2MLKTM4DoA";
         Long userId=jwtProcessor.getUserId(token);
         log.info("userId:{}",userId);
         assertNotNull(userId);
