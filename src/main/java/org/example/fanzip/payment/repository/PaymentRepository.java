@@ -29,16 +29,9 @@ public class PaymentRepository {
         return paymentMapper.selectPaymentsByUserId(userId);
     }
 
-    public void updateStatus(Long paymentId, PaymentStatus status, LocalDateTime paidAt,
-                             LocalDateTime cancelledAt, LocalDateTime refundedAt) {
-        Map<String, Object> param = new HashMap<>();
-        param.put("paymentId", paymentId);
-        param.put("status", status.name());
-        param.put("paidAt", paidAt);
-        param.put("cancelledAt", cancelledAt);
-        param.put("refundedAt", refundedAt);
+    public void updateStatus(Payments payments){
 
-        paymentMapper.updatePayment(param);
+        paymentMapper.updatePayment(payments);
     }
     public boolean existsByTransactionId(String transactionId){
         return paymentMapper.existsByTransactionId(transactionId);

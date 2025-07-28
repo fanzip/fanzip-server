@@ -18,7 +18,7 @@ public class PaymentRollbackService {
             throw new IllegalArgumentException("해당 결제 정보를 찾을 수 없습니다. paymentId=" + paymentId);
         }
         payments.refund();
-        paymentRepository.updateStatus(paymentId, payments.getStatus(), payments.getPaidAt(), payments.getCancelledAt(), payments.getRefundedAt());
+        paymentRepository.updateStatus(payments);
         rollbackStock(payments);
         return PaymentResponseDto.from(payments);
     }

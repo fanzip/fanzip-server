@@ -59,7 +59,7 @@
         )
     </select>
     <!--결제 상태 변경-->
-    <update id="updatePayment" parameterType="map">
+    <update id="updatePayment" parameterType="org.example.fanzip.payment.domain.Payments">
         UPDATE payments
         SET
             status = #{status, jdbcType=VARCHAR},
