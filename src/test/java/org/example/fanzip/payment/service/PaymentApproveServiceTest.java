@@ -39,7 +39,7 @@ class PaymentApproveServiceTest {
                 .build();
 
         when(mockRepository.findById(1L)).thenReturn(payment);
-        doNothing().when(mockRepository).updateStatus(eq(1L), any(), any(), any(), any());
+        doNothing().when(mockRepository).updateStatus(payment);
         PaymentResponseDto result = approveService.approvePaymentById(1L);
         assertEquals(PaymentStatus.PAID, result.getStatus());
 
@@ -77,7 +77,7 @@ class PaymentApproveServiceTest {
                 .build();
 
         when(mockRepository.findById(2L)).thenReturn(payment);
-        doNothing().when(mockRepository).updateStatus(eq(2L), any(), any(), any(), any());
+        doNothing().when(mockRepository).updateStatus(payment);
         doNothing().when(mockRollbackService).rollbackStock(payment);
         PaymentResponseDto result = approveService.failedPaymentById(2L);
         assertEquals(PaymentStatus.FAILED, result.getStatus());
@@ -112,7 +112,7 @@ class PaymentApproveServiceTest {
                 .build();
 
         when(mockRepository.findById(3L)).thenReturn(payment);
-        doNothing().when(mockRepository).updateStatus(eq(3L), any(), any(), any(), any());
+        doNothing().when(mockRepository).updateStatus(payment);
         PaymentResponseDto result = approveService.cancelledPaymentById(3L);
         assertEquals(PaymentStatus.CANCELLED, result.getStatus());
 
@@ -208,15 +208,11 @@ class PaymentApproveServiceTest {
         }
 
         doAnswer(invocation -> {
-            Long paymentId = invocation.getArgument(0);
-            PaymentStatus status = invocation.getArgument(1);
-            LocalDateTime paidAt = invocation.getArgument(2);
-            LocalDateTime cancelledAt = invocation.getArgument(3);
-            LocalDateTime refundedAt = invocation.getArgument(4);
+            Payments payments = invocation.getArgument(0);
 
-            System.out.println("[DB 업데이트] paymentId = " + paymentId + " → 상태: PAID");
+            System.out.println("[DB 업데이트] paymentId = " + payments.getPaymentId() + " → 상태: PAID");
             return null;
-        }).when(mockRepository).updateStatus(anyLong(), eq(PaymentStatus.PAID), any(), any(), any());
+        }).when(mockRepository).updateStatus(any(Payments.class));
 
         // 실행
         ExecutorService executor = Executors.newFixedThreadPool(10);
