@@ -1,12 +1,9 @@
 package org.example.fanzip.cart.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
-@Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddCartItemRequestDto {
