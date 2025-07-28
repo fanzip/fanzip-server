@@ -18,12 +18,6 @@ public interface MarketMapper {
             @Param("lastProductId") Long lastProductId,
             @Param("limit") int limit
     );
-//
-//    // 등급 확인
-//    Integer findMyGrade(
-//            @Param("userId") Long userId,
-//            @Param("influencerId") Long influencerId
-//    );
 
     // 상품 상세 페이지 조회
     ProductDetailDto findProductById(
