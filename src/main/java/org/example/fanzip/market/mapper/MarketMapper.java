@@ -13,7 +13,7 @@ public interface MarketMapper {
     List<ProductListDto> getAllProducts(
             @Param("limit") int limit);
 
-    // 마지막으로 가져온 productId 이후의 상품 조회
+    // 마지막으로 가져온 productId 까지의 상품 조회
     List<ProductListDto> getProductsAfter(
             @Param("lastProductId") Long lastProductId,
             @Param("limit") int limit
