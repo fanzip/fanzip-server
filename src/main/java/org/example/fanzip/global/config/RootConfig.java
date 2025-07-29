@@ -28,7 +28,8 @@ import javax.sql.DataSource;
         "org.example.fanzip.payment.mapper",
         "org.example.fanzip.market.mapper",
         "org.example.fanzip.cart.mapper",
-        "org.example.fanzip.membership.mapper"
+        "org.example.fanzip.membership.mapper",
+        "org.example.fanzip.influencer.mapper"
 })
 @ComponentScan(basePackages = {
         "org.example.fanzip",
@@ -36,7 +37,8 @@ import javax.sql.DataSource;
         "org.example.fanzip.payment",
         "org.example.fanzip.market",
         "org.example.fanzip.cart",
-        "org.example.fanzip.membership.service"
+        "org.example.fanzip.membership.service",
+        "org.example.fanzip.influencer.service"
 })
 public class RootConfig {
     @Value("${spring.datasource.driver-class-name}") String driver;
@@ -69,6 +71,7 @@ public class RootConfig {
         sqlSessionFactory.setDataSource(dataSource());
         return (SqlSessionFactory) sqlSessionFactory.getObject();
     }
+
     @Bean
     public DataSourceTransactionManager transactionManager(){
         DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
