@@ -20,7 +20,6 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource(value = "classpath:/application.yml", factory = YamlPropertySourceFactory.class)
-@PropertySource(value = "classpath:application.yml", factory = YamlPropertySourceFactory.class)
 @MapperScan(basePackages = {
         "org.example.fanzip.fancard.mapper",
         "org.example.fanzip.user.mapper",
@@ -28,6 +27,7 @@ import javax.sql.DataSource;
         "org.example.fanzip.market.mapper",
         "org.example.fanzip.cart.mapper",
         "org.example.fanzip.membership.mapper",
+        "org.example.fanzip.meeting.mapper",
         "org.example.fanzip.influencer.mapper"
 })
 @ComponentScan(basePackages = {
