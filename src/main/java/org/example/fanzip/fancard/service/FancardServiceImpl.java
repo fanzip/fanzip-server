@@ -4,6 +4,7 @@ import org.example.fanzip.fancard.dto.response.*;
 import org.example.fanzip.fancard.domain.Fancard;
 import org.example.fanzip.fancard.exception.FancardNotFoundException;
 import org.example.fanzip.fancard.mapper.FancardMapper;
+import org.example.fanzip.fancard.constants.FancardConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,41 +52,43 @@ public class FancardServiceImpl implements FancardService {
     @Override
     public QrCodeResponse generateQrCode(Long reservationId) {
         // TODO: 실제 예약 정보 조회 로직 구현
-        String qrCode = "ENTRY_USER1_RES" + reservationId + "_" + LocalDateTime.now().toString().replace(":", "").replace(".", "");
-        String qrCodeUrl = "https://api.fanzip.com/qr/entry?code=" + qrCode;
+        String timestamp = LocalDateTime.now().toString().replace(":", "").replace(".", "");
+        String qrCode = FancardConstants.QrCode.CODE_PREFIX + "1_RES" + reservationId + 
+                       FancardConstants.QrCode.CODE_SEPARATOR + timestamp;
+        String qrCodeUrl = FancardConstants.QrCode.URL_PREFIX + qrCode;
         
         ReservationDto reservation = ReservationDto.builder()
                 .reservationId(reservationId)
-                .reservationNumber("FM20250722001")
-                .meetingTitle("테스트 인플루언서 팬미팅 2025")
+                .reservationNumber(FancardConstants.TestData.TEST_RESERVATION_NUMBER)
+                .meetingTitle(FancardConstants.TestData.TEST_MEETING_TITLE)
                 .meetingDate(LocalDateTime.now().plusDays(30))
-                .venueName("올림픽공원 K-아트홀")
-                .seatNumber("A-15")
+                .venueName(FancardConstants.TestData.TEST_VENUE_NAME)
+                .seatNumber(FancardConstants.TestData.TEST_SEAT_NUMBER)
                 .build();
         
         return QrCodeResponse.builder()
                 .qrCode(qrCode)
                 .qrCodeUrl(qrCodeUrl)
-                .status("ACTIVE")
+                .status(FancardConstants.QrCode.STATUS_ACTIVE)
                 .generatedAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusHours(1))
+                .expiresAt(LocalDateTime.now().plusHours(FancardConstants.QrCode.EXPIRY_HOURS))
                 .reservation(reservation)
                 .build();
     }
 
     private FancardListResponse convertToListResponse(Fancard fancard) {
         MembershipGradeDto membershipGrade = MembershipGradeDto.builder()
-                .gradeId(4L)
-                .gradeName("VIP")
-                .color("#8B008B")
+                .gradeId(FancardConstants.TestData.TEST_GRADE_ID)
+                .gradeName(FancardConstants.TestData.TEST_GRADE_NAME)
+                .color(FancardConstants.TestData.TEST_GRADE_COLOR)
                 .build();
 
         return FancardListResponse.builder()
                 .cardId(fancard.getCardId())
                 .cardNumber(fancard.getCardNumber())
-                .influencerId(1L)
-                .influencerName("테스트 인플루언서")
-                .category("BEAUTY")
+                .influencerId(FancardConstants.TestData.TEST_INFLUENCER_ID)
+                .influencerName(FancardConstants.TestData.TEST_INFLUENCER_NAME)
+                .category(FancardConstants.TestData.TEST_CATEGORY)
                 .membershipGrade(membershipGrade)
                 .cardDesignUrl(fancard.getCardDesignUrl())
                 .isActive(fancard.getIsActive())
@@ -96,47 +99,28 @@ public class FancardServiceImpl implements FancardService {
     
     private FancardDetailResponse convertToDetailResponse(Fancard fancard) {
         InfluencerDto influencer = InfluencerDto.builder()
-                .influencerId(1L)
-                .category("BEAUTY")
-                .profileImage("https://example.com/profiles/test.jpg")
-                .isVerified(true)
+                .influencerId(FancardConstants.TestData.TEST_INFLUENCER_ID)
+                .category(FancardConstants.TestData.TEST_CATEGORY)
+                .profileImage(FancardConstants.TestData.TEST_PROFILE_IMAGE)
+                .isVerified(FancardConstants.TestData.TEST_IS_VERIFIED)
                 .build();
         
         MembershipGradeDto grade = MembershipGradeDto.builder()
-                .gradeId(4L)
-                .gradeName("VIP")
-                .color("#8B008B")
-                .benefitsDescription("VIP 등급 최고 혜택")
+                .gradeId(FancardConstants.TestData.TEST_GRADE_ID)
+                .gradeName(FancardConstants.TestData.TEST_GRADE_NAME)
+                .color(FancardConstants.TestData.TEST_GRADE_COLOR)
+                .benefitsDescription(FancardConstants.TestData.TEST_BENEFITS_DESCRIPTION)
                 .build();
         
         MembershipDto membership = MembershipDto.builder()
                 .membershipId(fancard.getMembershipId())
                 .subscriptionStart(fancard.getIssueDate())
-                .monthlyAmount(BigDecimal.valueOf(10000.00))
-                .totalPaidAmount(BigDecimal.valueOf(120000.00))
-                .status("ACTIVE")
-                .autoRenewal(true)
+                .monthlyAmount(FancardConstants.TestData.TEST_MONTHLY_AMOUNT)
+                .totalPaidAmount(FancardConstants.TestData.TEST_TOTAL_PAID_AMOUNT)
+                .status(FancardConstants.TestData.TEST_MEMBERSHIP_STATUS)
+                .autoRenewal(FancardConstants.TestData.TEST_AUTO_RENEWAL)
                 .grade(grade)
                 .build();
-        
-        List<BenefitDto> benefits = List.of(
-                BenefitDto.builder()
-                        .benefitId(1L)
-                        .benefitType("DISCOUNT")
-                        .benefitName("상품 할인")
-                        .benefitValue("20%")
-                        .description("모든 굿즈 20% 할인")
-                        .isActive(true)
-                        .build(),
-                BenefitDto.builder()
-                        .benefitId(2L)
-                        .benefitType("PRIORITY")
-                        .benefitName("우선 예매")
-                        .benefitValue("VIP_PRIORITY")
-                        .description("팬미팅 VIP 등급 우선 예매")
-                        .isActive(true)
-                        .build()
-        );
         
         return FancardDetailResponse.builder()
                 .cardId(fancard.getCardId())
@@ -144,7 +128,7 @@ public class FancardServiceImpl implements FancardService {
                 .cardDesignUrl(fancard.getCardDesignUrl())
                 .influencer(influencer)
                 .membership(membership)
-                .benefits(benefits)
+                .benefits(FancardConstants.TestData.TEST_BENEFITS)
                 .build();
     }
 
