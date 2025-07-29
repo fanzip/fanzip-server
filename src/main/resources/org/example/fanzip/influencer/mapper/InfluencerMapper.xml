@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.fanzip.influencer.mapper.InfluencerMapper">
+
+    <resultMap id="InfluencerResultMap" type="org.example.fanzip.influencer.domain.InfluencerVO">
+        <id column="influencer_id" property="influencerId"/>
+        <result column="influencer_name" property="influencerName"/>
+        <result column="category" property="category" javaType="org.example.fanzip.influencer.domain.enums.InfluencerCategory"/>
+        <result column="profile_image" property="profileImage"/>
+    </resultMap>
+
+    <select id="findAllFiltered" resultMap="InfluencerResultMap" parameterType="map">
+        SELECT
+        influencer_id, influencer_name, category, profile_image
+
+        FROM influencers
+
+        <where>
+            <!--
+            유저가 이미 구독중인 인플루언서는 제외하고 보여줌
+            AND
+            카테고리 필터링
+             -->
+            influencer_id NOT IN (
+            SELECT influencer_id
+            FROM memberships
+            WHERE user_id = #{userId}
+            )
+
+            <if test="category != null">
+                AND category = #{category}
+            </if>
+        </where>
+    </select>
+
+
+</mapper>
