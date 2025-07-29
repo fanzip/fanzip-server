@@ -1,5 +1,7 @@
 package org.example.fanzip.payment.service;
 
+import org.example.fanzip.global.exception.BusinessException;
+import org.example.fanzip.global.exception.payment.PaymentErrorCode;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -8,19 +10,19 @@ public class PaymentValidator {
         if (orderId != null) {
             int mockStock = 10; // 임의 재고 수량, 실제 구현 시 각 Repository Mapper에서 findById() 호출 하기
             if (mockStock <= 0) {
-                throw new IllegalStateException("상품 재고가 부족합니다");
+                throw new BusinessException(PaymentErrorCode.ORDER_STOCK_UNAVAILABLE);
             }
         }
         if (reservationId != null) { // 예매 가능 좌석
             int mockSeats = 5;
             if (mockSeats <= 0) {
-                throw new IllegalStateException("예약 가능한 인원이 없습니다");
+                throw new BusinessException(PaymentErrorCode.SEATS_UNAVAILABLE);
             }
         }
         if (membershipId != null) {
             boolean isMember = true; // 멤버십 가입된 사람
             if (!isMember) {
-                throw new IllegalStateException("멤버십 가입 정보가 없습니다.");
+                throw new BusinessException(PaymentErrorCode.MEMBERSHIP_NOT_FOUND);
             }
         }
     }

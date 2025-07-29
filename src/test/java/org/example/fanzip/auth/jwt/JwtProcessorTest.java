@@ -1,7 +1,7 @@
 package org.example.fanzip.auth.jwt;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.fanzip.config.RootConfig;
+import org.example.fanzip.global.config.RootConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

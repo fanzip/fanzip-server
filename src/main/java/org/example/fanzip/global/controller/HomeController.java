@@ -1,4 +1,4 @@
-package org.example.fanzip.controller;
+package org.example.fanzip.global.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
