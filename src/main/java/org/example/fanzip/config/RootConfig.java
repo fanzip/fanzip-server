@@ -23,7 +23,7 @@ import javax.sql.DataSource;
 @ComponentScan(basePackages = {"org.example.fanzip"}, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
 @PropertySource(value = "classpath:application.yml", factory = YamlPropertySourceFactory.class)
 @MapperScan(basePackages = {
-        "org.example.fanzip.fancard.mapper"
+        "org.example.fanzip.fancard.mapper",
         "org.example.fanzip.user.mapper",
         "org.example.fanzip.payment.mapper",
         "org.example.fanzip.market.mapper",
