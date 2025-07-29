@@ -1,6 +1,6 @@
 package org.example.fanzip.payment.service;
 
-import org.example.fanzip.config.RootConfig;
+import org.example.fanzip.global.config.RootConfig;
 import org.example.fanzip.payment.domain.Payments;
 import org.example.fanzip.payment.domain.enums.PaymentMethod;
 import org.example.fanzip.payment.domain.enums.PaymentStatus;

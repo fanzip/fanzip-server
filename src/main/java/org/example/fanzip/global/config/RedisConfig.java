@@ -1,4 +1,4 @@
-package org.example.fanzip.config;
+package org.example.fanzip.global.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

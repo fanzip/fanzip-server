@@ -1,4 +1,4 @@
-package org.example.fanzip.config;
+package org.example.fanzip.global.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.CharacterEncodingFilter;

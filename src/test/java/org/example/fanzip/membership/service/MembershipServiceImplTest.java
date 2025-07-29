@@ -1,7 +1,7 @@
 package org.example.fanzip.membership.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.fanzip.config.RootConfig;
+import org.example.fanzip.global.config.RootConfig;
 import org.example.fanzip.membership.dto.MembershipSubscribeRequestDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeResponseDTO;
 import org.example.fanzip.membership.mapper.MembershipMapper;
