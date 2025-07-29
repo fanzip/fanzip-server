@@ -20,7 +20,6 @@ public class FancardServiceImpl implements FancardService {
 
     private final FancardMapper fancardMapper;
 
-    @Autowired
     public FancardServiceImpl(FancardMapper fancardMapper) {
         this.fancardMapper = fancardMapper;
     }
@@ -150,12 +149,11 @@ public class FancardServiceImpl implements FancardService {
     }
 
     private List<Long> getMembershipIdsByUserId(Long userId) {
-        // TODO: Membership 서비스나 매퍼를 통해 실제 메버십 ID 목록 조회
-        // 현재는 테스트 데이터 반환
+        // TODO: MembershipService 의존성 주입 후 실제 조회로 변경 필요
         if (userId.equals(1L)) {
             return List.of(1L);
         }
-        return List.of();
+        return Collections.emptyList();
     }
 
     private String getInfluencerNameByMembershipId(Long membershipId) {
