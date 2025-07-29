@@ -1,7 +1,7 @@
 package org.example.fanzip.membership.mapper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.fanzip.config.RootConfig;
+import org.example.fanzip.global.config.RootConfig;
 import org.example.fanzip.membership.domain.MembershipVO;
 import org.example.fanzip.membership.domain.enums.MembershipStatus;
 import org.junit.jupiter.api.Test;

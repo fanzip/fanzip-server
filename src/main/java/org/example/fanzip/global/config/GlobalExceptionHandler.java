@@ -1,4 +1,4 @@
-package org.example.fanzip.config;
+package org.example.fanzip.global.config;
 
 import org.example.fanzip.fancard.exception.FancardNotFoundException;
 import org.springframework.http.HttpStatus;

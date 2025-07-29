@@ -1,6 +1,8 @@
 package org.example.fanzip.payment.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.fanzip.global.exception.BusinessException;
+import org.example.fanzip.global.exception.payment.PaymentErrorCode;
 import org.example.fanzip.payment.dto.PaymentRequestDto;
 import org.example.fanzip.payment.dto.PaymentResponseDto;
 import org.example.fanzip.payment.repository.PaymentRepository;
@@ -49,7 +51,7 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponseDto getPayment(Long paymentId) {
         Payments payments = paymentRepository.findById(paymentId);
         if (payments == null) {
-            throw new IllegalArgumentException("해당 결제 정보를 찾을 수 없습니다. paymentId=" + paymentId);
+            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
         }
         return PaymentResponseDto.from(payments);
     }
