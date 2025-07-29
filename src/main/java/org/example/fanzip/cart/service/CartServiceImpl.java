@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-//@Transactional
+@Transactional
 public class CartServiceImpl implements CartService {
     private final CartMapper cartMapper;
     private final MarketMapper marketMapper;
