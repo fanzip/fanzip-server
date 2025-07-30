@@ -3,14 +3,12 @@ package org.example.fanzip.influencer.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
+import org.example.fanzip.influencer.dto.InfluencerDetailResponseDTO;
 import org.example.fanzip.influencer.dto.InfluencerRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerResponseDTO;
 import org.example.fanzip.influencer.service.InfluencerService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -41,5 +39,17 @@ public class InfluencerController {
 
         return ResponseEntity.ok(influencerList);
 
+    }
+
+    // 인플루언서 상세 조회
+    @GetMapping("/{influencerId}")
+    public ResponseEntity<InfluencerDetailResponseDTO> getDetail(
+            @PathVariable Long influencerId,
+            HttpServletRequest request) {
+
+        Long userId = (Long) request.getAttribute("userId");
+
+        InfluencerDetailResponseDTO responseDTO = influencerService.findDetailed(userId, influencerId);
+        return ResponseEntity.ok(responseDTO);
     }
 }
