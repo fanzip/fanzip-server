@@ -1,4 +1,4 @@
-package org.example.fanzip.config;
+package org.example.fanzip.global.config;
 
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.security.JwtAuthenticationEntryPoint;
