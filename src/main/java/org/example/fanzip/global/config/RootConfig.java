@@ -20,7 +20,6 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource(value = "classpath:/application.yml", factory = YamlPropertySourceFactory.class)
-@ComponentScan(basePackages = {"org.example.fanzip"}, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
 @PropertySource(value = "classpath:application.yml", factory = YamlPropertySourceFactory.class)
 @MapperScan(basePackages = {
         "org.example.fanzip.fancard.mapper",
@@ -39,7 +38,7 @@ import javax.sql.DataSource;
         "org.example.fanzip.cart",
         "org.example.fanzip.membership.service",
         "org.example.fanzip.influencer.service"
-})
+}, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
 public class RootConfig {
     @Value("${spring.datasource.driver-class-name}") String driver;
     @Value("${spring.datasource.url}") String url;
