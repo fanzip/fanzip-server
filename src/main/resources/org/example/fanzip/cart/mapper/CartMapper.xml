@@ -65,6 +65,14 @@
             and c.user_id = #{userId}
     </select>
 
+    <!-- 상품 id로 cartItemId 확인 -->
+    <select id="findCartItemIdByProductId" resultType="java.lang.Long">
+        select cart_item_id
+        from cartitems ci join cart c on ci.cart_id = c.cart_id
+        where c.user_id = #{userId}
+            and ci.product_id = #{productId}
+    </select>
+
     <!-- 수량, 선택 업데이트 -->
     <select id="updateCartItem">
         update cartitems
