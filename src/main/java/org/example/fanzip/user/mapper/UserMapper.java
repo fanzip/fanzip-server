@@ -7,6 +7,8 @@ public interface UserMapper {
     UserDTO findBySocialTypeAndSocialId(@Param("socialType") String socialType,
                                         @Param("socialId") String socialId);
     void insertUser(UserDTO user);
+
+    UserDTO getUser(@Param("userId") Long userId);
 //    void updateAdditionalInfo(@Param("socialType") String socialType,
 //                              @Param("socialId") String socialId,
 //                              @Param("additionalInfoDTO") AdditionalInfoDTO additionalInfoDTO);

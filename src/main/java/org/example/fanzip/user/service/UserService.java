@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.user.dto.RegisterDTO;
 import org.example.fanzip.user.dto.UserDTO;
 import org.example.fanzip.user.mapper.UserMapper;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -30,5 +31,8 @@ public class UserService {
 
         mapper.insertUser(newUser);
         return newUser.getUserId();
+    }
+    public UserDTO getUser(@Param("userId") Long userId){
+        return mapper.getUser(userId);
     }
 }
