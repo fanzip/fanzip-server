@@ -37,6 +37,12 @@ public interface CartMapper {
             @Param("cartItemId") Long cartItemId
     );
 
+    // 상품 Id로 cartItemId 조회
+    Long findCartItemIdByProductId(
+            @Param("userId") Long userId,
+            @Param("productId") Long productId
+    );
+
     // 장바구니 업데이트 (수량 등)
     void updateCartItem(
             @Param("cartItemId") Long cartItemId,

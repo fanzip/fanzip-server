@@ -40,10 +40,17 @@ public class CartServiceImpl implements CartService {
             cartId = cartMapper.createCart(userId);
         }
 
-        // 상품 추가
-        Long cartItemId = cartMapper.insertCartItem(
-                cartId, req.getProductId(), req.getQuantity()
-        );
+        // 동일 상품 카트에 있으면 업데이트
+        Long cartItemId = cartMapper.findCartItemIdByProductId(userId, req.getProductId());
+        if(cartItemId == null) {
+            // 동일 상품 장바구니에 없는 경우 삽입
+            cartItemId = cartMapper.insertCartItem(
+                    cartId, req.getProductId(), req.getQuantity()
+            );
+        } else {
+            // 동일 상품 카트에 있는 경우 업데이트
+           updateItem(userId, cartItemId, new UpdateCartItemRequestDto(req.getQuantity(), true));
+        }
 
         return CartItemResponseDto.builder()
                 .cartItemId(cartItemId)
@@ -62,7 +69,7 @@ public class CartServiceImpl implements CartService {
                     return item;
                 }).toList();
 
-        // 선택 항목 합
+        // 선택 항목 금액 합
         BigDecimal grandTotal = items.stream()
                 .filter(CartItemDto::getIsSelected)
                 .map(CartItemDto::getTotalPrice)
@@ -76,11 +83,11 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartItemDto updateItem(Long userId, Long cartItemId, UpdateCartItemRequestDto req) {
-        // 본인 소유 장바구니 개수 검증
-        Integer carts = cartMapper.checkOwnership(userId, cartItemId);
-        if(carts != 1) {
+        // 장바구니에 해당 상품 있는지 확인
+        Integer carts = cartMapper.checkCartItem(userId, cartItemId);
+        if(carts < 1) {
             throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN, "장바구니가 한개가 아닙니다.");
+                    HttpStatus.FORBIDDEN, "해당 상품은 장바구니에 없음");
         }
 
         CartItemDto existing = cartMapper.findItemById(cartItemId);
@@ -105,7 +112,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void removeItem(Long userId, Long cartItemId) {
-        cartMapper.checkOwnership(userId, cartItemId);
+        cartMapper.checkCartItem(userId, cartItemId);
         cartMapper.deleteCartItem(cartItemId);
     }
 }
