@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.example.fanzip.influencer.domain.InfluencerVO;
 import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
+import org.example.fanzip.influencer.dto.InfluencerDetailResponseDTO;
 
 import java.util.List;
 
@@ -12,4 +13,8 @@ public interface InfluencerMapper {
 
     List<InfluencerVO> findAllFiltered(@Param("userId") Long userId,
                                        @Param("category") InfluencerCategory category);
+
+    InfluencerVO findDetailed(@Param("influencerId") Long influencerId);
+
+
 }
