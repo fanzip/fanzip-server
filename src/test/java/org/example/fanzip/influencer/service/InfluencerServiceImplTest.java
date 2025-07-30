@@ -77,5 +77,19 @@ class InfluencerServiceImplTest {
         }
     }
 
+    @Test
+    void findDetailed_shouldReturnInfluencerDetail_whenExists() {
 
+        Long userId = 5L;
+        Long influencerId = 1L;
+
+        var result = influencerService.findDetailed(userId, influencerId);
+
+        assertNotNull(result);
+        log.info("상세 조회 결과: {}", result);
+
+        assertEquals(influencerId, result.getInfluencerId());
+        assertNotNull(result.getInfluencerName());
+        assertNotNull(result.getDescription());
+    }
 }
