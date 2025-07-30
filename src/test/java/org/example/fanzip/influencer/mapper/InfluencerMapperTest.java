@@ -7,6 +7,7 @@ import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ContextConfiguration(classes = RootConfig.class)
 @Transactional
 @Slf4j
+@ActiveProfiles("test") // 또는 VM 옵션: -Dspring.profiles.active=test
 class InfluencerMapperTest {
 
     @Autowired
@@ -75,4 +77,17 @@ class InfluencerMapperTest {
         assertTrue(result.isEmpty());
     }
 
+
+    @Test
+    void findDetailed_shouldReturnInfluencerDetail_whenIdExists() {
+
+        Long influencerId = 1L; // influencerId: 1번인 인플루언서 조회
+
+        InfluencerVO result = influencerMapper.findDetailed(influencerId);
+
+        assertNotNull(result);
+        log.info("상세 조회 결과: {}", result);
+        assertEquals(influencerId, result.getInfluencerId());
+        assertNotNull(result.getDescription());
+    }
 }
