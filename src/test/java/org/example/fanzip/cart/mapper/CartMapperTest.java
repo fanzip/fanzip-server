@@ -27,9 +27,9 @@ class CartMapperTest {
 
     @Test
     void findCartIdByUserId() {
-        Long cart = cartMapper.findCartIdByUserId(2L);
+        Long cart = cartMapper.findCartIdByUserId(1L);
         assertNotNull(cart);
-        log.info("findCartIdByUserId: {}", cart.toString());
+        log.info("=========> findCartIdByUserId: {}", cart.toString());
     }
 
     @Test
@@ -69,6 +69,13 @@ class CartMapperTest {
     }
 
     @Test
+    void findCartItemIdByProductId() {
+        Long cartItemId = cartMapper.findCartItemIdByProductId(1L, 6L);
+        assertNotNull(cartItemId);
+        log.info("===============> findCartItemIdByProductId: {}", cartItemId.toString());
+    }
+
+    @Test
     void updateCartItem() {
         cartMapper.updateCartItem(1L, 12, true);
         List<CartItemDto> list = cartMapper.findItemsByUser(2L);
@@ -90,8 +97,8 @@ class CartMapperTest {
 
     @Test
     void deleteCartItem() {
-        cartMapper.deleteCartItem(4L);
-        List<CartItemDto> list = cartMapper.findItemsByUser(2L);
+        cartMapper.deleteCartItem(11L);
+        List<CartItemDto> list = cartMapper.findItemsByUser(1L);
         assertNotNull(list);
         for (CartItemDto cartItemDto : list) {
             log.info("============> deleteCartItem: {}", cartItemDto.toString());
