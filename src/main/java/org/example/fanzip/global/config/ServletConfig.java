@@ -20,14 +20,14 @@ import java.util.List;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = {"org.example.fanzip.controller", "org.example.fanzip.fancard.controller"})
 @ComponentScan(basePackages = {
         "org.example.fanzip.controller",
         "org.example.fanzip.auth.controller",
         "org.example.fanzip.user.controller",
         "org.example.fanzip",
         "org.example.fanzip.cart.controller",
-        "org.example.fanzip.market.controller"
+        "org.example.fanzip.market.controller",
+        "org.example.fanzip.fancard.controller"
 })
 @RequiredArgsConstructor
 public class ServletConfig implements WebMvcConfigurer {
@@ -65,7 +65,7 @@ public class ServletConfig implements WebMvcConfigurer {
                         "/resources/**",
                         "/api/auth/oauth/**",
                         "/api/auth/reissue/**",
-                        "/api/users/register/**",
+                        "/api/user/register/**",
 //                 TODO: 아래 api는 개발 편의상 넣어 놓은 것. 추후 삭제 필요
                  "/api/cart/**", "/api/market/**","/api/payments/**");
     }
