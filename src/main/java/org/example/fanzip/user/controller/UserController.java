@@ -4,17 +4,17 @@ package org.example.fanzip.user.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.auth.jwt.JwtProcessor;
 import org.example.fanzip.user.dto.RegisterDTO;
+import org.example.fanzip.user.dto.UserDTO;
 import org.example.fanzip.user.service.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -42,5 +42,15 @@ public class UserController {
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .header("Authorization", "Bearer "+accessToken)
                 .body("sign up success");
+    }
+
+    @GetMapping("")
+    public ResponseEntity<?> getUser(HttpServletRequest request){
+        Long userID=(Long)request.getAttribute("userId");
+
+        UserDTO userDTO=userService.getUser(userID);
+
+        return ResponseEntity.ok().body(userDTO);
+
     }
 }
