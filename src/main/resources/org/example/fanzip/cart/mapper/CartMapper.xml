@@ -57,8 +57,8 @@
         where c.cart_item_id=#{cartItemId}
     </select>
 
-    <!-- 장바구니 소유 여부 체크 -->
-    <select id="checkOwnership" resultType="java.lang.Integer">
+    <!-- 특정 유저, 특정 상품 확인 -->
+    <select id="checkCartItem" resultType="java.lang.Integer">
         select count(*)
         from cartitems ci join cart c on ci.cart_id = c.cart_id
         where ci.cart_item_id = #{cartItemId}

@@ -21,7 +21,7 @@ public interface CartMapper {
             @Param("quantity") int quantity
     );
 
-    // 사용자별 장바구니에 담긴 항목 조회
+    // 사용자별 장바구니에 담긴 전체 항목 조회
     List<CartItemDto> findItemsByUser(
             @Param("userId") Long userId
     );
@@ -31,8 +31,8 @@ public interface CartMapper {
             @Param("cartItemId") Long cartItemId
     );
 
-    // 장바구니 소유 여부/개수 확인
-    Integer checkOwnership(
+    // 특정 유저, 해당상품 장바구니 조회
+    Integer checkCartItem(
             @Param("userId") Long userId,
             @Param("cartItemId") Long cartItemId
     );
