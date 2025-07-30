@@ -12,6 +12,14 @@
         <result column="profile_image" property="profileImage"/>
     </resultMap>
 
+    <resultMap id="InfluencerDetailResultMap" type="org.example.fanzip.influencer.domain.InfluencerVO">
+        <id column="influencer_id" property="influencerId"/>
+        <result column="influencer_name" property="influencerName"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="description" property="description"/>
+
+    </resultMap>
+
     <select id="findAllFiltered" resultMap="InfluencerResultMap" parameterType="map">
         SELECT
         influencer_id, influencer_name, category, profile_image
@@ -34,6 +42,19 @@
                 AND category = #{category}
             </if>
         </where>
+    </select>
+
+
+    <select id="findDetailed" resultMap="InfluencerResultMap" parameterType="map">
+
+    select
+        influencer_id, influencer_name, cover_image, description
+
+    from
+        influencers
+
+    WHERE
+        influencer_id = #{influencerId}
     </select>
 
 
