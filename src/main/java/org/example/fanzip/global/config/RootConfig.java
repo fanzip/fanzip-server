@@ -20,15 +20,15 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource(value = "classpath:/application.yml", factory = YamlPropertySourceFactory.class)
+@ComponentScan(basePackages = {"org.example.fanzip"}, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
+@PropertySource(value = "classpath:application.yml", factory = YamlPropertySourceFactory.class)
 @MapperScan(basePackages = {
         "org.example.fanzip.fancard.mapper",
         "org.example.fanzip.user.mapper",
         "org.example.fanzip.payment.mapper",
         "org.example.fanzip.market.mapper",
         "org.example.fanzip.cart.mapper",
-        "org.example.fanzip.membership.mapper",
-        "org.example.fanzip.meeting.mapper",
-        "org.example.fanzip.influencer.mapper"
+        "org.example.fanzip.membership.mapper"
 })
 @ComponentScan(basePackages = {
         "org.example.fanzip",
@@ -36,9 +36,8 @@ import javax.sql.DataSource;
         "org.example.fanzip.payment",
         "org.example.fanzip.market",
         "org.example.fanzip.cart",
-        "org.example.fanzip.membership.service",
-        "org.example.fanzip.influencer.service"
-}, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
+        "org.example.fanzip.membership.service"
+})
 public class RootConfig {
     @Value("${spring.datasource.driver-class-name}") String driver;
     @Value("${spring.datasource.url}") String url;
@@ -70,15 +69,14 @@ public class RootConfig {
         sqlSessionFactory.setDataSource(dataSource());
         return (SqlSessionFactory) sqlSessionFactory.getObject();
     }
-
     @Bean
     public DataSourceTransactionManager transactionManager(){
         DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
         return manager;
     }
 
-//    @Bean
-//    public ObjectMapper objectMapper() {
-//        return new ObjectMapper();
-//    }
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 }
