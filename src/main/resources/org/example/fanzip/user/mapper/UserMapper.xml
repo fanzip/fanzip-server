@@ -24,5 +24,8 @@
         select * from Users
                  where social_type=#{socialType} and social_id=#{socialId}
     </select>
+    <select id="getUser" resultType="org.example.fanzip.user.dto.UserDTO">
+        select * from Users where user_id=#{userId}
+    </select>
 </mapper>
 
