@@ -3,10 +3,13 @@ package org.example.fanzip.influencer.service;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.influencer.domain.InfluencerVO;
 import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
+import org.example.fanzip.influencer.dto.InfluencerDetailResponseDTO;
 import org.example.fanzip.influencer.dto.InfluencerRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerResponseDTO;
 import org.example.fanzip.influencer.mapper.InfluencerMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +20,7 @@ public class InfluencerServiceImpl implements InfluencerService {
 
     private final InfluencerMapper influencerMapper;
 
+    // 전체 목록 조회
     @Override
     public List<InfluencerResponseDTO> findAll(InfluencerRequestDTO requestDTO) {
 
@@ -34,5 +38,20 @@ public class InfluencerServiceImpl implements InfluencerService {
         return influencerList.stream()
                 .map(InfluencerResponseDTO::from)
                 .collect(Collectors.toList());
+    }
+
+    // 상세 조회
+    @Override
+    public InfluencerDetailResponseDTO findDetailed(Long userId, Long influencerId) {
+
+        // 인플루언서Id로 DB 조회하고 DTO로 변환해서 클라로 보내기
+        InfluencerVO influencerDetail = influencerMapper.findDetailed(influencerId);
+
+        // 예외
+        if (influencerDetail == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
+        }
+
+        return InfluencerDetailResponseDTO.from(influencerDetail);
     }
 }
