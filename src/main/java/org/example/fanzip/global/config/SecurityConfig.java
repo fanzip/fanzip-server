@@ -1,4 +1,8 @@
+<<<<<<< HEAD:src/main/java/org/example/fanzip/global/config/SecurityConfig.java
 package org.example.fanzip.global.config;
+=======
+package org.example.fanzip.config;
+>>>>>>> cd2fc76 ([feat] SecurityConfig 추가):src/main/java/org/example/fanzip/config/SecurityConfig.java
 
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.security.JwtAuthenticationEntryPoint;
