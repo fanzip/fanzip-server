@@ -21,7 +21,7 @@ import java.util.List;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = {
-        "org.example.fanzip.controller",
+        "org.example.fanzip.global.controller",
         "org.example.fanzip.auth.controller",
         "org.example.fanzip.user.controller",
         "org.example.fanzip",
