@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.fanzip.meeting.mapper.FanMeetingReservationMapper">
+
+    <select id="existByUserAndMeeting" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM fan_meeting_reservations
+            WHERE user_id = #{userId}
+              AND meeting_id = #{meetingId}
+              AND status = 'RESERVED'
+        )
+    </select>
+
+    <insert id="insertReservation"
+            parameterType="org.example.fanzip.meeting.domain.FanMeetingReservationVO"
+            useGeneratedKeys="true" keyProperty="reservationId">
+        INSERT INTO fan_meeting_reservations (
+            meeting_id, user_id, seat_id,
+            reservation_number, qr_code,
+            status, reserved_at
+        ) VALUES (
+                     #{meetingId}, #{userId}, #{seatId},
+                     #{reservationNumber}, #{qrCode},
+                     #{status}, #{reservedAt}
+                 )
+    </insert>
+
+    <select id="findByUserMeetingAndSeat" resultType="org.example.fanzip.meeting.domain.FanMeetingReservationVO">
+        SELECT * FROM fan_meeting_reservations
+        WHERE user_id = #{userId}
+          AND meeting_id = #{meetingId}
+          AND seat_id = #{seatId}
+    </select>
+
+    <update id="updateStatusToCanceled">
+        UPDATE fan_meeting_reservations
+        SET status = 'CANCELED',
+            cancelled_at = #{cancelledAt}
+        WHERE reservation_id = #{reservationId}
+    </update>
+
+    <select id="findByUserAndMeeting" resultType="org.example.fanzip.meeting.domain.FanMeetingReservationVO">
+        SELECT * FROM fan_meeting_reservations
+        WHERE user_id = #{userId}
+          AND meeting_id = #{meetingId}
+          AND status = 'RESERVED'
+    </select>
+
+</mapper>
