@@ -1,7 +1,6 @@
 package org.example.fanzip.config;
 
 import lombok.RequiredArgsConstructor;
-import org.example.fanzip.auth.jwt.JwtInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -32,8 +31,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ServletConfig implements WebMvcConfigurer {
 
-    private final JwtInterceptor jwtInterceptor;
-
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
@@ -58,19 +55,6 @@ public class ServletConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/api/**")
-                .excludePathPatterns(
-                        "/resources/**",
-                        "/api/auth/oauth/**",
-                        "/api/auth/reissue/**",
-                        "/api/user/register/**",
-//                 TODO: 아래 api는 개발 편의상 넣어 놓은 것. 추후 삭제 필요
-                 "/api/cart/**", "/api/market/**","/api/payments/**");
-    }
-
-    @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule()); // LocalDateTime 지원 추가
@@ -80,16 +64,6 @@ public class ServletConfig implements WebMvcConfigurer {
                 new MappingJackson2HttpMessageConverter(mapper);
 
         converters.add(converter);
-    }
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        System.out.println("cors 설정");
-        registry.addMapping("/**")//전체 경로에 대해
-                .allowedOrigins("http://localhost:5173")
-                .allowedMethods("GET", "POST")
-                .allowCredentials(true)
-                .exposedHeaders("Authorization");
     }
 }
 
