@@ -1,9 +1,10 @@
 package org.example.fanzip.market.controller;
 
-import org.example.fanzip.auth.jwt.JwtProcessor;
+
 import org.example.fanzip.market.dto.ProductDetailDto;
 import org.example.fanzip.market.dto.ProductListDto;
 import org.example.fanzip.market.service.MarketService;
+import org.example.fanzip.security.JwtProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
