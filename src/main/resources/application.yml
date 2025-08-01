@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/scoula_db
-    username: scoula
-    password: 12345678
+    url: jdbc:mysql://127.0.0.1:3306/fanzip
+    username: root
+    password: ksw04273!@#
 
   redis:
     host: ${REDIS_HOST:localhost}
@@ -17,9 +17,9 @@ mybatis:
     map-underscore-to-camel-case: true
 
 jwt:
-  secret: ${JWT_SECRET_KEY}
+  secret: SuperSecretKeyForJWTSigning123!@#
 
 kakao:
-  client-id: ${KAKAO_CLIENT_ID}
+  client-id: a44e43a01d421616a3292cd7194f2d22
   redirect-uri: http://localhost:5173/oauth/kakao/callback
 
