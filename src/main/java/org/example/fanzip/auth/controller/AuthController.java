@@ -4,16 +4,16 @@ package org.example.fanzip.auth.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.auth.dto.KakaoUserDTO;
-import org.example.fanzip.auth.jwt.JwtProcessor;
 import org.example.fanzip.auth.service.KakaoOAuthService;
+import org.example.fanzip.security.CookieUtil;
+import org.example.fanzip.security.JwtProcessor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,7 +29,6 @@ public class AuthController {
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
-
 //  카카오 로그인 URL 생성
     @GetMapping("/oauth/kakao-url")
     public ResponseEntity<String> getKakaoLoginUrl(){
@@ -40,29 +39,26 @@ public class AuthController {
         return ResponseEntity.ok(url);
     }
 
-    // 카카오 로그인
+    // 카카오 로그인(기존 유저면 로그인 처리, 신규 유저면 회원가입 유도)
     @GetMapping("/oauth/kakao-login")
-    public ResponseEntity<?> kakaoCallback(@RequestParam String code) throws Exception{
-        System.out.println("code:"+code);
+    public ResponseEntity<?> kakaoCallback(@RequestParam String code, HttpServletResponse response) throws Exception{
+        log.info("kakaoCallback 함수 진입");
+        log.info("카카오 인가코드: {}", code);
+
         KakaoUserDTO kakaoUser= kakaoOAuthService.login(code);
 
         if(kakaoUser.isRegistered()){//가입한 유저
             log.info("기존회원입니다.");
+
             String accessToken=jwtProcessor.generateAccessToken(kakaoUser.getUserId());
             String refreshToken=jwtProcessor.generateRefreshToken(kakaoUser.getUserId());
 
-            ResponseCookie refreshCookie=ResponseCookie.from("refresh-token",refreshToken)
-                    .httpOnly(true)
-                    .secure(false)
-                    .path("/")
-                    .maxAge(7*24*60*60)
-                    .sameSite("Lax")
-                    .build();
+            int cookieAge=jwtProcessor.getRefreshTokenExpiryInSeconds();
+            CookieUtil.addHttpOnlyCookie(response, "refresh-token", refreshToken, cookieAge);
 
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                     .header("Authorization", "Bearer "+accessToken)
-                    .body("login success");
+                    .body(Map.of("message","login success"));
         }else{//가입하지 않은 사용자
             log.info("가입하지 않은 사용자입니다");
 
@@ -72,34 +68,33 @@ public class AuthController {
 
     }
 
+//    Access Token 재발급
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(@CookieValue("refresh-token") String refreshToken) throws Exception{
-        if(!jwtProcessor.validateToken(refreshToken)){
+    public ResponseEntity<?> reissue(@CookieValue("refresh-token") String refreshToken, HttpServletResponse response) throws Exception{
+        log.info("=========reissue 진입=======");
+        if(refreshToken==null||!jwtProcessor.validateToken(refreshToken)){
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body("Refresh token expired or invalid");
+                    .body(Map.of("message","Refresh token expired or invalid"));
         }
 
-        Long userId = jwtProcessor.getUserId(refreshToken);
+        Long userId = jwtProcessor.getUserIdFromToken(refreshToken);
         String newAccessToken=jwtProcessor.generateAccessToken(userId);
+        String newRefreshToken = jwtProcessor.generateRefreshToken(userId);
+
+        int cookieAge=jwtProcessor.getRefreshTokenExpiryInSeconds();
+        CookieUtil.addHttpOnlyCookie(response, "refresh-token", newRefreshToken, cookieAge);
 
         return ResponseEntity.ok()
                 .header("Authorization", "Bearer "+newAccessToken)
-                .body("Access token reissued");
+                .body(Map.of("message", "Access token reissued"));
     }
 
+//    로그아웃: refresh-token 제거
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(){
+    public ResponseEntity<?> logout(HttpServletResponse response){
+        CookieUtil.removeCookie(response, "refresh-token");
 
-        ResponseCookie deleteCookie=ResponseCookie.from("refresh-token", "")
-                .httpOnly(true)
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
-                .body("logout success");
-
+        return ResponseEntity.ok(Map.of("message","logout success"));
     }
 }
