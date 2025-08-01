@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.fanzip.meeting.mapper.FanMeetingSeatMapper">
+
+    <select id="findByMeetingId"
+            resultType="org.example.fanzip.meeting.domain.FanMeetingSeatVO"
+            parameterType="long">
+        SELECT *
+        FROM fan_meeting_seats
+        WHERE meeting_id = #{meetingId}
+        ORDER BY seat_number
+    </select>
+
+    <update id="updateSeatReservation" parameterType="map">
+        UPDATE fan_meeting_seats
+        SET is_reserved = #{reserved}
+        WHERE seat_id     = #{seatId}
+    </update>
+
+
+    <resultMap id="FanMeetingSeatResultMap" type="org.example.fanzip.meeting.domain.FanMeetingSeatVO">
+        <id property="seatId" column="seat_id"/>
+        <result property="meetingId" column="meeting_id"/>
+        <result property="seatNumber" column="seat_number"/>
+        <result property="seatType" column="seat_type"/>
+        <result property="price" column="price"/>
+        <result property="reserved" column="is_reserved"/>
+        <result property="version" column="version"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+
+    <select id="findById" resultMap="FanMeetingSeatResultMap">
+        SELECT
+            seat_id,
+            meeting_id,
+            seat_number,
+            seat_type,
+            price,
+            is_reserved,
+            version,
+            created_at
+        FROM fan_meeting_seats
+        WHERE seat_id = #{seatId}
+    </select>
+
+
+    <!-- 낙관적 락을 위한 update -->
+    <update id="updateSeatWithVersionCheck">
+        UPDATE fan_meeting_seats
+        SET is_reserved = TRUE,
+            version = version + 1
+        WHERE seat_id = #{seatId}
+          AND version = #{version}
+          AND is_reserved = FALSE
+    </update>
+
+</mapper>
