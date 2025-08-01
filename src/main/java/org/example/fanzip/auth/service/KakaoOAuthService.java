@@ -3,6 +3,7 @@ package org.example.fanzip.auth.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.auth.dto.KakaoUserDTO;
 import org.example.fanzip.user.dto.UserDTO;
 import org.example.fanzip.user.service.UserService;
@@ -17,6 +18,7 @@ import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class KakaoOAuthService implements OAuthService {
 
     private final UserService userService;
@@ -71,7 +73,7 @@ public class KakaoOAuthService implements OAuthService {
         ResponseEntity<String> response=restTemplate.postForEntity(tokenUrl,request,String.class);
 
         JsonNode node=objectMapper.readTree(response.getBody());
-        System.out.println("카카오 응답 JSON: " + node.toPrettyString());
+        log.info("카카오 응답 JSON: {}", node.toPrettyString());
 
         return node.get("access_token").asText();
     }
@@ -89,7 +91,7 @@ public class KakaoOAuthService implements OAuthService {
         );
 
         JsonNode node=objectMapper.readTree(response.getBody());
-        System.out.println("node: " + node.toPrettyString());
+        log.info("node: {}", node.toPrettyString());
         return node;
     }
 }
