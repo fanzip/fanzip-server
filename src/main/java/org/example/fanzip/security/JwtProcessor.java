@@ -1,16 +1,24 @@
-package org.example.fanzip.auth.jwt;
+package org.example.fanzip.security;
 
-import io.jsonwebtoken.*;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.example.fanzip.config.YamlPropertySourceFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 @Component
+@PropertySource(value = "classpath:application.yml", factory = YamlPropertySourceFactory.class)
 public class JwtProcessor {
+
     static private final long ACCESS_TOKEN_VALID_MILISECOND=30*60*1000L;//30분
     static private final long
             REFRESH_TOKEN_VALID_MILISECOND=7*24*60*60*1000L;//7일
@@ -21,7 +29,6 @@ public class JwtProcessor {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    //JWT 생성(access token)
     public String generateToken(Long userId, String subject, Long validityMillis) {
         return Jwts.builder()
                 .setSubject(subject)
@@ -41,12 +48,9 @@ public class JwtProcessor {
     //JWT 검증(유효 기간 검증)-해석 불가인 경우 예외 발생
     public boolean validateToken(String token){
         try{
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
+            parseToken(token);
             return true;
-        }catch(JwtException|IllegalArgumentException e){
+        }catch(JwtException | IllegalArgumentException e){
             return false;
         }
     }
@@ -60,18 +64,12 @@ public class JwtProcessor {
     }
 
     //JWT 토큰에서 userId 추출
-    public Long getUserId(String token){
+    public Long getUserIdFromToken(String token){
         return parseToken(token)
                 .get("userId",Long.class);
     }
 
-    //JWT 만료 여부
-    public boolean isExpired(String token){
-        try{
-            Claims claims = parseToken(token);
-            return claims.getExpiration().before(new Date());
-        }catch(JwtException e){
-            return true;
-        }
+    public int getRefreshTokenExpiryInSeconds(){
+        return (int)(REFRESH_TOKEN_VALID_MILISECOND/1000);
     }
 }
