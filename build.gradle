@@ -82,7 +82,7 @@ dependencies {
   implementation 'org.springframework.data:spring-data-redis:2.7.5'
   implementation 'redis.clients:jedis:3.9.0'
 
-  // Jackson (required for Swagger)
+  //  Jackson (required for Swagger)
   implementation 'com.fasterxml.jackson.core:jackson-core:2.13.5'
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.5'
   implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.5'
@@ -107,6 +107,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
   implementation 'com.fasterxml.jackson.core:jackson-annotations:2.15.2'
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+  implementation 'com.googlecode.json-simple:json-simple:1.1.1' // TOSS
 
   // yml
   implementation 'org.yaml:snakeyaml:2.0'
