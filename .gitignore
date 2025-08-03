@@ -47,3 +47,6 @@ bin/
 
 # workspace.xml 로컬 설정 파일
 .idea/workspace.xml
+
+### 설정 파일 ###
+src/main/resources/application.yml
