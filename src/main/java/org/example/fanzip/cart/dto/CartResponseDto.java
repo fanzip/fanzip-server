@@ -15,4 +15,5 @@ import java.util.List;
 public class CartResponseDto {
     private List<CartItemDto> items;
     private BigDecimal grandTotal; // 선택 항목만 최종 금액
+    private String address;
 }

@@ -74,10 +74,11 @@ public class CartServiceImpl implements CartService {
                 .filter(CartItemDto::getIsSelected)
                 .map(CartItemDto::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+        String address = cartMapper.shippingAddress(userId);
         return CartResponseDto.builder()
                 .items(items)
                 .grandTotal(grandTotal)
+                .address(address)
                 .build();
     }
 
