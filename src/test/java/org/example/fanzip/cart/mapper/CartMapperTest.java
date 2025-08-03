@@ -104,4 +104,11 @@ class CartMapperTest {
             log.info("============> deleteCartItem: {}", cartItemDto.toString());
         }
     }
+
+    @Test
+    void shippingAddress() {
+        String address = cartMapper.shippingAddress(1L);
+        assertNotNull(address);
+        log.info("===============> shippingAddress: {}", address);
+    }
 }

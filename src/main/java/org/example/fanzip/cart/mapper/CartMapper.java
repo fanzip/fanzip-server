@@ -60,4 +60,7 @@ public interface CartMapper {
     void deleteCartItem(
             @Param("cartItemId") Long cartItemId
     );
+
+    // 배송 주소 조회
+    String shippingAddress(@Param("userId") Long userId);
 }

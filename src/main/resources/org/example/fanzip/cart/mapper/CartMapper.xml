@@ -95,4 +95,10 @@
         where cart_item_id=#{cartItemId}
     </delete>
 
+    <!-- 배송지 조회 -->
+    <select id="shippingAddress" resultType="java.lang.String">
+        select concat_ws(', ', address1, address2) as address
+        from users
+        where user_id = #{userId}
+    </select>
 </mapper>
