@@ -7,11 +7,14 @@ import org.example.fanzip.meeting.domain.ReservationStatus;
 import org.example.fanzip.meeting.dto.FanMeetingReservationResponseDTO;
 import org.example.fanzip.meeting.mapper.FanMeetingReservationMapper;
 import org.example.fanzip.meeting.mapper.FanMeetingSeatMapper;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -19,49 +22,64 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
 
     private final FanMeetingReservationMapper reservationMapper;
     private final FanMeetingSeatMapper seatMapper;
+    private final RedissonClient redissonClient;
+
 
     @Override
     @Transactional
     public FanMeetingReservationResponseDTO reserveSeat(Long meetingId, Long seatId, Long userId) {
 
-        // 이미 이 팬미팅을 예약했는지 확인
-        if (reservationMapper.existByUserAndMeeting(userId, meetingId)) {
-            throw new IllegalStateException("이미 예약한 팬미팅입니다.");
+        String lockKey = "lock:seat:" + seatId;
+        RLock lock = redissonClient.getLock(lockKey);
+
+        boolean isLocked = false;
+
+        try {
+            isLocked = lock.tryLock(3, 5, TimeUnit.SECONDS);
+            if (!isLocked) {
+                throw new IllegalStateException("좌석 예약 중입니다. 잠시 후 다시 시도해주세요.");
+            }
+
+            if (reservationMapper.existByUserAndMeeting(userId, meetingId)) {
+                throw new IllegalStateException("이미 예약한 팬미팅입니다.");
+            }
+
+            FanMeetingSeatVO seat = seatMapper.findById(seatId);
+            if (seat == null || seat.isReserved()) {
+                throw new IllegalStateException("존재하지 않거나 이미 예약한 좌석입니다.");
+            }
+
+            int updated = seatMapper.updateSeatWithVersionCheck(seatId, true, seat.getVersion());
+            if (updated == 0) {
+                throw new IllegalStateException("좌석 예약 실패: 다른 유저가 먼저 예약했을 수 있습니다.");
+            }
+
+            FanMeetingReservationVO vo = new FanMeetingReservationVO();
+            vo.setMeetingId(meetingId);
+            vo.setUserId(userId);
+            vo.setSeatId(seatId);
+            vo.setReservationNumber(UUID.randomUUID().toString());
+            vo.setQrCode("QR-" + UUID.randomUUID());
+            vo.setStatus(ReservationStatus.RESERVED);
+            vo.setReservedAt(LocalDateTime.now());
+
+            reservationMapper.insertReservation(vo);
+
+            return new FanMeetingReservationResponseDTO(
+                    vo.getReservationId(),
+                    vo.getReservationNumber(),
+                    vo.getQrCode(),
+                    vo.getStatus(),
+                    vo.getSeatId()
+            );
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("좌석 예약 도중 인터럽트 발생");
+        } finally {
+            if (isLocked && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
-
-        // 현재 좌석 정보 조회 (version 포함)
-        FanMeetingSeatVO seat = seatMapper.findById(seatId);
-        System.out.println("seat version = " + seat.getVersion());
-        if (seat == null || seat.isReserved()) {
-            throw new IllegalStateException("존재하지 않거나 이미 예약된 좌석입니다.");
-        }
-
-        // 낙관적 락 기반 업데이트 시도
-        int updated = seatMapper.updateSeatWithVersionCheck(seatId, true, seat.getVersion());
-        if (updated == 0) {
-            throw new IllegalStateException("좌석 예약 실패: 다른 유저가 먼저 예약했을 수 있습니다.");
-        }
-
-        // 예약 객체 생성 및 저장
-        FanMeetingReservationVO vo = new FanMeetingReservationVO();
-        vo.setMeetingId(meetingId);
-        vo.setUserId(userId);
-        vo.setSeatId(seatId);
-        vo.setReservationNumber(UUID.randomUUID().toString());
-        vo.setQrCode("QR-" + UUID.randomUUID());
-        vo.setStatus(ReservationStatus.RESERVED);
-        vo.setReservedAt(LocalDateTime.now());
-
-        reservationMapper.insertReservation(vo);
-
-        // 응답 반환
-        return new FanMeetingReservationResponseDTO(
-                vo.getReservationId(),
-                vo.getReservationNumber(),
-                vo.getQrCode(),
-                vo.getStatus(),
-                vo.getSeatId()
-        );
     }
 
     @Override
