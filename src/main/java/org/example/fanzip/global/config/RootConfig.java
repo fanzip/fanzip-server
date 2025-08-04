@@ -39,7 +39,7 @@ import javax.sql.DataSource;
         "org.example.fanzip.cart",
         "org.example.fanzip.membership.service",
         "org.example.fanzip.influencer.service",
-        "org.example.fanzip.meeting.mapper"
+        "org.example.fanzip.meeting.service"
 }, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
 public class RootConfig {
     @Value("${spring.datasource.driver-class-name}") String driver;
