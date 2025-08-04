@@ -84,7 +84,8 @@ dependencies {
   //Redis
   implementation 'org.springframework.data:spring-data-redis:2.7.5'
   implementation 'redis.clients:jedis:3.9.0'
-  implementation 'org.redisson:redisson-spring-boot-starter:3.23.4'
+  implementation 'org.redisson:redisson:3.27.2'
+
 
   //  Jackson (required for Swagger)
   implementation 'com.fasterxml.jackson.core:jackson-core:2.13.5'
