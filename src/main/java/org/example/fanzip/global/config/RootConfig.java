@@ -28,7 +28,8 @@ import javax.sql.DataSource;
         "org.example.fanzip.market.mapper",
         "org.example.fanzip.cart.mapper",
         "org.example.fanzip.membership.mapper",
-        "org.example.fanzip.influencer.mapper"
+        "org.example.fanzip.influencer.mapper",
+        "org.example.fanzip.meeting.mapper"
 })
 @ComponentScan(basePackages = {
         "org.example.fanzip",
@@ -37,7 +38,8 @@ import javax.sql.DataSource;
         "org.example.fanzip.market",
         "org.example.fanzip.cart",
         "org.example.fanzip.membership.service",
-        "org.example.fanzip.influencer.service"
+        "org.example.fanzip.influencer.service",
+        "org.example.fanzip.meeting.mapper"
 }, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
 public class RootConfig {
     @Value("${spring.datasource.driver-class-name}") String driver;
