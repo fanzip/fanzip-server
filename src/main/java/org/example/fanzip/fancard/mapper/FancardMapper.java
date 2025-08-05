@@ -24,5 +24,9 @@ public interface FancardMapper {
     
     void update(Fancard fancard);
     
+    // 인플루언서의 팬카드 디자인 업데이트
+    int updateCardDesignByInfluencerId(@Param("influencerId") Long influencerId, 
+                                       @Param("cardDesignUrl") String cardDesignUrl);
+    
     void delete(@Param("cardId") Long cardId);
 }
