@@ -1,25 +1,26 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url:
-    username:
-    password:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
 
 mybatis:
   config-location: classpath:mybatis-config.xml
-  mapper-locations: classpath:org/example/fanzip/payment/mapper/*.xml
-  type-aliases-package: org.example.fanzip.payment.dto
+  mapper-locations: 
+    - classpath:mappers/*.xml
+    - classpath:org/example/fanzip/*/mapper/*.xml
+  type-aliases-package: org.example.fanzip
   configuration:
     map-underscore-to-camel-case: true
 
 jwt:
-  secret:
+  secret: ${JWT_SECRET_KEY}
 
 kakao:
-  client-id:
-  redirect-uri:
-
+  client-id: ${KAKAO_CLIENT_ID}
+  redirect-uri: ${KAKAO_REDIRECT_URI}
