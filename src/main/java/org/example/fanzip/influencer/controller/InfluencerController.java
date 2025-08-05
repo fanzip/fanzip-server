@@ -4,6 +4,10 @@ package org.example.fanzip.influencer.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
 import org.example.fanzip.influencer.dto.InfluencerDetailResponseDTO;
+import org.example.fanzip.influencer.dto.InfluencerFanCardImageUpdateRequestDTO;
+import org.example.fanzip.influencer.dto.InfluencerProfileImgUpdateRequestDTO;
+import org.example.fanzip.influencer.dto.InfluencerProfileResponseDTO;
+import org.example.fanzip.influencer.dto.InfluencerProfileUpdateRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerResponseDTO;
 import org.example.fanzip.influencer.service.InfluencerService;
@@ -51,5 +55,56 @@ public class InfluencerController {
 
         InfluencerDetailResponseDTO responseDTO = influencerService.findDetailed(userId, influencerId);
         return ResponseEntity.ok(responseDTO);
+    }
+
+    // 인플루언서 관리자 마이페이지 프로필 조회
+    @GetMapping("/{influencerId}/profile")
+    public ResponseEntity<InfluencerProfileResponseDTO> getProfile(
+            @PathVariable Long influencerId,
+            HttpServletRequest request) {
+
+        Long userId = (Long) request.getAttribute("userId");
+
+        InfluencerProfileResponseDTO responseDTO = influencerService.findProfile(influencerId, userId);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    // 인플루언서 프로필 수정
+    @PutMapping("/{influencerId}/profile")
+    public ResponseEntity<Void> updateProfile(
+            @PathVariable Long influencerId,
+            @RequestBody InfluencerProfileUpdateRequestDTO requestDTO,
+            HttpServletRequest request) {
+
+        Long userId = (Long) request.getAttribute("userId");
+
+        influencerService.updateInfluencerProfile(influencerId, requestDTO, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    // 인플루언서 프로필 이미지 업로드
+    @PostMapping("/{influencerId}/profile/image")
+    public ResponseEntity<Void> updateProfileImage(
+            @PathVariable Long influencerId,
+            @RequestBody InfluencerProfileImgUpdateRequestDTO requestDTO,
+            HttpServletRequest request) {
+
+        Long userId = (Long) request.getAttribute("userId");
+
+        influencerService.updateInfluencerProfileImage(influencerId, requestDTO, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    // 인플루언서 팬카드 이미지 업로드 (해당 인플루언서의 모든 활성 팬카드 디자인 업데이트)
+    @PostMapping("/{influencerId}/fancard/image")
+    public ResponseEntity<Void> updateFanCardImage(
+            @PathVariable Long influencerId,
+            @RequestBody InfluencerFanCardImageUpdateRequestDTO requestDTO,
+            HttpServletRequest request) {
+
+        Long userId = (Long) request.getAttribute("userId");
+
+        influencerService.updateInfluencerFanCardImage(influencerId, requestDTO, userId);
+        return ResponseEntity.ok().build();
     }
 }
