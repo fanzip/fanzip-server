@@ -1,5 +1,6 @@
 package org.example.fanzip.fancard.service;
 
+import org.example.fanzip.fancard.dto.request.QrCodeRequest;
 import org.example.fanzip.fancard.dto.response.*;
 import org.example.fanzip.fancard.domain.Fancard;
 import org.example.fanzip.fancard.exception.FancardNotFoundException;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Collections;
@@ -20,9 +22,13 @@ import java.util.Collections;
 public class FancardServiceImpl implements FancardService {
 
     private final FancardMapper fancardMapper;
+    private final LocationService locationService;
+    private final QrCodeGeneratorService qrCodeGeneratorService;
 
-    public FancardServiceImpl(FancardMapper fancardMapper) {
+    public FancardServiceImpl(FancardMapper fancardMapper, LocationService locationService, QrCodeGeneratorService qrCodeGeneratorService) {
         this.fancardMapper = fancardMapper;
+        this.locationService = locationService;
+        this.qrCodeGeneratorService = qrCodeGeneratorService;
     }
 
     @Override
@@ -50,15 +56,35 @@ public class FancardServiceImpl implements FancardService {
     }
 
     @Override
-    public QrCodeResponse generateQrCode(Long reservationId) {
-        // TODO: 실제 예약 정보 조회 로직 구현
-        String timestamp = LocalDateTime.now().toString().replace(":", "").replace(".", "");
-        String qrCode = FancardConstants.QrCode.CODE_PREFIX + "1_RES" + reservationId + 
-                       FancardConstants.QrCode.CODE_SEPARATOR + timestamp;
-        String qrCodeUrl = FancardConstants.QrCode.URL_PREFIX + qrCode;
+    public QrCodeResponse generateQrCode(QrCodeRequest request) {
+        // 위치 기반 검증
+        if (!locationService.isWithinVenueRange(request.getLatitude(), request.getLongitude(), request.getFanMeetingId())) {
+            return QrCodeResponse.builder()
+                    .qrCode(null)
+                    .qrCodeUrl(null)
+                    .status(FancardConstants.QrCode.STATUS_LOCATION_ERROR)
+                    .generatedAt(LocalDateTime.now())
+                    .expiresAt(null)
+                    .reservation(null)
+                    .build();
+        }
         
+        // QR 코드 데이터 생성
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String qrData = qrCodeGeneratorService.generateQrDataString(
+                request.getUserId(), 
+                request.getFanMeetingId(), 
+                request.getReservationId(), 
+                timestamp
+        );
+        
+        // QR 코드 이미지 생성 (Base64)
+        String qrCodeImage = qrCodeGeneratorService.generateQrCodeImage(qrData);
+        String qrCodeUrl = "data:image/png;base64," + qrCodeImage;
+        
+        // 예약 정보 조회 (현재는 테스트 데이터)
         ReservationDto reservation = ReservationDto.builder()
-                .reservationId(reservationId)
+                .reservationId(request.getReservationId())
                 .reservationNumber(FancardConstants.TestData.TEST_RESERVATION_NUMBER)
                 .meetingTitle(FancardConstants.TestData.TEST_MEETING_TITLE)
                 .meetingDate(LocalDateTime.now().plusDays(30))
@@ -66,12 +92,13 @@ public class FancardServiceImpl implements FancardService {
                 .seatNumber(FancardConstants.TestData.TEST_SEAT_NUMBER)
                 .build();
         
+        LocalDateTime now = LocalDateTime.now();
         return QrCodeResponse.builder()
-                .qrCode(qrCode)
+                .qrCode(qrData)
                 .qrCodeUrl(qrCodeUrl)
                 .status(FancardConstants.QrCode.STATUS_ACTIVE)
-                .generatedAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusHours(FancardConstants.QrCode.EXPIRY_HOURS))
+                .generatedAt(now)
+                .expiresAt(now.plusSeconds(FancardConstants.QrCode.EXPIRY_SECONDS))
                 .reservation(reservation)
                 .build();
     }
