@@ -9,4 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class QrCodeRequest {
     private Long reservationId;
+    private Long userId;
+    private Long fanMeetingId;
+    private Double latitude;
+    private Double longitude;
+    private String deviceInfo;
 }
