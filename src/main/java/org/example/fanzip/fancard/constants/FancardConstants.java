@@ -57,6 +57,7 @@ public final class FancardConstants {
         public static final String CODE_PREFIX = "ENTRY_USER";
         public static final String CODE_SEPARATOR = "_";
         public static final String STATUS_ACTIVE = "ACTIVE";
-        public static final int EXPIRY_HOURS = 1;
+        public static final int EXPIRY_SECONDS = 30;
+        public static final String STATUS_LOCATION_ERROR = "LOCATION_ERROR";
     }
 }

@@ -1,5 +1,6 @@
 package org.example.fanzip.fancard.service;
 
+import org.example.fanzip.fancard.dto.request.QrCodeRequest;
 import org.example.fanzip.fancard.dto.response.FancardDetailResponse;
 import org.example.fanzip.fancard.dto.response.FancardListWrapper;
 import org.example.fanzip.fancard.dto.response.QrCodeResponse;
@@ -10,5 +11,5 @@ public interface FancardService {
     
     FancardDetailResponse getFancardDetail(Long cardId);
     
-    QrCodeResponse generateQrCode(Long reservationId);
+    QrCodeResponse generateQrCode(QrCodeRequest request);
 }

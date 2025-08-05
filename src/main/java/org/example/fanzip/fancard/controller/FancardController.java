@@ -40,11 +40,11 @@ public class FancardController {
         return ResponseEntity.ok(fancard);
     }
     
-    @ApiOperation(value = "입장 QR 코드 생성", notes = "팬미팅 입장용 QR 코드를 생성합니다.")
+    @ApiOperation(value = "입장 QR 코드 생성", notes = "팬미팅 입장용 QR 코드를 생성합니다. 행사장 범위 내에서만 생성 가능합니다.")
     @PostMapping("/qr")
     public ResponseEntity<QrCodeResponse> generateQrCode(
-            @ApiParam(value = "예약 정보", required = true) @RequestBody QrCodeRequest request) {
-        QrCodeResponse qrCode = fancardService.generateQrCode(request.getReservationId());
+            @ApiParam(value = "QR 코드 생성 요청 정보", required = true) @RequestBody QrCodeRequest request) {
+        QrCodeResponse qrCode = fancardService.generateQrCode(request);
         return ResponseEntity.ok(qrCode);
     }
     

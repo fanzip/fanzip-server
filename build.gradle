@@ -117,6 +117,10 @@ dependencies {
   // yml
   implementation 'org.yaml:snakeyaml:2.0'
 
+  // QR Code generation
+  implementation 'com.google.zxing:core:3.5.2'
+  implementation 'com.google.zxing:javase:3.5.2'
+
 //  보안
   implementation("org.springframework.security:spring-security-web:${springSecurityVersion}")
   implementation("org.springframework.security:spring-security-config:${springSecurityVersion}")
