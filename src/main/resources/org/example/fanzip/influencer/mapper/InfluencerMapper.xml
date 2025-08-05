@@ -15,9 +15,9 @@
     <resultMap id="InfluencerDetailResultMap" type="org.example.fanzip.influencer.domain.InfluencerVO">
         <id column="influencer_id" property="influencerId"/>
         <result column="influencer_name" property="influencerName"/>
-        <result column="cover_image" property="coverImage"/>
+        <result column="category" property="category" javaType="org.example.fanzip.influencer.domain.enums.InfluencerCategory"/>
+        <result column="profile_image" property="profileImage"/>
         <result column="description" property="description"/>
-
     </resultMap>
 
     <select id="findAllFiltered" resultMap="InfluencerResultMap" parameterType="map">
@@ -45,17 +45,36 @@
     </select>
 
 
-    <select id="findDetailed" resultMap="InfluencerResultMap" parameterType="map">
-
-    select
-        influencer_id, influencer_name, cover_image, description
-
-    from
-        influencers
-
-    WHERE
-        influencer_id = #{influencerId}
+    <!-- 상세 조회 -->
+    <select id="findDetailed" resultMap="InfluencerDetailResultMap" parameterType="long">
+        SELECT influencer_id, influencer_name, profile_image, description
+        FROM influencers
+        WHERE influencer_id = #{influencerId}
     </select>
 
+    <!-- 마이페이지: 프로필 조회 -->
+    <select id="findProfile" resultMap="InfluencerDetailResultMap" parameterType="long">
+        SELECT influencer_id, influencer_name, category, profile_image, description
+        FROM influencers
+        WHERE influencer_id = #{influencerId}
+          AND deleted_at IS NULL
+    </select>
 
+    <!-- 마이페이지: 프로필 수정 -->
+    <update id="updateProfile" parameterType="map">
+        UPDATE influencers
+        SET influencer_name = #{influencerName},
+            description = #{description},
+            category = #{category},
+            updated_at = NOW()
+        WHERE influencer_id = #{influencerId}
+    </update>
+
+    <!-- 마이페이지: 프로필 이미지 수정 -->
+    <update id="updateProfileImage" parameterType="map">
+        UPDATE influencers
+        SET profile_image = #{profileImage},
+            updated_at = NOW()
+        WHERE influencer_id = #{influencerId}
+    </update>
 </mapper>
