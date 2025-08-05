@@ -15,7 +15,6 @@ public class InfluencerDetailResponseDTO {
 
     private Long influencerId;
     private String influencerName;
-    private String coverImage;
     private String description;
 
 
@@ -23,7 +22,6 @@ public class InfluencerDetailResponseDTO {
         return InfluencerDetailResponseDTO.builder()
                 .influencerId(influencerVO.getInfluencerId())
                 .influencerName(influencerVO.getInfluencerName())
-                .coverImage(influencerVO.getCoverImage())
                 .description(influencerVO.getDescription())
                 .build();
     }
