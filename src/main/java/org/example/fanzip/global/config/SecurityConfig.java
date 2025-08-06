@@ -38,10 +38,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                     .antMatchers(
-                        "/resources/**",
-                        "/api/auth/oauth/**",
-                        "/api/auth/reissue/**",
-                        "/api/user/register/**").permitAll()//jwt 인증 필요 x
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/v2/api-docs",
+                            "/v2/api-docs/**", 
+                            "/swagger-resources",
+                            "/swagger-resources/**",
+                            "/configuration/ui",
+                            "/configuration/security",
+                            "/webjars/**",
+                            "/api/auth/oauth/**",
+                            "/api/auth/reissue/**",
+                            "/api/user/register/**"
+                    ).permitAll()//jwt 인증 필요x
                     .anyRequest().authenticated()//jwt 인증 필요
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
