@@ -87,17 +87,15 @@
     </insert>
 
     <!-- 팬카드 수정 -->
-    <update id="update" parameterType="org.example.fanzip.fancard.domain.Fancard">
-        UPDATE fan_cards
-        SET membership_id = #{membershipId},
-            card_number = #{cardNumber},
-            qr_code = #{qrCode},
-            issue_date = #{issueDate},
-            expiry_date = #{expiryDate},
-            card_design_url = #{cardDesignUrl},
-            is_active = #{isActive},
-            registered_device_id = #{registeredDeviceId}
-        WHERE card_id = #{cardId}
+    <update id="updateCardDesignByInfluencerId"
+            parameterType="org.example.fanzip.fancard.domain.Fancard">
+        UPDATE FanCards
+        SET card_design_url = #{cardDesignUrl}
+        WHERE membership_id IN (
+            SELECT membership_id
+            FROM memberships
+            WHERE influencer_id = #{influencerId}
+        )
     </update>
 
     <!-- 팬카드 삭제 -->
