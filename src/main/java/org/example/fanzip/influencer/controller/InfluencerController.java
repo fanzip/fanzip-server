@@ -13,8 +13,9 @@ import org.example.fanzip.influencer.dto.InfluencerResponseDTO;
 import org.example.fanzip.influencer.service.InfluencerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.example.fanzip.security.CustomUserPrincipal;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -29,10 +30,10 @@ public class InfluencerController {
     public ResponseEntity<List<InfluencerResponseDTO>> getInfluencers(
             // 카테고리 지정하면 /api/influencers/?category= 형태로 조회
             @RequestParam(value = "category", required = false) InfluencerCategory category,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        // JWT Interceptor에서 설정한 userId를 가져옴 (구독한 인플루언서 제외용)
-        Long userId = (Long) request.getAttribute("userId");
+        // Security Context에서 userId를 가져옴 (구독한 인플루언서 제외용)
+        Long userId = principal.getUserId();
         
         InfluencerRequestDTO requestDTO = InfluencerRequestDTO.builder()
                 .userId(userId)
@@ -49,9 +50,9 @@ public class InfluencerController {
     @GetMapping("/{influencerId}")
     public ResponseEntity<InfluencerDetailResponseDTO> getDetail(
             @PathVariable Long influencerId,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
 
         InfluencerDetailResponseDTO responseDTO = influencerService.findDetailed(userId, influencerId);
         return ResponseEntity.ok(responseDTO);
@@ -61,9 +62,9 @@ public class InfluencerController {
     @GetMapping("/{influencerId}/profile")
     public ResponseEntity<InfluencerProfileResponseDTO> getProfile(
             @PathVariable Long influencerId,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
 
         InfluencerProfileResponseDTO responseDTO = influencerService.findProfile(influencerId, userId);
         return ResponseEntity.ok(responseDTO);
@@ -74,9 +75,9 @@ public class InfluencerController {
     public ResponseEntity<Void> updateProfile(
             @PathVariable Long influencerId,
             @RequestBody InfluencerProfileUpdateRequestDTO requestDTO,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
 
         influencerService.updateInfluencerProfile(influencerId, requestDTO, userId);
         return ResponseEntity.ok().build();
@@ -87,9 +88,9 @@ public class InfluencerController {
     public ResponseEntity<Void> updateProfileImage(
             @PathVariable Long influencerId,
             @RequestBody InfluencerProfileImgUpdateRequestDTO requestDTO,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
 
         influencerService.updateInfluencerProfileImage(influencerId, requestDTO, userId);
         return ResponseEntity.ok().build();
@@ -100,9 +101,9 @@ public class InfluencerController {
     public ResponseEntity<Void> updateFanCardImage(
             @PathVariable Long influencerId,
             @RequestBody InfluencerFanCardImageUpdateRequestDTO requestDTO,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal CustomUserPrincipal principal) {
 
-        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
 
         influencerService.updateInfluencerFanCardImage(influencerId, requestDTO, userId);
         return ResponseEntity.ok().build();
