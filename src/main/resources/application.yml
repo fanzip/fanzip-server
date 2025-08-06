@@ -11,7 +11,7 @@ spring:
 
 mybatis:
   config-location: classpath:mybatis-config.xml
-  mapper-locations: 
+  mapper-locations:
     - classpath:mappers/*.xml
     - classpath:org/example/fanzip/*/mapper/*.xml
   type-aliases-package: org.example.fanzip
@@ -24,3 +24,9 @@ jwt:
 kakao:
   client-id: ${KAKAO_CLIENT_ID}
   redirect-uri: ${KAKAO_REDIRECT_URI}
+
+toss:
+  payments:
+    client-key: ${TOSS_PAYMENTS_CLIENT_KEY}
+    secret-key: ${TOSS_PAYMENTS_SECRET_KEY}
+
