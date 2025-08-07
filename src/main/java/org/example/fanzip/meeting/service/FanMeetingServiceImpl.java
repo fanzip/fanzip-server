@@ -1,14 +1,23 @@
 package org.example.fanzip.meeting.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.fanzip.meeting.domain.FanMeetingSeatVO;
+import org.example.fanzip.meeting.domain.FanMeetingStatus;
 import org.example.fanzip.meeting.domain.FanMeetingVO;
 import org.example.fanzip.meeting.domain.UserGrade;
-import org.example.fanzip.meeting.dto.FanMeetingDetailDTO;
+import org.example.fanzip.meeting.dto.FanMeetingDetailResponseDTO;
+import org.example.fanzip.meeting.dto.FanMeetingRequestDTO;
 import org.example.fanzip.meeting.dto.FanMeetingResponseDTO;
+import org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO;
 import org.example.fanzip.meeting.mapper.FanMeetingMapper;
+import org.example.fanzip.meeting.mapper.FanMeetingSeatMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,6 +25,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FanMeetingServiceImpl implements FanMeetingService {
     private final FanMeetingMapper fanMeetingMapper;
+    private final FanMeetingSeatMapper fanMeetingSeatMapper;
+
+    @Autowired
+    private FanMeetingSeatMapper seatMapper;
 
     @Override
     public List<FanMeetingResponseDTO> getOpenMeetings(String userGradeStr) {
@@ -41,10 +54,10 @@ public class FanMeetingServiceImpl implements FanMeetingService {
     }
 
     @Override
-    public FanMeetingDetailDTO getMeetingDetail(Long meetingId) {
+    public FanMeetingDetailResponseDTO getMeetingDetail(Long meetingId) {
         FanMeetingVO vo = fanMeetingMapper.findById(meetingId);
 
-        return FanMeetingDetailDTO.builder()
+        return FanMeetingDetailResponseDTO.builder()
                 .meetingId(vo.getMeetingId())
                 .title(vo.getTitle())
                 .description(vo.getDescription())
@@ -71,6 +84,80 @@ public class FanMeetingServiceImpl implements FanMeetingService {
             case WHITE -> meeting.getWhiteOpenTime();
             case GENERAL -> meeting.getGeneralOpenTime();
         };
+    }
+
+    public List<FanMeetingSeatResponseDTO> getSeats(Long meetingId) {
+        return fanMeetingSeatMapper.findSeatsByMeetingId(meetingId);
+    }
+
+    public void createFanMeeting(FanMeetingVO meeting) {
+        // 팬미팅 insert
+        fanMeetingMapper.insertFanMeeting(meeting);
+
+        // 좌석 자동 생성
+        List<FanMeetingSeatVO> seats = generateSeats(meeting.getMeetingId());
+        seatMapper.insertSeatList(seats);
+    }
+
+    private List<FanMeetingSeatVO> generateSeats(Long meetingId) {
+        List<FanMeetingSeatVO> seats = new ArrayList<>();
+        String[] rows = "ABCDEFGHIJKLMNO".split("");  // 15행
+
+        for (String row : rows) {
+            for (int col = 1; col <= 11; col++) {
+                FanMeetingSeatVO seat = new FanMeetingSeatVO();
+                seat.setMeetingId(meetingId);
+                seat.setSeatNumber(row + col); // A1 ~ O11
+                seat.setPrice(BigDecimal.valueOf(36000));
+                seat.setReserved(false);
+                seat.setVersion(0);
+                seat.setCreatedAt(LocalDateTime.now());
+
+                seats.add(seat);
+            }
+        }
+
+        return seats;
+    }
+
+
+    @Override
+    @Transactional
+    public FanMeetingDetailResponseDTO createFanMeeting(FanMeetingRequestDTO request) {
+        FanMeetingVO meeting = new FanMeetingVO();
+        meeting.setTitle(request.getTitle());
+        meeting.setDescription(request.getDescription());
+        meeting.setVenueName(request.getVenueName());
+        meeting.setVenueAddress(request.getVenueAddress());
+        meeting.setMeetingDate(request.getMeetingDate());
+        meeting.setVipOpenTime(request.getVipOpenTime());
+        meeting.setGoldOpenTime(request.getGoldOpenTime());
+        meeting.setSilverOpenTime(request.getSilverOpenTime());
+        meeting.setWhiteOpenTime(request.getWhiteOpenTime());
+        meeting.setGeneralOpenTime(request.getGeneralOpenTime());
+        meeting.setStatus(FanMeetingStatus.PLANNED);
+
+
+        fanMeetingMapper.insertFanMeeting(meeting); // Auto-increment ID 채워짐
+
+        // 좌석 165개 자동 생성
+        List<FanMeetingSeatVO> seats = new ArrayList<>();
+        char[] rows = "ABCDEFGHIJKLMNO".toCharArray();
+        for (int i = 0; i < rows.length; i++) {
+            for (int j = 1; j <= 11; j++) {
+                FanMeetingSeatVO seat = new FanMeetingSeatVO();
+                seat.setMeetingId(meeting.getMeetingId());
+                seat.setSeatNumber("" + rows[i] + j); // 예: A1
+                seat.setReserved(false);
+                seat.setPrice(new BigDecimal("20000"));
+                seat.setVersion(0);
+                seat.setCreatedAt(LocalDateTime.now());
+                seats.add(seat);
+            }
+        }
+        fanMeetingSeatMapper.insertSeatList(seats);
+
+        return fanMeetingMapper.findDetailById(meeting.getMeetingId());
     }
 
 }
