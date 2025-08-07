@@ -1,7 +1,7 @@
 package org.example.fanzip.influencer.mapper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.fanzip.config.RootConfig;
+import org.example.fanzip.global.config.RootConfig;
 import org.example.fanzip.influencer.domain.InfluencerVO;
 import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
 import org.junit.jupiter.api.Test;
