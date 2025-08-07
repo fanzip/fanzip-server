@@ -18,4 +18,39 @@
         WHERE meeting_id = #{meetingId}
     </select>
 
+    <insert id="insertFanMeeting" parameterType="org.example.fanzip.meeting.domain.FanMeetingVO" useGeneratedKeys="true" keyProperty="meetingId">
+        INSERT INTO fan_meetings (
+            title, description, venue_name, venue_address,
+            meeting_date, vip_open_time, gold_open_time,
+            silver_open_time, white_open_time, general_open_time,
+            status, poster_image_url
+        ) VALUES (
+                     #{title}, #{description}, #{venueName}, #{venueAddress},
+                     #{meetingDate}, #{vipOpenTime}, #{goldOpenTime},
+                     #{silverOpenTime}, #{whiteOpenTime}, #{generalOpenTime},
+                     #{status}, #{posterImageUrl}
+                 )
+    </insert>
+
+    <select id="findDetailById" resultType="org.example.fanzip.meeting.dto.FanMeetingDetailResponseDTO">
+        SELECT
+            meeting_id AS meetingId,
+            title,
+            description,
+            venue_name AS venueName,
+            venue_address AS venueAddress,
+            meeting_date AS meetingDate,
+            total_seats AS totalSeats,
+            available_seats AS availableSeats,
+            status,
+            vip_open_time AS vipOpenTime,
+            gold_open_time AS goldOpenTime,
+            silver_open_time AS silverOpenTime,
+            white_open_time AS whiteOpenTime,
+            general_open_time AS generalOpenTime,
+            poster_image_url AS posterImageUrl
+        FROM fan_meetings
+        WHERE meeting_id = #{meetingId}
+    </select>
+
 </mapper>
