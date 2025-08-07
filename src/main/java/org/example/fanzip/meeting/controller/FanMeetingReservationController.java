@@ -2,11 +2,16 @@ package org.example.fanzip.meeting.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.meeting.dto.FanMeetingReservationResponseDTO;
+import org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO;
 import org.example.fanzip.meeting.service.FanMeetingReservationService;
+import org.example.fanzip.meeting.service.FanMeetingService;
+import org.example.fanzip.security.CustomUserPrincipal;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -14,24 +19,34 @@ import javax.servlet.http.HttpServletRequest;
 public class FanMeetingReservationController {
 
     private final FanMeetingReservationService reservationService;
+    private final FanMeetingService seatService;
 
     @PostMapping("/{meetingId}/seats/{seatId}/reservation")
     public FanMeetingReservationResponseDTO reserve(
             @PathVariable Long meetingId,
             @PathVariable Long seatId,
-            HttpServletRequest request) {
+            Authentication authentication) {
 
-        Long userId = (Long) request.getAttribute("userId");   // 인터셉터에서 넣어줌
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
         return reservationService.reserveSeat(meetingId, seatId, userId);
     }
 
     @DeleteMapping("/{meetingId}/reservation")
     public ResponseEntity<Void> cancelReservation(
             @PathVariable Long meetingId,
-            HttpServletRequest request) {
+            Authentication authentication) {
 
-        Long userId = (Long) request.getAttribute("userId");
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
         reservationService.cancelReservation(meetingId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{meetingId}/seats")
+    public List<FanMeetingSeatResponseDTO> getSeats(@PathVariable Long meetingId) {
+        return seatService.getSeats(meetingId);
     }
 }
