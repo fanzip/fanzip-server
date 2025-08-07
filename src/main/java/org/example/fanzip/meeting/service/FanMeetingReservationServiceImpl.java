@@ -59,7 +59,6 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
             vo.setUserId(userId);
             vo.setSeatId(seatId);
             vo.setReservationNumber(UUID.randomUUID().toString());
-            vo.setQrCode("QR-" + UUID.randomUUID());
             vo.setStatus(ReservationStatus.RESERVED);
             vo.setReservedAt(LocalDateTime.now());
 
@@ -68,7 +67,6 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
             return new FanMeetingReservationResponseDTO(
                     vo.getReservationId(),
                     vo.getReservationNumber(),
-                    vo.getQrCode(),
                     vo.getStatus(),
                     vo.getSeatId()
             );

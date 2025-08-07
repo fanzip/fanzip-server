@@ -10,9 +10,8 @@ public class FanMeetingSeatVO {
     private Long seatId;
     private Long meetingId;
     private String seatNumber;
-    private String seatType;
     private BigDecimal price;
-    private boolean reserved;  // DB에 reserved 컬럼 있어야 함
-    private int version;        // 낙관적 락용 버전 필드
+    private boolean reserved;
+    private int version;
     private LocalDateTime createdAt;
 }

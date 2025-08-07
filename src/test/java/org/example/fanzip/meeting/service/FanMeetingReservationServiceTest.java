@@ -100,7 +100,6 @@ class FanMeetingReservationServiceTest {
         s.setVersion(version);
         s.setPrice(BigDecimal.valueOf(33000));
         s.setSeatNumber("A-1");
-        s.setSeatType("VIP");
         s.setCreatedAt(LocalDateTime.now());
         return s;
     }
