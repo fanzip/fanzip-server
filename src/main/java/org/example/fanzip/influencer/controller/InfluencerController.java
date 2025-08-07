@@ -84,28 +84,28 @@ public class InfluencerController {
     }
 
     // 인플루언서 프로필 이미지 업로드
-    @PostMapping("/{influencerId}/profile/image")
-    public ResponseEntity<Void> updateProfileImage(
-            @PathVariable Long influencerId,
-            @RequestBody InfluencerProfileImgUpdateRequestDTO requestDTO,
-            @AuthenticationPrincipal CustomUserPrincipal principal) {
-
-        Long userId = principal.getUserId();
-
-        influencerService.updateInfluencerProfileImage(influencerId, requestDTO, userId);
-        return ResponseEntity.ok().build();
-    }
+//    @PostMapping("/{influencerId}/profile/image")
+//    public ResponseEntity<Void> updateProfileImage(
+//            @PathVariable Long influencerId,
+//            @RequestBody InfluencerProfileImgUpdateRequestDTO requestDTO,
+//            @AuthenticationPrincipal CustomUserPrincipal principal) {
+//
+//        Long userId = principal.getUserId();
+//
+//        influencerService.updateInfluencerProfileImage(influencerId, requestDTO, userId);
+//        return ResponseEntity.ok().build();
+//    }
 
     // 인플루언서 팬카드 이미지 업로드 (해당 인플루언서의 모든 활성 팬카드 디자인 업데이트)
-    @PostMapping("/{influencerId}/fancard/image")
-    public ResponseEntity<Void> updateFanCardImage(
-            @PathVariable Long influencerId,
-            @RequestBody InfluencerFanCardImageUpdateRequestDTO requestDTO,
-            @AuthenticationPrincipal CustomUserPrincipal principal) {
-
-        Long userId = principal.getUserId();
-
-        influencerService.updateInfluencerFanCardImage(influencerId, requestDTO, userId);
-        return ResponseEntity.ok().build();
-    }
+//    @PostMapping("/{influencerId}/fancard/image")
+//    public ResponseEntity<Void> updateFanCardImage(
+//            @PathVariable Long influencerId,
+//            @RequestBody InfluencerFanCardImageUpdateRequestDTO requestDTO,
+//            @AuthenticationPrincipal CustomUserPrincipal principal) {
+//
+//        Long userId = principal.getUserId();
+//
+//        influencerService.updateInfluencerFanCardImage(influencerId, requestDTO, userId);
+//        return ResponseEntity.ok().build();
+//    }
 }

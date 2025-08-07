@@ -175,7 +175,7 @@ public class S3Service {
      */
 
     public void updateProfileImageUrl(Long influencerId, String newUrl) {
-        influencerMapper.updateProfileImageUrl(influencerId, newUrl);
+        influencerMapper.updateProfileImage(influencerId, newUrl);
     }
 
 
