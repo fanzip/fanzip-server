@@ -3,7 +3,7 @@ package org.example.fanzip.cart.mapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.example.fanzip.cart.dto.CartItemDto;
-import org.example.fanzip.config.RootConfig;
+import org.example.fanzip.global.config.RootConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

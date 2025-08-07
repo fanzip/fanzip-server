@@ -1,7 +1,7 @@
 package org.example.fanzip.influencer.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.fanzip.config.RootConfig;
+import org.example.fanzip.global.config.RootConfig;
 import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
 import org.example.fanzip.influencer.dto.InfluencerRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerResponseDTO;

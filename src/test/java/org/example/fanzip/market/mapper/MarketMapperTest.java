@@ -1,9 +1,9 @@
 package org.example.fanzip.market.mapper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.fanzip.config.RedisConfig;
-import org.example.fanzip.config.RootConfig;
-import org.example.fanzip.config.YamlPropertySourceFactory;
+import org.example.fanzip.global.config.RedisConfig;
+import org.example.fanzip.global.config.RootConfig;
+import org.example.fanzip.global.config.YamlPropertySourceFactory;
 import org.example.fanzip.market.dto.ProductDetailDto;
 import org.example.fanzip.market.dto.ProductListDto;
 import org.junit.jupiter.api.Test;
