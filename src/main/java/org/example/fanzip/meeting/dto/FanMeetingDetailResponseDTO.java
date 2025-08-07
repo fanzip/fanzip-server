@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FanMeetingDetailDTO {
+public class FanMeetingDetailResponseDTO {
     private Long meetingId;
     private String title;
     private String description;
@@ -28,4 +28,6 @@ public class FanMeetingDetailDTO {
     private LocalDateTime silverOpenTime;
     private LocalDateTime whiteOpenTime;
     private LocalDateTime generalOpenTime;
+
+    private String posterImageUrl;
 }
