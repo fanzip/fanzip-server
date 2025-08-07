@@ -17,6 +17,7 @@
         <result column="influencer_name" property="influencerName"/>
         <result column="category" property="category" javaType="org.example.fanzip.influencer.domain.enums.InfluencerCategory"/>
         <result column="profile_image" property="profileImage"/>
+        <result column="fancard_image" property="fanCardImage"/>
         <result column="description" property="description"/>
     </resultMap>
 
@@ -47,14 +48,14 @@
 
     <!-- 상세 조회 -->
     <select id="findDetailed" resultMap="InfluencerDetailResultMap" parameterType="long">
-        SELECT influencer_id, influencer_name, profile_image, description
+        SELECT influencer_id, influencer_name, category, profile_image, fancard_image, description
         FROM influencers
         WHERE influencer_id = #{influencerId}
     </select>
 
     <!-- 마이페이지: 프로필 조회 -->
     <select id="findProfile" resultMap="InfluencerDetailResultMap" parameterType="long">
-        SELECT influencer_id, influencer_name, category, profile_image, description
+        SELECT influencer_id, influencer_name, category, profile_image, fancard_image, description
         FROM influencers
         WHERE influencer_id = #{influencerId}
     </select>

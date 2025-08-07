@@ -18,6 +18,7 @@ public class InfluencerProfileResponseDTO {
     private String category;
     private String description;
     private String profileImage;
+    private String fanCardImage;
     private Boolean isVerified;
 
     public static InfluencerProfileResponseDTO from(InfluencerVO influencerVO, Long userId, Boolean isVerified) {
@@ -28,6 +29,7 @@ public class InfluencerProfileResponseDTO {
                 .category(influencerVO.getCategory() != null ? influencerVO.getCategory().name() : null)
                 .description(influencerVO.getDescription())
                 .profileImage(influencerVO.getProfileImage())
+                .fanCardImage(influencerVO.getFanCardImage())
                 .isVerified(isVerified)
                 .build();
     }

@@ -17,5 +17,6 @@ public class InfluencerVO {
     private String influencerName;    // 인플루언서 이름
     private InfluencerCategory category; // 인플루언서 카테고리
     private String profileImage;      // 프로필 이미지 URL
+    private String fanCardImage;       // 팬카드 이미지 URL
     private String description; // 인플루언서 설명(팬미팅이나 공구 일정)
 }
