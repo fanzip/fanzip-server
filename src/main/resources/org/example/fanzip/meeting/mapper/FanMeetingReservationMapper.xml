@@ -20,11 +20,11 @@
             useGeneratedKeys="true" keyProperty="reservationId">
         INSERT INTO fan_meeting_reservations (
             meeting_id, user_id, seat_id,
-            reservation_number, qr_code,
+            reservation_number,
             status, reserved_at
         ) VALUES (
                      #{meetingId}, #{userId}, #{seatId},
-                     #{reservationNumber}, #{qrCode},
+                     #{reservationNumber},
                      #{status}, #{reservedAt}
                  )
     </insert>
