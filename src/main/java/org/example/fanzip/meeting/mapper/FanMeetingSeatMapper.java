@@ -2,6 +2,7 @@ package org.example.fanzip.meeting.mapper;
 
 import org.apache.ibatis.annotations.Param;
 import org.example.fanzip.meeting.domain.FanMeetingSeatVO;
+import org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface FanMeetingSeatMapper {
             @Param("version") int version
     );
 
+    List<FanMeetingSeatResponseDTO> findSeatsByMeetingId(@Param("meetingId") Long meetingId);
+    void insertSeatList(List<FanMeetingSeatVO> seats);
 }

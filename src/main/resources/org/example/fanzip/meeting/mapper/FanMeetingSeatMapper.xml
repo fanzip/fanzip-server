@@ -16,7 +16,7 @@
 
     <update id="updateSeatReservation" parameterType="map">
         UPDATE fan_meeting_seats
-        SET is_reserved = #{reserved}
+        SET reserved = #{reserved}
         WHERE seat_id     = #{seatId}
     </update>
 
@@ -25,9 +25,8 @@
         <id property="seatId" column="seat_id"/>
         <result property="meetingId" column="meeting_id"/>
         <result property="seatNumber" column="seat_number"/>
-        <result property="seatType" column="seat_type"/>
         <result property="price" column="price"/>
-        <result property="reserved" column="is_reserved"/>
+        <result property="reserved" column="reserved"/>
         <result property="version" column="version"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
@@ -38,9 +37,8 @@
             seat_id,
             meeting_id,
             seat_number,
-            seat_type,
             price,
-            is_reserved,
+            reserved,
             version,
             created_at
         FROM fan_meeting_seats
@@ -51,11 +49,43 @@
     <!-- 낙관적 락을 위한 update -->
     <update id="updateSeatWithVersionCheck">
         UPDATE fan_meeting_seats
-        SET is_reserved = TRUE,
+        SET reserved = TRUE,
             version = version + 1
         WHERE seat_id = #{seatId}
           AND version = #{version}
-          AND is_reserved = FALSE
+          AND reserved = FALSE
     </update>
 
+    <select id="findSeatsByMeetingId" resultType="org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO">
+        SELECT
+            seat_id,
+            meeting_id,
+            seat_number,
+            price,
+            reserved
+        FROM fan_meeting_seats
+        WHERE meeting_id = #{meetingId}
+    </select>
+
+    <insert id="insertSeatList" parameterType="java.util.List">
+        INSERT INTO fan_meeting_seats (
+        meeting_id,
+        seat_number,
+        price,
+        reserved,
+        version,
+        created_at
+        )
+        VALUES
+        <foreach collection="list" item="seat" separator=",">
+            (
+            #{seat.meetingId},
+            #{seat.seatNumber},
+            #{seat.price},
+            #{seat.reserved},
+            #{seat.version},
+            #{seat.createdAt}
+            )
+        </foreach>
+    </insert>
 </mapper>
