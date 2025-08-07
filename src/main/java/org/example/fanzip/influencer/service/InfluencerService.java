@@ -2,8 +2,6 @@ package org.example.fanzip.influencer.service;
 
 
 import org.example.fanzip.influencer.dto.InfluencerDetailResponseDTO;
-import org.example.fanzip.influencer.dto.InfluencerFanCardImageUpdateRequestDTO;
-import org.example.fanzip.influencer.dto.InfluencerProfileImgUpdateRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerProfileResponseDTO;
 import org.example.fanzip.influencer.dto.InfluencerProfileUpdateRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerRequestDTO;
@@ -20,8 +18,4 @@ public interface InfluencerService {
     InfluencerProfileResponseDTO findProfile(Long influencerId, Long userId);
 
     void updateInfluencerProfile(Long influencerId, InfluencerProfileUpdateRequestDTO requestDTO, Long userId);
-
-    void updateInfluencerProfileImage(Long influencerId, InfluencerProfileImgUpdateRequestDTO requestDTO, Long userId);
-
-    void updateInfluencerFanCardImage(Long influencerId, InfluencerFanCardImageUpdateRequestDTO requestDTO, Long userId);
 }
