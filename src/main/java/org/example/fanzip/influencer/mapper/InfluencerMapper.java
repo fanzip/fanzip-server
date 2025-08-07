@@ -24,7 +24,20 @@ public interface InfluencerMapper {
                       @Param("description") String description,
                       @Param("category") InfluencerCategory category);
 
+    // 프로필 이미지 조회
+    String selectProfileImageUrl(@Param("influencerId") Long influencerId);
+
     // 프로필 이미지 수정
     int updateProfileImage(@Param("influencerId") Long influencerId,
                            @Param("profileImage") String profileImage);
+
+    // 팬카드 이미지 수정
+    int updateFanCardImageUrl(@Param("influencerId") Long influencerId,
+                              @Param("fanCardImage") String fanCardImage);
+
+    // 팬카드 이미지 조회
+    String selectFanCardImageUrl(@Param("influencerId") Long influencerId);
+
+
+
 }

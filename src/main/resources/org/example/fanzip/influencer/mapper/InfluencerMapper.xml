@@ -76,4 +76,27 @@
             updated_at = NOW()
         WHERE influencer_id = #{influencerId}
     </update>
+
+    <!-- 팬카드 이미지 수정 -->
+    <update id="updateFanCardImageUrl" parameterType="map">
+        UPDATE influencers
+        SET fancard_image = #{fanCardImage},
+            updated_at = NOW()
+        WHERE influencer_id = #{influencerId}
+    </update>
+
+    <!-- 팬카드 이미지 조회 -->
+    <select id="selectFanCardImageUrl" resultType="string" parameterType="long">
+        SELECT fancard_image
+        FROM influencers
+        WHERE influencer_id = #{influencerId}
+    </select>
+
+    <!-- 프로필 이미지 조회 -->
+    <select id="selectProfileImageUrl" resultType="string" parameterType="long">
+        SELECT profile_image
+        FROM influencers
+        WHERE influencer_id = #{influencerId}
+    </select>
+
 </mapper>
