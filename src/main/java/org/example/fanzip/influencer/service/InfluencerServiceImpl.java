@@ -60,7 +60,7 @@ public class InfluencerServiceImpl implements InfluencerService {
     @Override
     @Transactional(readOnly = true)
     public InfluencerProfileResponseDTO findProfile(Long influencerId, Long userId) {
-        InfluencerVO influencer = influencerMapper.findDetailed(influencerId);
+        InfluencerVO influencer = influencerMapper.findProfile(influencerId);
         
         if (influencer == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
@@ -77,7 +77,7 @@ public class InfluencerServiceImpl implements InfluencerService {
     @Transactional
     public void updateInfluencerProfile(Long influencerId, InfluencerProfileUpdateRequestDTO requestDTO, Long userId) {
         // 인플루언서 존재 여부 확인
-        InfluencerVO influencer = influencerMapper.findDetailed(influencerId);
+        InfluencerVO influencer = influencerMapper.findProfile(influencerId);
         if (influencer == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
         }
@@ -96,45 +96,4 @@ public class InfluencerServiceImpl implements InfluencerService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "프로필 수정에 실패했습니다.");
         }
     }
-
-    // 인플루언서 프로필 이미지 업로드 (공개 API용)
-    @Override
-    @Transactional
-    public void updateInfluencerProfileImage(Long influencerId, InfluencerProfileImgUpdateRequestDTO requestDTO, Long userId) {
-        // 인플루언서 존재 여부 확인
-        InfluencerVO influencer = influencerMapper.findDetailed(influencerId);
-        if (influencer == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
-        }
-
-        // 권한 검증 로직 (필요시 추가)
-        // 예: 해당 인플루언서의 소유자인지 확인
-
-        int updated = influencerMapper.updateProfileImage(influencerId, requestDTO.getProfileImage());
-        if (updated == 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "프로필 이미지 업로드에 실패했습니다.");
-        }
-    }
-
-    // 인플루언서 팬카드 이미지 업로드 (해당 인플루언서의 모든 활성 팬카드 디자인 업데이트)
-    @Override
-    @Transactional
-    public void updateInfluencerFanCardImage(Long influencerId, InfluencerFanCardImageUpdateRequestDTO requestDTO, Long userId) {
-        // 인플루언서 존재 여부 확인
-        InfluencerVO influencer = influencerMapper.findDetailed(influencerId);
-        if (influencer == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
-        }
-
-        // 권한 검증 로직 (필요시 추가)
-        // 예: 해당 인플루언서의 소유자인지 확인
-
-        // 해당 인플루언서의 모든 활성 팬카드 디자인 업데이트
-        int updated = fancardMapper.updateCardDesignByInfluencerId(influencerId, requestDTO.getFanCardImage());
-        
-        if (updated == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "업데이트할 활성 팬카드가 없습니다.");
-        }
-    }
-
 }
