@@ -15,7 +15,6 @@ public class RedissonConfig {
 
     @Value("${spring.redis.port}")
     private int redisPort;
-
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
