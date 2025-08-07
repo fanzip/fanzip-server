@@ -125,6 +125,14 @@ dependencies {
   implementation("org.springframework.security:spring-security-web:${springSecurityVersion}")
   implementation("org.springframework.security:spring-security-config:${springSecurityVersion}")
   implementation("org.springframework.security:spring-security-core:${springSecurityVersion}")
+
+  // AWS S3
+  implementation 'com.amazonaws:aws-java-sdk-s3:1.12.660'
+
+  // 파일 업로드 처리용 (multipart resolver 사용 시 필수)
+  implementation 'commons-fileupload:commons-fileupload:1.4'
+
+  implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
 }
 
 test {
