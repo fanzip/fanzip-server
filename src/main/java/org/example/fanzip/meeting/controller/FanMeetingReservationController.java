@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -49,4 +51,20 @@ public class FanMeetingReservationController {
     public List<FanMeetingSeatResponseDTO> getSeats(@PathVariable Long meetingId) {
         return seatService.getSeats(meetingId);
     }
+
+    @GetMapping("/{meetingId}/reservation/check")
+    @ResponseBody
+    public Map<String, Boolean> checkReservation(
+            @PathVariable Long meetingId,
+            Authentication authentication) {
+
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
+        boolean reserved = reservationService.hasReserved(meetingId, userId);
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("reserved", reserved);
+        return response;
+    }
+
 }
