@@ -25,9 +25,10 @@ public class FancardController {
     private final FancardService fancardService;
     private final JwtProcessor jwtProcessor;
     private final UserService userService;
-    
+
     @Autowired
     public FancardController(FancardService fancardService, JwtProcessor jwtProcessor, UserService userService) {
+
         this.fancardService = fancardService;
         this.jwtProcessor = jwtProcessor;
         this.userService = userService;
@@ -57,7 +58,7 @@ public class FancardController {
         // 현재는 테스트용 간단 응답 반환
         return ResponseEntity.ok(java.util.Collections.emptyMap());
     }
-    
+
     @ApiOperation(value = "입장 QR 코드 생성", notes = "팬미팅 입장용 QR 코드를 생성합니다. 행사장 범위 내에서만 생성 가능합니다.")
     @PostMapping("/qr")
     public ResponseEntity<QrCodeResponse> generateQrCode(
@@ -71,15 +72,15 @@ public class FancardController {
     public ResponseEntity<QrCodeValidationResponse> validateQrCode(
             @ApiParam(value = "QR 코드 검증 요청 정보", required = true) @RequestBody QrCodeValidationRequest request,
             HttpServletRequest httpRequest) {
-        
+
         // 사용자 ID 추출 (인증 확인용)
         Long userId = extractUserIdFromJWT(httpRequest);
-        
+
         // QR 코드 검증 수행
         QrCodeValidationResponse validationResult = fancardService.validateQrCode(request);
         return ResponseEntity.ok(validationResult);
     }
-    
+
     private Long extractUserIdFromJWT(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
