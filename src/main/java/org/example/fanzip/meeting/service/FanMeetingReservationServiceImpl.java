@@ -92,4 +92,8 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
         reservationMapper.updateStatusToCanceled(reservation.getReservationId(), LocalDateTime.now());
         seatMapper.updateSeatReservation(reservation.getSeatId(), false);
     }
+
+    public boolean hasReserved(Long meetingId, Long userId) {
+        return reservationMapper.existsByMeetingIdAndUserId(meetingId, userId);
+    }
 }

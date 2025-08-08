@@ -50,4 +50,13 @@
           AND status = 'RESERVED'
     </select>
 
+    <select id="existsByMeetingIdAndUserId" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM fan_meeting_reservations
+            WHERE meeting_id = #{meetingId}
+              AND user_id = #{userId}
+        )
+    </select>
+
 </mapper>

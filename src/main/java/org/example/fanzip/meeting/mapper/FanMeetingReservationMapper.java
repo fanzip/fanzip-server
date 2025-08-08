@@ -18,5 +18,6 @@ public interface FanMeetingReservationMapper {
             @Param("reservationId") Long reservationId,
             @Param("cancelledAt") LocalDateTime cancelledAt
     );
+    boolean existsByMeetingIdAndUserId(@Param("meetingId") Long meetingId, @Param("userId") Long userId);
 
 }
