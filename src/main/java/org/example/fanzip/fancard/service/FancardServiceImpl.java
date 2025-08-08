@@ -33,13 +33,24 @@ public class FancardServiceImpl implements FancardService {
 
     @Override
     public FancardListWrapper getUserFancards(Long userId) {
-        List<Long> membershipIds = getMembershipIdsByUserId(userId);
+        System.out.println("=== getUserFancards START for userId: " + userId + " ===");
+        List<Long> membershipIds = fancardMapper.findMembershipIdsByUserId(userId);
+        System.out.println("Found membership IDs: " + membershipIds);
+        
         List<Fancard> fancards = fancardMapper.findActiveCardsByMembershipIds(membershipIds);
+        System.out.println("Found " + fancards.size() + " fancards");
+        
+        for (Fancard fancard : fancards) {
+            System.out.println("Raw fancard from DB - ID: " + fancard.getCardId() + 
+                             ", MembershipId: " + fancard.getMembershipId() + 
+                             ", DesignUrl: " + fancard.getCardDesignUrl());
+        }
 
         List<FancardListResponse> fancardList = fancards.stream()
                 .map(this::convertToListResponse)
                 .collect(Collectors.toList());
         
+        System.out.println("=== getUserFancards END - returning " + fancardList.size() + " cards ===");
         return FancardListWrapper.builder()
                 .fancards(fancardList)
                 .build();
@@ -104,81 +115,116 @@ public class FancardServiceImpl implements FancardService {
     }
 
     private FancardListResponse convertToListResponse(Fancard fancard) {
-        MembershipGradeDto membershipGrade = MembershipGradeDto.builder()
-                .gradeId(FancardConstants.TestData.TEST_GRADE_ID)
-                .gradeName(FancardConstants.TestData.TEST_GRADE_NAME)
-                .color(FancardConstants.TestData.TEST_GRADE_COLOR)
-                .build();
-
-        return FancardListResponse.builder()
-                .cardId(fancard.getCardId())
-                .cardNumber(fancard.getCardNumber())
-                .influencerId(FancardConstants.TestData.TEST_INFLUENCER_ID)
-                .influencerName(FancardConstants.TestData.TEST_INFLUENCER_NAME)
-                .category(FancardConstants.TestData.TEST_CATEGORY)
-                .membershipGrade(membershipGrade)
-                .cardDesignUrl(fancard.getCardDesignUrl())
-                .isActive(fancard.getIsActive())
-                .issueDate(fancard.getIssueDate())
-                .expiryDate(fancard.getExpiryDate())
-                .build();
+        try {
+            System.out.println("=== CONVERTING FANCARD " + fancard.getCardId() + " ===");
+            System.out.println("Card ID: " + fancard.getCardId());
+            System.out.println("Membership ID: " + fancard.getMembershipId());
+            System.out.println("Original cardDesignUrl: " + fancard.getCardDesignUrl());
+            
+            // 실제 데이터베이스에서 관련 정보 조회
+            InfluencerDto influencer = null;
+            MembershipDto membership = null;
+            String influencerName = "Unknown Influencer";
+            
+            try {
+                influencer = fancardMapper.findInfluencerByMembershipId(fancard.getMembershipId());
+                System.out.println("Influencer DTO: " + (influencer != null ? influencer.getInfluencerId() : "null"));
+            } catch (Exception e) {
+                System.out.println("Error finding influencer: " + e.getMessage());
+            }
+            
+            try {
+                membership = fancardMapper.findMembershipById(fancard.getMembershipId());
+                System.out.println("Membership DTO: " + (membership != null ? membership.getMembershipId() : "null"));
+            } catch (Exception e) {
+                System.out.println("Error finding membership: " + e.getMessage());
+            }
+            
+            try {
+                String name = fancardMapper.findInfluencerNameByMembershipId(fancard.getMembershipId());
+                System.out.println("Retrieved influencer name: " + name);
+                if (name != null && !name.trim().isEmpty()) {
+                    influencerName = name;
+                }
+            } catch (Exception e) {
+                System.out.println("Error finding influencer name: " + e.getMessage());
+            }
+            
+            // 카드 디자인 URL 처리 - /images/ 경로를 /src/assets/로 변경
+            String cardDesignUrl = fancard.getCardDesignUrl();
+            System.out.println("Original URL from DB: " + cardDesignUrl);
+            if (cardDesignUrl != null && cardDesignUrl.startsWith("/images/fancard/")) {
+                cardDesignUrl = cardDesignUrl.replace("/images/fancard/", "/src/assets/fancard/");
+                System.out.println("Converted URL: " + cardDesignUrl);
+            }
+            System.out.println("Final cardDesignUrl: " + cardDesignUrl);
+            
+            FancardListResponse response = FancardListResponse.builder()
+                    .cardId(fancard.getCardId())
+                    .cardNumber(fancard.getCardNumber())
+                    .influencerId(influencer != null ? influencer.getInfluencerId() : 1L)
+                    .influencerName(influencerName)
+                    .category(influencer != null ? influencer.getCategory() : "UNKNOWN")
+                    .membershipGrade(membership != null ? membership.getGrade() : createDefaultGrade())
+                    .cardDesignUrl(cardDesignUrl) // null로 만들지 않고 그대로 반환
+                    .isActive(fancard.getIsActive())
+                    .issueDate(fancard.getIssueDate())
+                    .expiryDate(fancard.getExpiryDate())
+                    .build();
+            
+            System.out.println("Final response - CardID: " + response.getCardId() + ", InfluencerName: " + response.getInfluencerName() + ", CardDesignUrl: " + response.getCardDesignUrl());
+            System.out.println("=== END CONVERTING FANCARD " + fancard.getCardId() + " ===");
+            
+            return response;
+        } catch (Exception e) {
+            System.out.println("Error in convertToListResponse: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
     
     private FancardDetailResponse convertToDetailResponse(Fancard fancard) {
-        InfluencerDto influencer = InfluencerDto.builder()
-                .influencerId(FancardConstants.TestData.TEST_INFLUENCER_ID)
-                .category(FancardConstants.TestData.TEST_CATEGORY)
-                .profileImage(FancardConstants.TestData.TEST_PROFILE_IMAGE)
-                .isVerified(FancardConstants.TestData.TEST_IS_VERIFIED)
-                .build();
-        
-        MembershipGradeDto grade = MembershipGradeDto.builder()
-                .gradeId(FancardConstants.TestData.TEST_GRADE_ID)
-                .gradeName(FancardConstants.TestData.TEST_GRADE_NAME)
-                .color(FancardConstants.TestData.TEST_GRADE_COLOR)
-                .benefitsDescription(FancardConstants.TestData.TEST_BENEFITS_DESCRIPTION)
-                .build();
-        
-        MembershipDto membership = MembershipDto.builder()
-                .membershipId(fancard.getMembershipId())
-                .subscriptionStart(fancard.getIssueDate())
-                .monthlyAmount(FancardConstants.TestData.TEST_MONTHLY_AMOUNT)
-                .totalPaidAmount(FancardConstants.TestData.TEST_TOTAL_PAID_AMOUNT)
-                .status(FancardConstants.TestData.TEST_MEMBERSHIP_STATUS)
-                .autoRenewal(FancardConstants.TestData.TEST_AUTO_RENEWAL)
-                .grade(grade)
-                .build();
+        // 실제 데이터베이스에서 관련 정보 조회
+        InfluencerDto influencer = fancardMapper.findInfluencerByMembershipId(fancard.getMembershipId());
+        MembershipDto membership = fancardMapper.findMembershipById(fancard.getMembershipId());
         
         return FancardDetailResponse.builder()
                 .cardId(fancard.getCardId())
                 .cardNumber(fancard.getCardNumber())
                 .cardDesignUrl(fancard.getCardDesignUrl())
-                .influencer(influencer)
-                .membership(membership)
-                .benefits(FancardConstants.TestData.TEST_BENEFITS)
+                .influencer(influencer != null ? influencer : createDefaultInfluencer())
+                .membership(membership != null ? membership : createDefaultMembership(fancard))
+                .benefits(FancardConstants.TestData.TEST_BENEFITS) // TODO: 실제 혜택 정보 조회 구현 필요
                 .build();
     }
 
-    private List<Long> getMembershipIdsByUserId(Long userId) {
-        // TODO: MembershipService 의존성 주입 후 실제 조회로 변경 필요
-        if (userId.equals(1L)) {
-            return List.of(1L);
-        }
-        return Collections.emptyList();
+    private MembershipGradeDto createDefaultGrade() {
+        return MembershipGradeDto.builder()
+                .gradeId(1L)
+                .gradeName("White")
+                .color("#FFFFFF")
+                .benefitsDescription("기본 등급")
+                .build();
     }
-
-    private String getInfluencerNameByMembershipId(Long membershipId) {
-        // TODO: Membership 서비스를 통해 실제 인플루언서 이름 조회
-        return "테스트 인플루언서";
+    
+    private InfluencerDto createDefaultInfluencer() {
+        return InfluencerDto.builder()
+                .influencerId(1L)
+                .category("UNKNOWN")
+                .profileImage("/src/assets/fancard/default.svg")
+                .isVerified(false)
+                .build();
     }
-
-    private String getGradeNameByMembershipId(Long membershipId) {
-        // TODO: Membership 서비스를 통해 실제 등급 이름 조회
-        return "VIP";
-    }
-
-    private String getGradeColorByMembershipId(Long membershipId) {
-        // TODO: Membership 서비스를 통해 실제 등급 색상 조회
-        return "#8B008B";
+    
+    private MembershipDto createDefaultMembership(Fancard fancard) {
+        return MembershipDto.builder()
+                .membershipId(fancard.getMembershipId())
+                .subscriptionStart(fancard.getIssueDate())
+                .monthlyAmount(BigDecimal.valueOf(5000.00))
+                .totalPaidAmount(BigDecimal.valueOf(60000.00))
+                .status("ACTIVE")
+                .autoRenewal(true)
+                .grade(createDefaultGrade())
+                .build();
     }
 }

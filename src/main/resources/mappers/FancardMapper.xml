@@ -106,4 +106,72 @@
         WHERE card_id = #{cardId}
     </delete>
 
+    <!-- 사용자의 멤버십 ID 목록 조회 -->
+    <select id="findMembershipIdsByUserId" parameterType="long" resultType="long">
+        SELECT membership_id
+        FROM memberships
+        WHERE user_id = #{userId}
+        AND status = 'ACTIVE'
+    </select>
+
+    <!-- InfluencerDto ResultMap -->
+    <resultMap id="influencerDtoResultMap" type="org.example.fanzip.fancard.dto.response.InfluencerDto">
+        <id property="influencerId" column="influencer_id"/>
+        <result property="category" column="category"/>
+        <result property="profileImage" column="profile_image"/>
+        <result property="isVerified" column="is_verified"/>
+    </resultMap>
+
+    <!-- 멤버십 ID로 인플루언서 정보 조회 -->
+    <select id="findInfluencerByMembershipId" parameterType="long" resultMap="influencerDtoResultMap">
+        SELECT i.influencer_id, i.category, i.profile_image, i.is_verified
+        FROM influencers i
+        JOIN memberships m ON i.influencer_id = m.influencer_id
+        WHERE m.membership_id = #{membershipId}
+    </select>
+
+    <!-- MembershipGradeDto ResultMap -->
+    <resultMap id="membershipGradeDtoResultMap" type="org.example.fanzip.fancard.dto.response.MembershipGradeDto">
+        <id property="gradeId" column="grade_id"/>
+        <result property="gradeName" column="grade_name"/>
+        <result property="color" column="color"/>
+        <result property="benefitsDescription" column="benefits_description"/>
+    </resultMap>
+
+    <!-- 등급 ID로 멤버십 등급 정보 조회 -->
+    <select id="findMembershipGradeById" parameterType="long" resultMap="membershipGradeDtoResultMap">
+        SELECT grade_id, grade_name, color, benefits_description
+        FROM membership_grades
+        WHERE grade_id = #{gradeId}
+    </select>
+
+    <!-- MembershipDto ResultMap -->
+    <resultMap id="membershipDtoResultMap" type="org.example.fanzip.fancard.dto.response.MembershipDto">
+        <id property="membershipId" column="membership_id"/>
+        <result property="subscriptionStart" column="subscription_start"/>
+        <result property="monthlyAmount" column="monthly_amount"/>
+        <result property="totalPaidAmount" column="total_paid_amount"/>
+        <result property="status" column="status"/>
+        <result property="autoRenewal" column="auto_renewal"/>
+        <association property="grade" resultMap="membershipGradeDtoResultMap"/>
+    </resultMap>
+
+    <!-- 멤버십 ID로 멤버십 정보 조회 -->
+    <select id="findMembershipById" parameterType="long" resultMap="membershipDtoResultMap">
+        SELECT m.membership_id, m.subscription_start, m.monthly_amount, 
+               m.total_paid_amount, m.status, m.auto_renewal,
+               mg.grade_id, mg.grade_name, mg.color, mg.benefits_description
+        FROM memberships m
+        JOIN membership_grades mg ON m.grade_id = mg.grade_id
+        WHERE m.membership_id = #{membershipId}
+    </select>
+
+    <!-- 멤버십 ID로 인플루언서 이름 조회 -->
+    <select id="findInfluencerNameByMembershipId" parameterType="long" resultType="string">
+        SELECT i.influencer_name
+        FROM influencers i
+        JOIN memberships m ON i.influencer_id = m.influencer_id
+        WHERE m.membership_id = #{membershipId}
+    </select>
+
 </mapper>
