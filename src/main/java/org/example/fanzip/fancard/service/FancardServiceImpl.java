@@ -1,18 +1,11 @@
 package org.example.fanzip.fancard.service;
 
 import org.example.fanzip.fancard.dto.request.QrCodeRequest;
-import org.example.fanzip.fancard.dto.request.QrCodeValidationRequest;
 import org.example.fanzip.fancard.dto.response.*;
 import org.example.fanzip.fancard.domain.Fancard;
 import org.example.fanzip.fancard.exception.FancardNotFoundException;
 import org.example.fanzip.fancard.mapper.FancardMapper;
 import org.example.fanzip.fancard.constants.FancardConstants;
-import org.example.fanzip.user.service.UserService;
-import org.example.fanzip.user.dto.UserDTO;
-import org.example.fanzip.meeting.mapper.FanMeetingMapper;
-import org.example.fanzip.meeting.mapper.FanMeetingReservationMapper;
-import org.example.fanzip.meeting.domain.FanMeetingVO;
-import org.example.fanzip.meeting.domain.FanMeetingReservationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,19 +24,11 @@ public class FancardServiceImpl implements FancardService {
     private final FancardMapper fancardMapper;
     private final LocationService locationService;
     private final QrCodeGeneratorService qrCodeGeneratorService;
-    private final UserService userService;
-    private final FanMeetingMapper fanMeetingMapper;
-    private final FanMeetingReservationMapper reservationMapper;
 
-    public FancardServiceImpl(FancardMapper fancardMapper, LocationService locationService, 
-                             QrCodeGeneratorService qrCodeGeneratorService, UserService userService,
-                             FanMeetingMapper fanMeetingMapper, FanMeetingReservationMapper reservationMapper) {
+    public FancardServiceImpl(FancardMapper fancardMapper, LocationService locationService, QrCodeGeneratorService qrCodeGeneratorService) {
         this.fancardMapper = fancardMapper;
         this.locationService = locationService;
         this.qrCodeGeneratorService = qrCodeGeneratorService;
-        this.userService = userService;
-        this.fanMeetingMapper = fanMeetingMapper;
-        this.reservationMapper = reservationMapper;
     }
 
     @Override
@@ -128,144 +113,6 @@ public class FancardServiceImpl implements FancardService {
                 .reservation(reservation)
                 .build();
     }
-    
-    @Override
-    public QrCodeValidationResponse validateQrCode(QrCodeValidationRequest request) {
-        LocalDateTime validatedAt = LocalDateTime.now();
-        
-        try {
-            // 1. QR 코드 형식 검증
-            String qrData = request.getQrData();
-            if (qrData == null || !qrData.startsWith(FancardConstants.QrCode.FANZIP_PREFIX)) {
-                return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_FORMAT,
-                        FancardConstants.QrCode.INVALID_FORMAT_MESSAGE, null, null, null, null, null, 
-                        validatedAt, "QR_FORMAT_001", "QR 데이터가 FANZIP_ 형식이 아닙니다.");
-            }
-            
-            // 2. QR 데이터 파싱
-            String[] parts = qrData.substring(FancardConstants.QrCode.FANZIP_PREFIX.length()).split("_");
-            if (parts.length != FancardConstants.QrCode.QR_DATA_PARTS) {
-                return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_FORMAT,
-                        FancardConstants.QrCode.INVALID_FORMAT_MESSAGE, null, null, null, null, null,
-                        validatedAt, "QR_FORMAT_002", "QR 데이터 파트 수가 올바르지 않습니다.");
-            }
-            
-            Long userId, fanMeetingId, reservationId;
-            String timestamp;
-            try {
-                userId = Long.parseLong(parts[0]);
-                fanMeetingId = Long.parseLong(parts[1]);
-                reservationId = Long.parseLong(parts[2]);
-                timestamp = parts[3];
-            } catch (NumberFormatException e) {
-                return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_FORMAT,
-                        FancardConstants.QrCode.INVALID_FORMAT_MESSAGE, null, null, null, null, null,
-                        validatedAt, "QR_FORMAT_003", "QR 데이터의 숫자 형식이 올바르지 않습니다.");
-            }
-            
-            // 3. QR 코드 만료 검증
-            LocalDateTime qrGeneratedTime;
-            try {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-                qrGeneratedTime = LocalDateTime.parse(timestamp, formatter);
-            } catch (Exception e) {
-                return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_FORMAT,
-                        FancardConstants.QrCode.INVALID_FORMAT_MESSAGE, userId, fanMeetingId, reservationId, null, null,
-                        validatedAt, "QR_FORMAT_004", "타임스탬프 형식이 올바르지 않습니다.");
-            }
-            
-            if (qrGeneratedTime.plusSeconds(FancardConstants.QrCode.EXPIRY_SECONDS).isBefore(validatedAt)) {
-                return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_EXPIRED,
-                        FancardConstants.QrCode.EXPIRED_MESSAGE, userId, fanMeetingId, reservationId, null, null,
-                        validatedAt, "QR_EXPIRED_001", "QR 코드 유효 시간이 만료되었습니다.");
-            }
-            
-            // 4. 사용자 검증
-            UserDTO user = userService.getUser(userId);
-            if (user == null) {
-                return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_USER,
-                        FancardConstants.QrCode.INVALID_USER_MESSAGE, userId, fanMeetingId, reservationId, null, null,
-                        validatedAt, "USER_001", "존재하지 않는 사용자입니다.");
-            }
-            
-            // 5. 팬미팅 검증
-            FanMeetingVO meeting = fanMeetingMapper.findById(fanMeetingId);
-            if (meeting == null) {
-                return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_MEETING,
-                        FancardConstants.QrCode.INVALID_MEETING_MESSAGE, userId, fanMeetingId, reservationId, 
-                        user.getName(), user.getEmail(), validatedAt, "MEETING_001", "존재하지 않는 팬미팅입니다.");
-            }
-            
-            // 6. 예약 검증
-            FanMeetingReservationVO reservation = reservationMapper.findByUserAndMeeting(userId, fanMeetingId);
-            if (reservation == null || !reservation.getReservationId().equals(reservationId)) {
-                return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_RESERVATION,
-                        FancardConstants.QrCode.INVALID_RESERVATION_MESSAGE, userId, fanMeetingId, reservationId,
-                        user.getName(), user.getEmail(), validatedAt, "RESERVATION_001", "유효하지 않은 예약 정보입니다.");
-            }
-            
-            // 7. 위치 검증 (optional - if latitude/longitude provided)
-            if (request.getLatitude() != null && request.getLongitude() != null) {
-                if (!locationService.isWithinVenueRange(request.getLatitude(), request.getLongitude(), fanMeetingId)) {
-                    return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_LOCATION_ERROR,
-                            FancardConstants.QrCode.LOCATION_ERROR_MESSAGE, userId, fanMeetingId, reservationId,
-                            user.getName(), user.getEmail(), validatedAt, "LOCATION_001", "행사장 범위를 벗어났습니다.");
-                }
-            }
-            
-            // 8. 성공 응답 - 예약 정보 구성
-            ReservationDto reservationDto = ReservationDto.builder()
-                    .reservationId(reservation.getReservationId())
-                    .reservationNumber("FM" + reservation.getReservationId().toString())
-                    .meetingTitle(meeting.getTitle())
-                    .meetingDate(meeting.getMeetingDate())
-                    .venueName(meeting.getVenueName())
-                    .seatNumber("A-" + reservation.getReservationId() % 100) // 임시 좌석 번호
-                    .build();
-            
-            QrCodeValidationResponse successResponse = buildValidationResponse(true, FancardConstants.QrCode.VALIDATION_SUCCESS,
-                    FancardConstants.QrCode.SUCCESS_MESSAGE, userId, fanMeetingId, reservationId,
-                    user.getName(), user.getEmail(), validatedAt, null, null);
-            
-            return QrCodeValidationResponse.builder()
-                    .isValid(successResponse.isValid())
-                    .status(successResponse.getStatus())
-                    .message(successResponse.getMessage())
-                    .userId(successResponse.getUserId())
-                    .fanMeetingId(successResponse.getFanMeetingId())
-                    .reservationId(successResponse.getReservationId())
-                    .userName(successResponse.getUserName())
-                    .userEmail(successResponse.getUserEmail())
-                    .validatedAt(successResponse.getValidatedAt())
-                    .errorCode(successResponse.getErrorCode())
-                    .errorDetails(successResponse.getErrorDetails())
-                    .reservation(reservationDto)
-                    .build();
-                    
-        } catch (Exception e) {
-            return buildValidationResponse(false, "SYSTEM_ERROR", "시스템 오류가 발생했습니다.", 
-                    null, null, null, null, null, validatedAt, "SYSTEM_001", e.getMessage());
-        }
-    }
-    
-    private QrCodeValidationResponse buildValidationResponse(boolean isValid, String status, String message,
-                                                           Long userId, Long fanMeetingId, Long reservationId,
-                                                           String userName, String userEmail, LocalDateTime validatedAt,
-                                                           String errorCode, String errorDetails) {
-        return QrCodeValidationResponse.builder()
-                .isValid(isValid)
-                .status(status)
-                .message(message)
-                .userId(userId)
-                .fanMeetingId(fanMeetingId)
-                .reservationId(reservationId)
-                .userName(userName)
-                .userEmail(userEmail)
-                .validatedAt(validatedAt)
-                .errorCode(errorCode)
-                .errorDetails(errorDetails)
-                .build();
-    }
 
     private FancardListResponse convertToListResponse(Fancard fancard) {
         try {
@@ -321,6 +168,8 @@ public class FancardServiceImpl implements FancardService {
                     .membershipGrade(membership != null ? membership.getGrade() : createDefaultGrade())
                     .cardDesignUrl(cardDesignUrl) // null로 만들지 않고 그대로 반환
                     .isActive(fancard.getIsActive())
+                    .issueDate(fancard.getIssueDate())
+                    .expiryDate(fancard.getExpiryDate())
                     .build();
             
             System.out.println("Final response - CardID: " + response.getCardId() + ", InfluencerName: " + response.getInfluencerName() + ", CardDesignUrl: " + response.getCardDesignUrl());
@@ -370,7 +219,7 @@ public class FancardServiceImpl implements FancardService {
     private MembershipDto createDefaultMembership(Fancard fancard) {
         return MembershipDto.builder()
                 .membershipId(fancard.getMembershipId())
-                .subscriptionStart(java.time.LocalDate.now())
+                .subscriptionStart(fancard.getIssueDate())
                 .monthlyAmount(BigDecimal.valueOf(5000.00))
                 .totalPaidAmount(BigDecimal.valueOf(60000.00))
                 .status("ACTIVE")
