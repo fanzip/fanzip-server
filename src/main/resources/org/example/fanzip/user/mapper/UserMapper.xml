@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.fanzip.user.mapper.UserMapper">
     <insert id="insertUser">
-        insert into Users
+        insert into users
             (social_type, social_id, name, phone, email)
         values (#{socialType}, #{socialId}, #{name}, #{phone}, #{email})
         <selectKey resultType="Long" keyProperty="userId" keyColumn="user_id" order="AFTER">
@@ -12,7 +12,7 @@
         </selectKey>
     </insert>
     <update id="updateAdditionalInfo">
-        update Users
+        update users
         set name=#{additionalInfoDTO.name},
             phone=#{additionalInfoDTO.phone},
             email=#{additionalInfoDTO.email},
@@ -21,11 +21,11 @@
     </update>
 
     <select id="findBySocialTypeAndSocialId" resultType="org.example.fanzip.user.dto.UserDTO">
-        select * from Users
+        select * from users
                  where social_type=#{socialType} and social_id=#{socialId}
     </select>
     <select id="getUser" resultType="org.example.fanzip.user.dto.UserDTO">
-        select * from Users where user_id=#{userId}
+        select * from users where user_id=#{userId}
     </select>
 </mapper>
 
