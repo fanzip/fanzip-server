@@ -6,6 +6,8 @@ import org.example.fanzip.influencer.domain.InfluencerVO;
 import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
 import org.example.fanzip.influencer.dto.*;
 import org.example.fanzip.influencer.mapper.InfluencerMapper;
+import org.example.fanzip.membership.dto.MembershipGradeDTO;
+import org.example.fanzip.membership.mapper.MembershipMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ public class InfluencerServiceImpl implements InfluencerService {
 
     private final InfluencerMapper influencerMapper;
     private final FancardMapper fancardMapper;
+    private final MembershipMapper membershipMapper;
 
     // 전체 목록 조회
     @Override
@@ -44,16 +47,18 @@ public class InfluencerServiceImpl implements InfluencerService {
     // 상세 조회
     @Override
     public InfluencerDetailResponseDTO findDetailed(Long userId, Long influencerId) {
-
-        // 인플루언서Id로 DB 조회하고 DTO로 변환해서 클라로 보내기
+// 1. 인플루언서 기본 정보 조회
         InfluencerVO influencerDetail = influencerMapper.findDetailed(influencerId);
 
-        // 예외
         if (influencerDetail == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
         }
 
-        return InfluencerDetailResponseDTO.from(influencerDetail);
+        // 2. 멤버십 등급 목록 조회
+        List<MembershipGradeDTO> grades = membershipMapper.findGradesByInfluencerId(influencerId);
+
+        // 3. DTO로 변환 후 반환
+        return InfluencerDetailResponseDTO.from(influencerDetail, grades);
     }
 
     // 인플루언서 관리자 마이페이지 프로필 조회

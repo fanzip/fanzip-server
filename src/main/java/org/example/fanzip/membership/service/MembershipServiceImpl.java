@@ -3,6 +3,7 @@ package org.example.fanzip.membership.service;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.membership.domain.MembershipVO;
 import org.example.fanzip.membership.domain.enums.MembershipStatus;
+import org.example.fanzip.membership.dto.MembershipGradeDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeRequestDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeResponseDTO;
 import org.example.fanzip.membership.mapper.MembershipMapper;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -39,5 +41,10 @@ public class MembershipServiceImpl implements MembershipService{
         MembershipVO inserted = membershipMapper.findByUserIdAndInfluencerId(userId, requestDTO.getInfluencerId());
 
         return MembershipSubscribeResponseDTO.from(inserted);
+    }
+
+    @Override
+    public List<MembershipGradeDTO> getMembershipGrades() {
+        return membershipMapper.findGradesByInfluencerId(null);
     }
 }
