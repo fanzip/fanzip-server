@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.fanzip.user.dto.enums.UserRole;
 
 import java.util.Date;
 
@@ -18,6 +19,7 @@ public class UserDTO {
     private String name;
 
     private String phone;
+    private UserRole role;
 
     private String socialType;
     private String socialId;
@@ -25,7 +27,7 @@ public class UserDTO {
     private String address1;
     private String address2;
     private String zipcode;
-    private String recipientName;
+
     private String recipientPhone;
 
     private Date created_at;
