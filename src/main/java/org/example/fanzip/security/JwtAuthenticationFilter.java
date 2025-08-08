@@ -25,6 +25,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("=========Jwt Authentication Filter 진입 ==========");
+        
+        String requestURI = request.getRequestURI();
+        if (requestURI.startsWith("/api/auth/oauth/") || 
+            requestURI.startsWith("/api/auth/reissue") || 
+            requestURI.startsWith("/api/user/register") ||
+            requestURI.startsWith("/swagger-ui") ||
+            requestURI.startsWith("/v2/api-docs") ||
+            requestURI.startsWith("/swagger-resources") ||
+            requestURI.startsWith("/configuration") ||
+            requestURI.startsWith("/webjars")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer ")) {
