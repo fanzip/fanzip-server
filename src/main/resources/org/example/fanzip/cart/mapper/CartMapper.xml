@@ -12,13 +12,13 @@
 
     <!-- 장바구니 없는 경우 생성 -->
     <insert id="createCart" parameterType="java.lang.Long" useGeneratedKeys="true" keyProperty="cartId">
-        insert into Cart (user_id, created_at, updated_at)
+        insert into cart (user_id, created_at, updated_at)
         values (#{userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     </insert>
 
     <!-- 장바구니에 항목 추가 -->
     <insert id="insertCartItem" parameterType="map" useGeneratedKeys="true" keyProperty="cartId">
-        insert into cartitems (cart_id, product_id, quantity, added_at, is_selected)
+        insert into cart_items (cart_id, product_id, quantity, added_at, is_selected)
         values (#{cartId}, #{productId}, #{quantity}, CURRENT_TIMESTAMP, true)
     </insert>
 
@@ -35,7 +35,7 @@
             c.is_selected       as isSelected,
             i.influencer_id     as influencerId,
             i.influencer_name   as influencerName
-        from cartitems c join products p on c.product_id = p.product_id
+        from cart_items c join products p on c.product_id = p.product_id
                     join influencers i on i.influencer_id = p.influencer_id
         where c.cart_id = (
             select cart_id from cart where user_id = #{userId}
@@ -53,14 +53,14 @@
             p.thumbnail_image                   as thumbnailImage,
             p.discounted_price                  as discountedPrice,
             (c.quantity * p.discounted_price)   as totalPrice
-        from cartitems c join products p on c.product_id=p.product_id
+        from cart_items c join products p on c.product_id=p.product_id
         where c.cart_item_id=#{cartItemId}
     </select>
 
     <!-- 특정 유저, 특정 상품 확인 -->
     <select id="checkCartItem" resultType="java.lang.Integer">
         select count(*)
-        from cartitems ci join cart c on ci.cart_id = c.cart_id
+        from cart_items ci join cart c on ci.cart_id = c.cart_id
         where ci.cart_item_id = #{cartItemId}
             and c.user_id = #{userId}
     </select>
@@ -68,14 +68,14 @@
     <!-- 상품 id로 cartItemId 확인 -->
     <select id="findCartItemIdByProductId" resultType="java.lang.Long">
         select cart_item_id
-        from cartitems ci join cart c on ci.cart_id = c.cart_id
+        from cart_items ci join cart c on ci.cart_id = c.cart_id
         where c.user_id = #{userId}
             and ci.product_id = #{productId}
     </select>
 
     <!-- 수량, 선택 업데이트 -->
     <select id="updateCartItem">
-        update cartitems
+        update cart_items
         set quantity = #{quantity},
             is_selected = #{isSelected}
         where cart_item_id = #{cartItemId}
@@ -83,7 +83,7 @@
     
     <!-- 전체 선택, 해제 -->
     <update id="updateAllSelection">
-        update cartitems ci
+        update cart_items ci
         join cart c on ci.cart_id = c.cart_id
         set ci.is_selected = #{selectAll}
         where c.user_id = #{userId}
@@ -91,7 +91,7 @@
 
     <!-- 항목 삭제 -->
     <delete id="deleteCartItem">
-        delete from cartitems
+        delete from cart_items
         where cart_item_id=#{cartItemId}
     </delete>
 

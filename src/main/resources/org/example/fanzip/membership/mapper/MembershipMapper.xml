@@ -63,7 +63,7 @@
             benefits_description AS benefitsDescription,
             color               AS color,
             monthly_amount      AS monthlyAmount
-        FROM test_db.membershipgrades
+        FROM test_db.membership_grades
         ORDER BY CASE grade_name
                      WHEN 'VIP' THEN 1
                      WHEN 'GOLD' THEN 2
