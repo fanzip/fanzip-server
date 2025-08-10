@@ -1,9 +1,6 @@
 package org.example.fanzip.meeting.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.example.fanzip.meeting.domain.FanMeetingStatus;
 import java.time.LocalDateTime;
 
@@ -11,6 +8,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Setter
 public class FanMeetingDetailResponseDTO {
     private Long meetingId;
     private String title;
@@ -29,5 +27,7 @@ public class FanMeetingDetailResponseDTO {
     private LocalDateTime whiteOpenTime;
     private LocalDateTime generalOpenTime;
 
+    private String profileImageUrl;
     private String posterImageUrl;
+    private String influencerName;
 }
