@@ -1,6 +1,7 @@
-package org.example.fanzip.market.dto;
+package org.example.fanzip.cart.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,16 +9,18 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MarketOrderRequestDto {
+public class CreateMarketOrderRequestDto {
+    private Long userId;
     private BigDecimal finalAmount;
+    private String status;
     private String recipientName;
     private String recipientPhone;
     private String shippingAddress1;
     private String shippingAddress2;
     private String zipcode;
     private String paymentMethod;
-    private String orderType; // "cart"(장바구니) / "buy"(바로구매)
-    private List<MarketOrderItemDto> items;
+    private List<CartItemDto> items;
 }

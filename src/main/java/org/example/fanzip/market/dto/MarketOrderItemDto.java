@@ -13,7 +13,8 @@ public class MarketOrderItemDto {
     private Long productId;
     private Long influencerId;
     private Integer quantity;
-    private BigDecimal price;
+    private BigDecimal unitPrice;
     private BigDecimal shippingPrice;
     private BigDecimal finalPrice;
+    private Long cartItemId;
 }
