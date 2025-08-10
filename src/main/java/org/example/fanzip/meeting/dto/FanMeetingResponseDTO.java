@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class FanMeetingResponseDTO {
     private Long meetingId;
+    private String influencerName;
     private String title;
     private String venueName;
     private String venueAddress;
@@ -22,4 +23,6 @@ public class FanMeetingResponseDTO {
     private int availableSeats;
     private FanMeetingStatus status;
     private LocalDateTime openTime;
+    private String posterImageUrl;
+    private String profileImageUrl;
 }

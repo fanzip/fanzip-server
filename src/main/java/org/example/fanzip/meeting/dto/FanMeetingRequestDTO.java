@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class FanMeetingRequestDTO {
+    private Long influencerId;
     private String title;
     private String description;
     private String venueName;
@@ -17,4 +18,5 @@ public class FanMeetingRequestDTO {
     private LocalDateTime whiteOpenTime;
     private LocalDateTime generalOpenTime;
     private String profileImageUrl;
+    private String posterImageUrl;
 }
