@@ -23,7 +23,6 @@ public class ProductDetailDto {
     private BigDecimal discountRate;
     private BigDecimal shippingPrice;
 
-    private String description;
     private String thumbnailImage;
     private String detailImages;
     private String descriptionImages;
@@ -34,6 +33,4 @@ public class ProductDetailDto {
     private LocalDateTime openTime;
     private boolean isAvailable;
 
-    // 현재는 빈 배열로 설정 (추후 구현 고려)
-    private List<ProductOptionDto> options;
 }
