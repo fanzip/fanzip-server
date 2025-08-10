@@ -19,6 +19,7 @@ public class MarketOrderController {
         this.marketOrderService = marketOrderService;
     }
 
+    // 결제 요청
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public MarketOrderResponseDto createOrder(
@@ -27,5 +28,19 @@ public class MarketOrderController {
     ) {
         Long userId = principal.getUserId();
         return marketOrderService.createOrder(userId, request);
+    }
+
+    // 결제 승인된 경우
+    @PostMapping("/{orderId}/on-payment-approved")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void onPaymentApproved(@PathVariable Long orderId) {
+        marketOrderService.finalizeAfterPaymentApproved(orderId);
+    }
+
+    // 결제 실패
+    @PostMapping("/{orderId}/on-payment-failed")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void onPaymentFailed(@PathVariable Long orderId) {
+        marketOrderService.cleanupAfterPaymentFailed(orderId);
     }
 }
