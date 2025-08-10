@@ -1,17 +1,19 @@
 package org.example.fanzip.market.controller;
 
-
+import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.market.dto.ProductDetailDto;
 import org.example.fanzip.market.dto.ProductListDto;
 import org.example.fanzip.market.service.MarketService;
+import org.example.fanzip.security.CustomUserPrincipal;
 import org.example.fanzip.security.JwtProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/market")
 public class MarketController {
@@ -43,11 +45,10 @@ public class MarketController {
     // 상세 상품 조회
     @GetMapping("/products/{productId}")
     public ResponseEntity<ProductDetailDto> getProductDetail(
-            @RequestHeader("X-USER-ID") Long userId,
-//            HttpServletRequest request,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long productId
     ) {
-//        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
         ProductDetailDto dto = marketService.getProductDetail(userId, productId);
         return ResponseEntity.ok(dto);
     }
