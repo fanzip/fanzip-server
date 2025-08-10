@@ -49,11 +49,8 @@
     <!-- 낙관적 락을 위한 update -->
     <update id="updateSeatWithVersionCheck">
         UPDATE fan_meeting_seats
-        SET reserved = TRUE,
-            version = version + 1
-        WHERE seat_id = #{seatId}
-          AND version = #{version}
-          AND reserved = FALSE
+        SET reserved = #{reserved}, version = version + 1
+        WHERE seat_id = #{seatId} AND version = #{version}
     </update>
 
     <select id="findSeatsByMeetingId" resultType="org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO">
