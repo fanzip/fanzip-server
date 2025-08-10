@@ -6,10 +6,25 @@
 <mapper namespace="org.example.fanzip.meeting.mapper.FanMeetingMapper">
 
     <select id="findAllOpenMeetings" resultType="org.example.fanzip.meeting.domain.FanMeetingVO">
-        SELECT *
-        FROM fan_meetings
-        WHERE status = 'PLANNED'
-        ORDER BY meeting_date ASC
+        SELECT
+            fm.meeting_id        AS meetingId,
+            fm.title             AS title,
+            fm.venue_name        AS venueName,
+            fm.venue_address     AS venueAddress,
+            fm.meeting_date      AS meetingDate,
+            fm.available_seats   AS availableSeats,
+            fm.status            AS status,
+            fm.vip_open_time     AS vipOpenTime,
+            fm.gold_open_time    AS goldOpenTime,
+            fm.silver_open_time  AS silverOpenTime,
+            fm.white_open_time   AS whiteOpenTime,
+            fm.general_open_time AS generalOpenTime,
+            i.profile_image      AS profileImageUrl,
+            i.influencer_name    AS influencerName
+        FROM fan_meetings fm
+                 JOIN influencers i ON i.influencer_id = fm.influencer_id
+        WHERE fm.status = 'PLANNED'
+        ORDER BY fm.meeting_date ASC
     </select>
 
     <select id="findById" resultType="org.example.fanzip.meeting.domain.FanMeetingVO">
@@ -19,38 +34,68 @@
     </select>
 
     <insert id="insertFanMeeting" parameterType="org.example.fanzip.meeting.domain.FanMeetingVO" useGeneratedKeys="true" keyProperty="meetingId">
+
         INSERT INTO fan_meetings (
-            title, description, venue_name, venue_address,
-            meeting_date, vip_open_time, gold_open_time,
-            silver_open_time, white_open_time, general_open_time,
-            status, poster_image_url
+        influencer_id, title, description, venue_name, venue_address,
+        meeting_date, vip_open_time, gold_open_time,
+        silver_open_time, white_open_time, general_open_time,
+        status, total_seats, available_seats
         ) VALUES (
-                     #{title}, #{description}, #{venueName}, #{venueAddress},
-                     #{meetingDate}, #{vipOpenTime}, #{goldOpenTime},
-                     #{silverOpenTime}, #{whiteOpenTime}, #{generalOpenTime},
-                     #{status}, #{posterImageUrl}
-                 )
+        #{influencerId}, #{title}, #{description}, #{venueName}, #{venueAddress},
+        #{meetingDate}, #{vipOpenTime}, #{goldOpenTime},
+        #{silverOpenTime}, #{whiteOpenTime}, #{generalOpenTime},
+        #{status}, #{totalSeats}, #{availableSeats}
+                         )
     </insert>
 
     <select id="findDetailById" resultType="org.example.fanzip.meeting.dto.FanMeetingDetailResponseDTO">
         SELECT
-            meeting_id AS meetingId,
-            title,
-            description,
-            venue_name AS venueName,
-            venue_address AS venueAddress,
-            meeting_date AS meetingDate,
-            total_seats AS totalSeats,
-            available_seats AS availableSeats,
-            status,
-            vip_open_time AS vipOpenTime,
-            gold_open_time AS goldOpenTime,
-            silver_open_time AS silverOpenTime,
-            white_open_time AS whiteOpenTime,
-            general_open_time AS generalOpenTime,
-            poster_image_url AS posterImageUrl
-        FROM fan_meetings
-        WHERE meeting_id = #{meetingId}
+            fm.meeting_id AS meetingId,
+            fm.title,
+            fm.description,
+            fm.venue_name AS venueName,
+            fm.venue_address AS venueAddress,
+            fm.meeting_date AS meetingDate,
+            fm.total_seats AS totalSeats,
+            fm.available_seats AS availableSeats,
+            fm.status,
+            fm.vip_open_time AS vipOpenTime,
+            fm.gold_open_time AS goldOpenTime,
+            fm.silver_open_time AS silverOpenTime,
+            fm.white_open_time AS whiteOpenTime,
+            fm.general_open_time AS generalOpenTime,
+            fm.poster_image_url AS posterImageUrl,
+            i.profile_image AS profileImageUrl,
+            i.influencer_name AS influencerName
+        FROM fan_meetings fm
+                 JOIN influencers i ON i.influencer_id = fm.influencer_id
+        WHERE fm.meeting_id = #{meetingId}
     </select>
+
+    <select id="findOpenInfo" resultType="org.example.fanzip.meeting.dto.FanMeetingOpenInfoDTO">
+        SELECT
+            fm.status                               AS status,
+            fm.vip_open_time                        AS vipOpenTime,
+            fm.gold_open_time                       AS goldOpenTime,
+            fm.silver_open_time                     AS silverOpenTime,
+            fm.white_open_time                      AS whiteOpenTime,
+            fm.general_open_time                    AS generalOpenTime
+        FROM fan_meetings fm
+        WHERE fm.meeting_id = #{meetingId}
+    </select>
+
+    <update id="decrementAvailableSeats">
+        UPDATE fan_meetings
+        SET available_seats = available_seats - 1
+        WHERE meeting_id = #{meetingId}
+          AND available_seats > 0
+    </update>
+
+    <update id="incrementAvailableSeats">
+        UPDATE fan_meetings
+        SET available_seats = available_seats + 1
+        WHERE meeting_id = #{meetingId}
+    </update>
+
 
 </mapper>
