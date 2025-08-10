@@ -33,7 +33,7 @@ class CartServiceImplTest {
 
     @Test
     void getCart() {
-        CartResponseDto dto = cartService.getCart(1L);
+        CartResponseDto dto = cartService.getCart(6L);
         log.info("==========> getCart: " + dto);
     }
 
