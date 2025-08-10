@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -53,7 +54,6 @@ public class MarketOrderServiceImpl implements MarketOrderService {
         orderData.put("zipcode", request.getZipcode());
 
         marketOrderMapper.insertOrder(orderData);
-//        Long orderId = (Long) orderData.get("orderId");
         Number key = (Number) orderData.get("orderId");
         if(key == null) throw new IllegalStateException("orderId is null");
         Long orderId = key.longValue();
@@ -61,17 +61,69 @@ public class MarketOrderServiceImpl implements MarketOrderService {
         // 주문 상품(order_itmes) 저장
         marketOrderMapper.insertOrderItems(orderId, request.getItems());
 
-        // 장바구니에서 삭제
-        if("cart".equals(request.getOrderType())) {
-            for(MarketOrderItemDto item : request.getItems()) {
-                if(item.getCartItemId() != null) {
-                    Integer count = cartMapper.checkCartItem(userId, item.getCartItemId());
-                    if(count > 0) {
-                        cartMapper.deleteCartItem(item.getCartItemId());
-                    }
-                }
+        return new MarketOrderResponseDto(orderId);
+    }
+
+    // 결제 성공 -> 재고차감, 카트에서 삭제, status 업데이트
+    @Override
+    @Transactional
+    public void finalizeAfterPaymentApproved(Long orderId) {
+        // lock
+        int locked = marketOrderMapper.updateOrderStatusIfCurrent(orderId, "PROCESSING", "PENDING");
+        if(locked == 0) {
+            String cur = marketOrderMapper.selectOrderStatus(orderId);
+            if("PAID".equals(cur)){
+                return;
+            }
+            // 이미 다른 트랜잭션에서 처리중
+            if("PROCESSING".equals(cur)){
+                return;
+            }
+            // 실패/취소된 주문 -> 처리X
+            if("FAILED".equals(cur) || "CANCELLED".equals(cur)){
+                return;
+            }
+            // 모르는 status
+            throw new IllegalStateException("Unexpected order status: " + cur);
+        }
+
+        // 주문 상품 로드
+        List<MarketOrderItemDto> items = marketOrderMapper.selectOrderItems(orderId);
+        if(items == null || items.isEmpty()) {throw new IllegalArgumentException("order item is null");}
+
+        // 재고 차감
+        for(MarketOrderItemDto item: items) {
+            int ok = marketOrderMapper.decreaseProductStock(item.getProductId(), item.getQuantity());
+            if(ok == 0) {
+                throw new IllegalStateException("재고 부족/변경됨: productId: " + item.getProductId());
             }
         }
-        return new MarketOrderResponseDto(orderId);
+
+        // 장바구니에서 삭제
+        List<Long> cartItemIds = marketOrderMapper.selectCartItemIdsByOrderId(orderId);
+        if(cartItemIds != null && !cartItemIds.isEmpty()) {
+            marketOrderMapper.deleteCartItemsByIds(cartItemIds);
+        }
+
+        // status 업데이트 (PROCESSING->PAID)
+        int done = marketOrderMapper.updateOrderStatusIfCurrent(orderId, "PAID", "PROCESSING");
+        if(done == 0) {
+            String cur = marketOrderMapper.selectOrderStatus(orderId);
+            if(!"PAID".equalsIgnoreCase(cur)){
+                throw new IllegalStateException("status trans failed. cur=" + cur);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cleanupAfterPaymentFailed(Long orderId) {
+        String cur = marketOrderMapper.selectOrderStatus(orderId);
+        // 이미 결제 완료된 경우
+        if("PAID".equals(cur)){
+            return;
+        }
+        marketOrderMapper.deleteOrderItemsByOrderId(orderId);
+        marketOrderMapper.deleteOrderById(orderId);
     }
 }
