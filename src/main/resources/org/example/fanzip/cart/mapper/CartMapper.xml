@@ -34,7 +34,8 @@
             c.quantity          as quantity,
             c.is_selected       as isSelected,
             i.influencer_id     as influencerId,
-            i.influencer_name   as influencerName
+            i.influencer_name   as influencerName,
+            p.shipping_price    as shippingPrice
         from cart_items c join products p on c.product_id = p.product_id
                     join influencers i on i.influencer_id = p.influencer_id
         where c.cart_id = (
@@ -52,7 +53,8 @@
             p.name                              as productName,
             p.thumbnail_image                   as thumbnailImage,
             p.discounted_price                  as discountedPrice,
-            (c.quantity * p.discounted_price)   as totalPrice
+            (c.quantity * p.discounted_price)   as totalPrice,
+            p.shipping_price                    as shippingPirce
         from cart_items c join products p on c.product_id=p.product_id
         where c.cart_item_id=#{cartItemId}
     </select>
@@ -95,9 +97,10 @@
         where cart_item_id=#{cartItemId}
     </delete>
 
-    <!-- 배송지 조회 -->
-    <select id="shippingAddress" resultType="java.lang.String">
-        select concat_ws(', ', address1, address2) as address
+    <!-- 유저 정보 조회 (배송관련) -->
+    <select id="getUserShippingInfo" parameterType="java.lang.Long"
+            resultType="org.example.fanzip.cart.dto.UserShippingInfoDto">
+        select address1, address2, name, phone, zipcode
         from users
         where user_id = #{userId}
     </select>
