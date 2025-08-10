@@ -48,6 +48,7 @@ public class FanMeetingServiceImpl implements FanMeetingService {
             dto.setMeetingDate(meeting.getMeetingDate());
             dto.setAvailableSeats(meeting.getAvailableSeats());
             dto.setStatus(meeting.getStatus());
+            dto.setProfileImageUrl(meeting.getProfileImageUrl());
             dto.setOpenTime(extractOpenTime(meeting, userGrade));
             return dto;
         }).collect(Collectors.toList());
@@ -55,23 +56,26 @@ public class FanMeetingServiceImpl implements FanMeetingService {
 
     @Override
     public FanMeetingDetailResponseDTO getMeetingDetail(Long meetingId) {
-        FanMeetingVO vo = fanMeetingMapper.findById(meetingId);
+        FanMeetingDetailResponseDTO dto = fanMeetingMapper.findDetailById(meetingId);
 
         return FanMeetingDetailResponseDTO.builder()
-                .meetingId(vo.getMeetingId())
-                .title(vo.getTitle())
-                .description(vo.getDescription())
-                .venueName(vo.getVenueName())
-                .venueAddress(vo.getVenueAddress())
-                .meetingDate(vo.getMeetingDate())
-                .totalSeats(vo.getTotalSeats())
-                .availableSeats(vo.getAvailableSeats())
-                .status(vo.getStatus())
-                .vipOpenTime(vo.getVipOpenTime())
-                .goldOpenTime(vo.getGoldOpenTime())
-                .silverOpenTime(vo.getSilverOpenTime())
-                .whiteOpenTime(vo.getWhiteOpenTime())
-                .generalOpenTime(vo.getGeneralOpenTime())
+                .meetingId(dto.getMeetingId())
+                .title(dto.getTitle())
+                .description(dto.getDescription())
+                .venueName(dto.getVenueName())
+                .venueAddress(dto.getVenueAddress())
+                .meetingDate(dto.getMeetingDate())
+                .totalSeats(dto.getTotalSeats())
+                .availableSeats(dto.getAvailableSeats())
+                .status(dto.getStatus())
+                .vipOpenTime(dto.getVipOpenTime())
+                .goldOpenTime(dto.getGoldOpenTime())
+                .silverOpenTime(dto.getSilverOpenTime())
+                .whiteOpenTime(dto.getWhiteOpenTime())
+                .generalOpenTime(dto.getGeneralOpenTime())
+                .profileImageUrl(dto.getProfileImageUrl())
+                .posterImageUrl(dto.getPosterImageUrl())
+                .influencerName(dto.getInfluencerName())
                 .build();
     }
 
@@ -124,7 +128,16 @@ public class FanMeetingServiceImpl implements FanMeetingService {
     @Override
     @Transactional
     public FanMeetingDetailResponseDTO createFanMeeting(FanMeetingRequestDTO request) {
+        if (request.getInfluencerId() == null) {
+            throw new IllegalArgumentException("influencerId가 null입니다.");
+        }
+
+        int rows = 15;
+        int cols = 11;
+        int total = rows * cols;
+
         FanMeetingVO meeting = new FanMeetingVO();
+        meeting.setInfluencerId(request.getInfluencerId());
         meeting.setTitle(request.getTitle());
         meeting.setDescription(request.getDescription());
         meeting.setVenueName(request.getVenueName());
@@ -136,18 +149,20 @@ public class FanMeetingServiceImpl implements FanMeetingService {
         meeting.setWhiteOpenTime(request.getWhiteOpenTime());
         meeting.setGeneralOpenTime(request.getGeneralOpenTime());
         meeting.setStatus(FanMeetingStatus.PLANNED);
-
-
+        meeting.setProfileImageUrl(request.getProfileImageUrl());
+        meeting.setTotalSeats(total);
+        meeting.setAvailableSeats(total);
         fanMeetingMapper.insertFanMeeting(meeting); // Auto-increment ID 채워짐
+
 
         // 좌석 165개 자동 생성
         List<FanMeetingSeatVO> seats = new ArrayList<>();
-        char[] rows = "ABCDEFGHIJKLMNO".toCharArray();
-        for (int i = 0; i < rows.length; i++) {
-            for (int j = 1; j <= 11; j++) {
+        char[] rowArr = "ABCDEFGHIJKLMNO".toCharArray();
+        for (char r : rowArr) {
+            for (int c = 1; c <= cols; c++) {
                 FanMeetingSeatVO seat = new FanMeetingSeatVO();
                 seat.setMeetingId(meeting.getMeetingId());
-                seat.setSeatNumber("" + rows[i] + j); // 예: A1
+                seat.setSeatNumber("" + r + c);
                 seat.setReserved(false);
                 seat.setPrice(new BigDecimal("20000"));
                 seat.setVersion(0);
