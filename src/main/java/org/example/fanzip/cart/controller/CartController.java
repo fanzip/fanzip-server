@@ -2,8 +2,10 @@ package org.example.fanzip.cart.controller;
 
 import org.example.fanzip.cart.dto.*;
 import org.example.fanzip.cart.service.CartService;
+import org.example.fanzip.security.CustomUserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestHeader;
 
@@ -23,46 +25,40 @@ public class CartController {
     @PostMapping("/items")
     @ResponseStatus(HttpStatus.CREATED)
     public CartItemResponseDto addCartItem(
-//            HttpServletRequest request,
-            @RequestHeader("X-USER-ID") Long userId,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestBody AddCartItemRequestDto req
             ) {
-
-//        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
         return cartService.addItem(userId, req);
     }
 
     // 장바구니 물품 전체 조회
     @GetMapping("/items")
     public CartResponseDto getCartItems(
-//             HttpServletRequest request
-            @RequestHeader("X-USER-ID") Long userId
+            @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-//        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
         return cartService.getCart(userId);
     }
 
     // 개별 수량/선택 상태 변경 - quantity, isSelected
     @PutMapping("/items/{cartItemId}")
     public CartItemDto updateCartItem(
-//            HttpServletRequest request,
-            @RequestHeader("X-USER-ID") Long userId,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long cartItemId,
             @RequestBody UpdateCartItemRequestDto req
     ) {
-//        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
         return cartService.updateItem(userId, cartItemId, req);
     }
 
     // 전체 선택/해제 토글
     @PutMapping("/items/select-all")
     public CartResponseDto selectAll(
-            @RequestHeader("X-USER-ID") Long userId,
-//            HttpServletRequest request,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @RequestParam Boolean selectAll
     ) {
-
-//        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
         return cartService.selectAll(userId, selectAll);
     }
 
@@ -70,11 +66,10 @@ public class CartController {
     @DeleteMapping("/items/{cartItemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeItem(
-//            HttpServletRequest request,
-            @RequestHeader("X-USER-ID") Long userId,
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long cartItemId
     ) {
-//        Long userId = (Long) request.getAttribute("userId");
+        Long userId = principal.getUserId();
         cartService.removeItem(userId, cartItemId);
     }
 }
