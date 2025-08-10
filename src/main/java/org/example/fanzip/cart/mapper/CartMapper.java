@@ -3,6 +3,7 @@ package org.example.fanzip.cart.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.example.fanzip.cart.dto.CartItemDto;
+import org.example.fanzip.cart.dto.UserShippingInfoDto;
 
 import java.util.List;
 
@@ -61,6 +62,8 @@ public interface CartMapper {
             @Param("cartItemId") Long cartItemId
     );
 
-    // 배송 주소 조회
-    String shippingAddress(@Param("userId") Long userId);
+    // 배송 정보 조회
+    UserShippingInfoDto getUserShippingInfo(@Param("userId") Long userId);
+
+
 }
