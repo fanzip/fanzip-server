@@ -1,7 +1,7 @@
 -- Schema for Fan.zip Project
 -- Using MySQL InnoDB, utf8mb4
 
--- 1. users -- 수정완료
+-- 1. users
 CREATE TABLE users (
                        user_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                        email VARCHAR(255) NOT NULL UNIQUE,
@@ -17,10 +17,10 @@ CREATE TABLE users (
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                        deleted_at TIMESTAMP NULL DEFAULT NULL,
-                       UNIQUE KEY uq_social_user(social_type,social_id)
+                       UNIQUE KEY uq_social_user (social_type, social_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 3. influencers -- 수정 완료
+-- 2. influencers
 CREATE TABLE influencers (
                              influencer_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                              user_id BIGINT NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE influencers (
                              FOREIGN KEY (user_id) REFERENCES users(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 4. membership_grades  -- 수정 완료
+-- 3. membership_grades
 CREATE TABLE membership_grades (
                                    grade_id INT PRIMARY KEY,
                                    grade_name VARCHAR(100),
@@ -46,7 +46,7 @@ CREATE TABLE membership_grades (
                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 6. memberships -- 수정완료
+-- 4. memberships
 CREATE TABLE memberships (
                              membership_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                              user_id BIGINT NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE memberships (
                              FOREIGN KEY (grade_id) REFERENCES membership_grades(grade_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 7. fan_cards
+-- 5. fan_cards
 CREATE TABLE fan_cards (
                            card_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                            membership_id BIGINT NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE fan_cards (
                            FOREIGN KEY (membership_id) REFERENCES memberships(membership_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 8. fan_meetings --- 수정완료
+-- 6. fan_meetings
 CREATE TABLE fan_meetings (
                               meeting_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                               influencer_id BIGINT NOT NULL,
@@ -93,11 +93,11 @@ CREATE TABLE fan_meetings (
                               status VARCHAR(50),
                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                               updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                              posterImageUrl VARCHAR(500),
-FOREIGN KEY (influencer_id) REFERENCES influencers(influencer_id)
+                              poster_image_url VARCHAR(500),
+                              FOREIGN KEY (influencer_id) REFERENCES influencers(influencer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 9. fan_meeting_seats --- 수정완료
+-- 7. fan_meeting_seats
 CREATE TABLE fan_meeting_seats (
                                    seat_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                    meeting_id BIGINT NOT NULL,
@@ -109,7 +109,7 @@ CREATE TABLE fan_meeting_seats (
                                    FOREIGN KEY (meeting_id) REFERENCES fan_meetings(meeting_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 10. fan_meeting_reservations --- 수정완료
+-- 8. fan_meeting_reservations
 CREATE TABLE fan_meeting_reservations (
                                           reservation_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                           meeting_id BIGINT NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE fan_meeting_reservations (
                                           FOREIGN KEY (seat_id) REFERENCES fan_meeting_seats(seat_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 11. products
+-- 9. products
 CREATE TABLE products (
                           product_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                           influencer_id BIGINT NOT NULL,
@@ -151,7 +151,7 @@ CREATE TABLE products (
                           FOREIGN KEY (influencer_id) REFERENCES influencers(influencer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 13. cart
+-- 10. cart
 CREATE TABLE cart (
                       cart_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                       user_id BIGINT NOT NULL UNIQUE,
@@ -160,7 +160,7 @@ CREATE TABLE cart (
                       FOREIGN KEY (user_id) REFERENCES users(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 14. cart_items
+-- 11. cart_items
 CREATE TABLE cart_items (
                             cart_item_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                             cart_id BIGINT NOT NULL,
@@ -170,10 +170,9 @@ CREATE TABLE cart_items (
                             is_selected BOOLEAN DEFAULT TRUE,
                             FOREIGN KEY (cart_id) REFERENCES cart(cart_id),
                             FOREIGN KEY (product_id) REFERENCES products(product_id)
---                             FOREIGN KEY (product_option_id) REFERENCES ProductOptions(option_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 15. orders
+-- 12. orders
 CREATE TABLE orders (
                         order_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                         user_id BIGINT NOT NULL,
@@ -191,7 +190,7 @@ CREATE TABLE orders (
                         FOREIGN KEY (user_id) REFERENCES users(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 16. order_items
+-- 13. order_items
 CREATE TABLE order_items (
                              order_item_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                              order_id BIGINT NOT NULL,
@@ -200,7 +199,7 @@ CREATE TABLE order_items (
                              product_id BIGINT NOT NULL,
                              quantity INT,
                              unit_price DECIMAL(10,2),
-                             discount_rate DECIMAL(5,2),
+                             shipping_price DECIMAL(10,2),
                              final_price DECIMAL(10,2),
                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                              FOREIGN KEY (order_id) REFERENCES orders(order_id),
@@ -209,7 +208,7 @@ CREATE TABLE order_items (
                              FOREIGN KEY (influencer_id) REFERENCES influencers(influencer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 17. payments -- 수정완료
+-- 14. payments
 CREATE TABLE payments (
                           payment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                           user_id BIGINT,
@@ -227,73 +226,77 @@ CREATE TABLE payments (
                           refunded_at TIMESTAMP NULL,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           settlement_status VARCHAR(20) DEFAULT 'PENDING',
-                          settlement_date DATE NULL,   -- 정산 대상 일자 (paid_at의 날짜 부분)
+                          settlement_date DATE NULL,
                           last_settlement_at TIMESTAMP NULL,
                           FOREIGN KEY (order_id) REFERENCES orders(order_id),
                           FOREIGN KEY (reservation_id) REFERENCES fan_meeting_reservations(reservation_id),
                           FOREIGN KEY (membership_id) REFERENCES memberships(membership_id),
-                          FOREIGN KEY (influencer_id) REFERENCES influencers (influencer_id),
+                          FOREIGN KEY (influencer_id) REFERENCES influencers(influencer_id),
                           INDEX idx_settlement_target (settlement_status, settlement_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
--- 18. pg_transactions
-CREATE TABLE pg_transactions (
-                                 pg_transaction_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                 transaction_id VARCHAR(255) NOT NULL UNIQUE,
-                                 amount DECIMAL(10,2) NOT NULL,
-                                 fee DECIMAL(10,2) DEFAULT 0,
-                                 net_amount DECIMAL(10,2) NOT NULL,
-                                 status VARCHAR(50) NOT NULL,
-                                 settlement_date DATE NOT NULL,
-                                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                 INDEX idx_transaction_id (transaction_id),
-                                 INDEX idx_settlement_date (settlement_date)
+-- 17. user_push_token (NEW)
+CREATE TABLE IF NOT EXISTS user_push_token (
+                                               token_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                               user_id BIGINT NOT NULL,
+                                               push_token VARCHAR(512) NOT NULL,
+                                               device_type VARCHAR(50) NOT NULL DEFAULT 'WEB', -- android / ios / web
+                                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                               updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                               FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                                               CONSTRAINT uq_user_device UNIQUE (user_id, device_type),
+                                               CONSTRAINT uq_push_token UNIQUE (push_token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 19. settlements
-CREATE TABLE settlements (
-                             settlement_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                             payment_id BIGINT NOT NULL,
-                             influencer_id BIGINT NOT NULL,
-                             transaction_id VARCHAR(255),
-                             payment_type VARCHAR(50),
-                             payment_amount DECIMAL(10,2) NOT NULL,
-                             pg_amount DECIMAL(10,2),
-                             fee DECIMAL(10,2) DEFAULT 0,
-                             settlement_amount DECIMAL(10,2),
-                             status VARCHAR(20) NOT NULL,
-                             settlement_date DATE NOT NULL,
-                             remarks TEXT,
-                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                             FOREIGN KEY (payment_id) REFERENCES payments(payment_id),
-                             INDEX idx_settlement_date (settlement_date),
-                             INDEX idx_payment_id (payment_id),
-                             INDEX idx_influencer_id (influencer_id)
+-- 18. notifications (NEW)
+CREATE TABLE IF NOT EXISTS notifications (
+                                             notification_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                             influencer_id   BIGINT NOT NULL,
+                                             title           VARCHAR(255) NOT NULL,
+                                             message         TEXT NOT NULL,
+                                             target_url      VARCHAR(1000) DEFAULT NULL,
+                                             created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                             FOREIGN KEY (influencer_id) REFERENCES influencers(influencer_id) ON DELETE CASCADE,
+                                             INDEX idx_notif_influencer (influencer_id),
+                                             INDEX idx_notif_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 19. feedbacks
+CREATE TABLE feedbacks (
+                           feedback_id   BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '피드백 고유 ID',
+                           user_id       BIGINT NOT NULL COMMENT 'FK users.user_id',
+                           influencer_id BIGINT NOT NULL COMMENT 'FK influencers.influencer_id',
+                           context_id    BIGINT NULL COMMENT 'membership_id, order_id, reservation_id 등',
+                           rating        TINYINT NOT NULL COMMENT '만족도 (1~5)',
+                           comment       TEXT NULL,
+                           user_agent    VARCHAR(255) NULL,
+                           page_path     VARCHAR(255) NULL,
+                           is_public     BOOLEAN DEFAULT FALSE,
+                           created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                           FOREIGN KEY (user_id) REFERENCES users(user_id),
+                           FOREIGN KEY (influencer_id) REFERENCES influencers(influencer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-drop table if exists settlements;
-drop table if exists pg_transactions;
-drop table if exists payments;
-drop table if exists order_items;
-drop table if exists ordrs;
-drop table if exists orders;
-
-drop table if exists cart_items;
-
-drop table if exists cart;
-drop table if exists products;
-
-drop table if exists fan_cards;
-drop table if exists fan_meeting_reservations;
-drop table if exists fan_meeting_seats;
-drop table if exists fan_meetings;
+CREATE INDEX ix_fb_infl_created ON feedbacks(influencer_id, created_at);
+CREATE INDEX ix_fb_user_created ON feedbacks(user_id, created_at);
+CREATE INDEX ix_fb_context_id   ON feedbacks(context_id);
 
 
-drop table if exists membership_grades;
-drop table if exists influencers;
-drop table if exists memberships;
-drop table if exists membership_grades;
-drop table if exists users;
-drop table if exists settlement;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS user_push_token;
+DROP TABLE IF EXISTS settlements;
+DROP TABLE IF EXISTS pg_transactions;
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS cart;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS fan_meeting_reservations;
+DROP TABLE IF EXISTS fan_meeting_seats;
+DROP TABLE IF EXISTS fan_meetings;
+DROP TABLE IF EXISTS memberships;
+DROP TABLE IF EXISTS membership_grades;
+DROP TABLE IF EXISTS influencers;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS feedbacks;
