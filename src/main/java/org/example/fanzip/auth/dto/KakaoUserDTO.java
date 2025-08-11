@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.fanzip.user.dto.enums.UserRole;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,6 +18,9 @@ public class KakaoUserDTO {
 
     @JsonIgnore
     private Long userId;
+
+    @JsonIgnore
+    private UserRole role;
 
     private boolean isRegistered;
 }
