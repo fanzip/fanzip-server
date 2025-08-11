@@ -2,6 +2,8 @@ package org.example.fanzip.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 
 @Component
@@ -57,8 +60,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 //            유효한 토큰일 경우 SecurityContext에 인증 객체 등록
             Long userId = jwtProcessor.getUserIdFromToken(token);
+            String role = jwtProcessor.getRoleFromToken(token);
+
+            List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+role));
+
             CustomUserPrincipal principal = new CustomUserPrincipal(userId);
-            UsernamePasswordAuthenticationToken auth=new UsernamePasswordAuthenticationToken(principal,null, Collections.emptyList());
+
+            UsernamePasswordAuthenticationToken auth=new UsernamePasswordAuthenticationToken(principal,null, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(auth); //✅인증 성공
         } catch (Exception e) {
