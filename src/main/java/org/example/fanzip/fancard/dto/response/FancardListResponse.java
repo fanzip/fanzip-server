@@ -22,10 +22,4 @@ public class FancardListResponse {
     private MembershipGradeDto membershipGrade;
     private String cardDesignUrl;
     private Boolean isActive;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate issueDate;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate expiryDate;
 }
