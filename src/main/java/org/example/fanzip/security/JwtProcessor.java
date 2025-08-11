@@ -29,20 +29,21 @@ public class JwtProcessor {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(Long userId, String subject, Long validityMillis) {
+    public String generateToken(Long userId, String role, String subject, Long validityMillis) {
         return Jwts.builder()
                 .setSubject(subject)
                 .claim("userId", userId)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime()+validityMillis))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
-    public String generateAccessToken(Long userId) {
-        return generateToken(userId, "ACCESS_TOKEN", ACCESS_TOKEN_VALID_MILISECOND);
+    public String generateAccessToken(Long userId, String role) {
+        return generateToken(userId, role, "ACCESS_TOKEN", ACCESS_TOKEN_VALID_MILISECOND);
     }
-    public String generateRefreshToken(Long userId) {
-        return generateToken(userId, "REFRESH_TOKEN", REFRESH_TOKEN_VALID_MILISECOND);
+    public String generateRefreshToken(Long userId, String role) {
+        return generateToken(userId, role,"REFRESH_TOKEN", REFRESH_TOKEN_VALID_MILISECOND);
     }
 
     //JWT 검증(유효 기간 검증)-해석 불가인 경우 예외 발생
@@ -67,6 +68,11 @@ public class JwtProcessor {
     public Long getUserIdFromToken(String token){
         return parseToken(token)
                 .get("userId",Long.class);
+    }
+
+    public String getRoleFromToken(String token){
+        return parseToken(token)
+                .get("role",String.class);
     }
 
     public int getRefreshTokenExpiryInSeconds(){
