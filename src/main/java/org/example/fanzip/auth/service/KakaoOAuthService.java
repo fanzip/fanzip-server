@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.auth.dto.KakaoUserDTO;
 import org.example.fanzip.user.dto.UserDTO;
+import org.example.fanzip.user.dto.enums.UserRole;
 import org.example.fanzip.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -46,6 +47,7 @@ public class KakaoOAuthService implements OAuthService {
 
         boolean isRegistered=(user!=null);
         Long userId=isRegistered?user.getUserId():null;
+        UserRole role=isRegistered?user.getRole():null;
 
         return KakaoUserDTO.builder()
                 .socialType(socialType)
@@ -53,6 +55,7 @@ public class KakaoOAuthService implements OAuthService {
                 .email(email)
                 .isRegistered(isRegistered)
                 .userId(userId)
+                .role(role)
                 .build();
     }
 
