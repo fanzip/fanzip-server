@@ -3,6 +3,7 @@ package org.example.fanzip.payment.domain;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.example.fanzip.payment.domain.enums.PaymentMethod;
 import org.example.fanzip.payment.domain.enums.PaymentStatus;
 import org.example.fanzip.payment.domain.enums.PaymentType;
@@ -14,6 +15,7 @@ import java.time.temporal.ChronoUnit;
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class Payments {
     private Long paymentId;
     private Long orderId;
