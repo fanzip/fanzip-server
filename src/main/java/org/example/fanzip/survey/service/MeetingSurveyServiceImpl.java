@@ -102,7 +102,7 @@ public class MeetingSurveyServiceImpl implements MeetingSurveyService {
 
     @Override
     @Transactional
-    public AIReportDTO generateAIReport(Long meetingId) {
+    public String generateNarrativeReport(Long meetingId) {
         // 해당 팬미팅의 설문 응답들 조회
         List<MeetingSurveyResponseVO> responses = meetingSurveyRepository.findResponsesByMeetingId(meetingId);
         
@@ -110,68 +110,52 @@ public class MeetingSurveyServiceImpl implements MeetingSurveyService {
             throw new IllegalArgumentException("분석할 설문 응답이 없습니다.");
         }
         
-        // AI 분석 수행
-        AIReportDTO aiReport = aiAnalysisService.analyzeResponses(meetingId, responses);
-        // 분석 결과를 DB에 저장
+        // AI 줄글 보고서 생성
+        String narrativeReport = aiAnalysisService.generateNarrativeReport(meetingId, responses);
+        
+        // DB에 저장 (기존 테이블 활용 - 구조화된 데이터 포함)
         try {
-            String themesJson = objectMapper.writeValueAsString(aiReport.getTopThemes());
-            String actionsJson = objectMapper.writeValueAsString(aiReport.getActionItems());
+            double avgRating = responses.stream()
+                .mapToInt(MeetingSurveyResponseVO::getOverallRating)
+                .average()
+                .orElse(0.0);
             
+            // 전체 구조화된 데이터 생성
+            AIAnalysisServiceImpl.NarrativeReportData fullReport = 
+                ((AIAnalysisServiceImpl) aiAnalysisService).generateFullNarrativeReport(meetingId, responses);
+                
+            String themesJson = objectMapper.writeValueAsString(fullReport.getThemes());
+            String actionsJson = objectMapper.writeValueAsString(fullReport.getActionItems());
+                
             MeetingSurveyAnalysisVO analysisVO = new MeetingSurveyAnalysisVO(
                 meetingId,
-                aiReport.getModel(),
-                aiReport.getSummary(),
-                themesJson,
-                actionsJson,
-                aiReport.getSentimentAvg(),
-                aiReport.getCsatAvg()
+                "narrative-report-v1.0", // model
+                narrativeReport,         // summary 필드에 줄글 저장
+                themesJson,             // 실제 테마 데이터 저장
+                actionsJson,            // 실제 액션 아이템 저장
+                BigDecimal.valueOf(0.5), // 기본 sentiment
+                BigDecimal.valueOf(avgRating)
             );
             
             meetingSurveyRepository.saveSurveyAnalysis(analysisVO);
-            aiReport.setAnalysisId(analysisVO.getAnalysisId());
-            aiReport.setRunAt(analysisVO.getRunAt());
             
         } catch (Exception e) {
-            throw new RuntimeException("AI 분석 결과 저장 중 오류가 발생했습니다: " + e.getMessage());
+            // DB 저장 실패해도 리포트는 반환
+            System.err.println("줄글 리포트 DB 저장 실패: " + e.getMessage());
         }
         
-        return aiReport;
+        return narrativeReport;
     }
 
     @Override
-    public AIReportDTO getLatestAIReport(Long meetingId) {
+    public String getLatestNarrativeReport(Long meetingId) {
         MeetingSurveyAnalysisVO analysisVO = meetingSurveyRepository.findLatestAnalysisByMeetingId(meetingId);
         
-        if (analysisVO == null) {
+        if (analysisVO == null || !analysisVO.getModel().equals("narrative-report-v1.0")) {
             return null;
         }
         
-        try {
-            List<AIReportDTO.ThemeAnalysis> themes = objectMapper.readValue(
-                analysisVO.getThemesJson(), 
-                objectMapper.getTypeFactory().constructCollectionType(List.class, AIReportDTO.ThemeAnalysis.class)
-            );
-            
-            List<AIReportDTO.ActionItem> actions = objectMapper.readValue(
-                analysisVO.getActionsJson(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, AIReportDTO.ActionItem.class)
-            );
-            
-            return new AIReportDTO(
-                analysisVO.getAnalysisId(),
-                analysisVO.getMeetingId(),
-                analysisVO.getRunAt(),
-                analysisVO.getModel(),
-                analysisVO.getSummary(),
-                themes,
-                actions,
-                analysisVO.getSentimentAvg(),
-                analysisVO.getCsatAvg()
-            );
-            
-        } catch (Exception e) {
-            throw new RuntimeException("AI 분석 결과 조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
+        return analysisVO.getSummary(); // summary 필드에서 줄글 조회
     }
 
     @Override

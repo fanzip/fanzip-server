@@ -8,11 +8,11 @@ import java.util.List;
 public interface AIAnalysisService {
     
     /**
-     * 설문 응답들을 분석하여 AI 보고서를 생성합니다.
+     * 설문 응답들을 분석하여 줄글 형태의 보고서를 생성합니다.
      * 
      * @param meetingId 팬미팅 ID
      * @param responses 설문 응답 리스트
-     * @return AI 분석 보고서
+     * @return 줄글 형태의 보고서 텍스트
      */
-    AIReportDTO analyzeResponses(Long meetingId, List<MeetingSurveyResponseVO> responses);
+    String generateNarrativeReport(Long meetingId, List<MeetingSurveyResponseVO> responses);
 }

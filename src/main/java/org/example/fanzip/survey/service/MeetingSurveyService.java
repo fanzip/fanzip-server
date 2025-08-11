@@ -13,11 +13,11 @@ public interface MeetingSurveyService {
     // 인플루언서별 설문 요약 조회
     SurveySummaryDTO getSurveySummary(Long influencerId);
     
-    // AI 분석 보고서 생성 및 조회
-    AIReportDTO generateAIReport(Long meetingId);
+    // 줄글 형태 보고서 생성
+    String generateNarrativeReport(Long meetingId);
     
-    // 기존 AI 분석 보고서 조회
-    AIReportDTO getLatestAIReport(Long meetingId);
+    // 기존 줄글 보고서 조회
+    String getLatestNarrativeReport(Long meetingId);
     
     // 사용자가 이미 설문에 응답했는지 확인
     boolean hasUserSubmittedSurvey(Long meetingId, Long userId);

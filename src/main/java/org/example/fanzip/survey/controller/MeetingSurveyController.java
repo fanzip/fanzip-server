@@ -32,7 +32,7 @@ public class MeetingSurveyController {
         try {
             Long userId = principal.getUserId();
             
-            // 중복 응답 체크
+            // 중복 응답 체크 (테스트용 주석 처리)
             if (meetingSurveyService.hasUserSubmittedSurvey(request.getMeetingId(), userId)) {
                 return ResponseEntity.badRequest()
                     .body("이미 해당 팬미팅에 대한 설문에 응답하셨습니다.");
@@ -69,39 +69,39 @@ public class MeetingSurveyController {
     }
 
     /**
-     * 사용자 만족도 AI 보고서 (요약+인사이트)
+     * 사용자 만족도 AI 보고서 (친근한 줄글 형태)
      * GET /api/influencers/{influencerId}/feedbacks/report/ai
      */
     @GetMapping("/feedbacks/report/ai")
-    public ResponseEntity<?> getAIReport(
+    public ResponseEntity<String> getAIReport(
             @PathVariable Long influencerId,
             @RequestParam Long meetingId,
             @RequestParam(defaultValue = "false") boolean regenerate,
             @AuthenticationPrincipal CustomUserPrincipal principal) {
         
         try {
-            AIReportDTO report;
+            String narrativeReport;
             
             if (regenerate) {
                 // 새로운 분석 생성
-                report = meetingSurveyService.generateAIReport(meetingId);
+                narrativeReport = meetingSurveyService.generateNarrativeReport(meetingId);
             } else {
                 // 기존 분석 결과 조회
-                report = meetingSurveyService.getLatestAIReport(meetingId);
+                narrativeReport = meetingSurveyService.getLatestNarrativeReport(meetingId);
                 
-                if (report == null) {
+                if (narrativeReport == null) {
                     // 기존 분석이 없으면 새로 생성
-                    report = meetingSurveyService.generateAIReport(meetingId);
+                    narrativeReport = meetingSurveyService.generateNarrativeReport(meetingId);
                 }
             }
             
-            return ResponseEntity.ok(report);
+            return ResponseEntity.ok(narrativeReport);
             
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("AI 분석 보고서 생성 중 오류가 발생했습니다: " + e.getMessage());
+                .body("AI 보고서 생성 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 
