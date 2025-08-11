@@ -64,7 +64,6 @@
             fm.silver_open_time AS silverOpenTime,
             fm.white_open_time AS whiteOpenTime,
             fm.general_open_time AS generalOpenTime,
-            fm.poster_image_url AS posterImageUrl,
             i.profile_image AS profileImageUrl,
             i.influencer_name AS influencerName
         FROM fan_meetings fm
