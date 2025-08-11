@@ -133,6 +133,10 @@ dependencies {
   implementation 'commons-fileupload:commons-fileupload:1.4'
 
   implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
+
+  // OpenAI API 호출용
+  implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+  implementation 'org.apache.httpcomponents:httpcore:4.4.16'
 }
 
 test {
