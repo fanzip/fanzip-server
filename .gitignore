@@ -50,3 +50,4 @@ bin/
 
 ### 설정 파일 ###
 src/main/resources/application.yml
+.claude/settings.local.json
