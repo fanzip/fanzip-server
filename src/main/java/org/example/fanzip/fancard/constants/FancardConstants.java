@@ -59,5 +59,29 @@ public final class FancardConstants {
         public static final String STATUS_ACTIVE = "ACTIVE";
         public static final int EXPIRY_SECONDS = 30;
         public static final String STATUS_LOCATION_ERROR = "LOCATION_ERROR";
+        
+        // QR 코드 검증 상태
+        public static final String VALIDATION_SUCCESS = "SUCCESS";
+        public static final String VALIDATION_EXPIRED = "EXPIRED";
+        public static final String VALIDATION_INVALID_FORMAT = "INVALID_FORMAT";
+        public static final String VALIDATION_INVALID_USER = "INVALID_USER";
+        public static final String VALIDATION_INVALID_MEETING = "INVALID_MEETING";
+        public static final String VALIDATION_INVALID_RESERVATION = "INVALID_RESERVATION";
+        public static final String VALIDATION_LOCATION_ERROR = "LOCATION_ERROR";
+        public static final String VALIDATION_ALREADY_USED = "ALREADY_USED";
+        
+        // QR 코드 포맷
+        public static final String FANZIP_PREFIX = "FANZIP_";
+        public static final int QR_DATA_PARTS = 4; // userId, fanMeetingId, reservationId, timestamp
+        
+        // 메시지
+        public static final String SUCCESS_MESSAGE = "입장하세요! 팬미팅을 즐겨보세요 🎉";
+        public static final String EXPIRED_MESSAGE = "QR 코드가 만료되었습니다. 새로운 QR 코드를 생성해주세요.";
+        public static final String INVALID_FORMAT_MESSAGE = "올바르지 않은 QR 코드 형식입니다.";
+        public static final String INVALID_USER_MESSAGE = "유효하지 않은 사용자입니다.";
+        public static final String INVALID_MEETING_MESSAGE = "유효하지 않은 팬미팅입니다.";
+        public static final String INVALID_RESERVATION_MESSAGE = "유효하지 않은 예약입니다.";
+        public static final String LOCATION_ERROR_MESSAGE = "행사장 범위 밖에서는 입장할 수 없습니다.";
+        public static final String ALREADY_USED_MESSAGE = "이미 사용된 QR 코드입니다.";
     }
 }
