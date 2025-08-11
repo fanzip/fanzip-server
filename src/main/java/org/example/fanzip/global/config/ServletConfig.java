@@ -26,7 +26,8 @@ import java.util.List;
         "org.example.fanzip.cart.controller",
         "org.example.fanzip.market.controller",
         "org.example.fanzip.fancard.controller",
-        "org.example.fanzip.meeting.controller"
+        "org.example.fanzip.meeting.controller",
+        "org.example.fanzip.survey.controller"
 })
 @RequiredArgsConstructor
 public class ServletConfig implements WebMvcConfigurer {

@@ -18,5 +18,6 @@
     <mappers>
         <mapper resource="org/example/fanzip/membership/mapper/MembershipMapper.xml"/>
         <mapper resource="org/example/fanzip/market/mapper/MarketMapper.xml"/>
+        <mapper resource="org/example/fanzip/survey/mapper/MeetingSurveyMapper.xml"/>
     </mappers>
 </configuration>
