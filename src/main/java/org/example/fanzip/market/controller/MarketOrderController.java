@@ -1,5 +1,6 @@
 package org.example.fanzip.market.controller;
 
+import org.example.fanzip.market.dto.MarketOrderPaymentDto;
 import org.example.fanzip.market.dto.MarketOrderRequestDto;
 import org.example.fanzip.market.dto.MarketOrderResponseDto;
 import org.example.fanzip.market.service.MarketOrderService;
@@ -42,5 +43,14 @@ public class MarketOrderController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void onPaymentFailed(@PathVariable Long orderId) {
         marketOrderService.cleanupAfterPaymentFailed(orderId);
+    }
+
+    @GetMapping("/{orderId}/payment")
+    public MarketOrderPaymentDto getOrderPayment(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long orderId
+    ) {
+        Long loginUserId = principal.getUserId();
+        return marketOrderService.getOrderPayment(loginUserId, orderId);
     }
 }
