@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.fanzip.survey.mapper.MeetingSurveyMapper">
+
+    <!-- 설문 응답 저장 -->
+    <insert id="insertSurveyResponse"
+            parameterType="org.example.fanzip.survey.domain.MeetingSurveyResponseVO"
+            useGeneratedKeys="true" keyProperty="responseId">
+        INSERT INTO meeting_survey_responses (
+            meeting_id, reservation_id, user_id,
+            overall_rating, answers_json, schema_version,
+            submitted_at
+        ) VALUES (
+            #{meetingId}, #{reservationId}, #{userId},
+            #{overallRating}, #{answersJson}, #{schemaVersion},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- 사용자가 이미 설문에 응답했는지 확인 -->
+    <select id="existsByMeetingAndUser" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM meeting_survey_responses
+            WHERE meeting_id = #{meetingId}
+              AND user_id = #{userId}
+        )
+    </select>
+
+    <!-- 특정 팬미팅의 모든 설문 응답 조회 -->
+    <select id="findResponsesByMeetingId" resultType="org.example.fanzip.survey.domain.MeetingSurveyResponseVO">
+        SELECT 
+            response_id as responseId,
+            meeting_id as meetingId,
+            reservation_id as reservationId,
+            user_id as userId,
+            submitted_at as submittedAt,
+            overall_rating as overallRating,
+            answers_json as answersJson,
+            schema_version as schemaVersion
+        FROM meeting_survey_responses
+        WHERE meeting_id = #{meetingId}
+        ORDER BY submitted_at DESC
+    </select>
+
+    <!-- 특정 인플루언서의 모든 팬미팅 설문 응답 조회 -->
+    <select id="findResponsesByInfluencerId" resultType="org.example.fanzip.survey.domain.MeetingSurveyResponseVO">
+        SELECT 
+            msr.response_id as responseId,
+            msr.meeting_id as meetingId,
+            msr.reservation_id as reservationId,
+            msr.user_id as userId,
+            msr.submitted_at as submittedAt,
+            msr.overall_rating as overallRating,
+            msr.answers_json as answersJson,
+            msr.schema_version as schemaVersion
+        FROM meeting_survey_responses msr
+        JOIN fan_meetings fm ON msr.meeting_id = fm.meeting_id
+        WHERE fm.influencer_id = #{influencerId}
+        ORDER BY msr.submitted_at DESC
+    </select>
+
+    <!-- 설문 응답 통계 조회 (특정 팬미팅) -->
+    <select id="getSurveyStatsByMeetingId" resultType="map">
+        SELECT 
+            COUNT(*) as total_responses,
+            AVG(overall_rating) as avg_overall_rating,
+            COUNT(CASE WHEN overall_rating &gt;= 4 THEN 1 END) as satisfied_count,
+            COUNT(CASE WHEN overall_rating &lt;= 2 THEN 1 END) as dissatisfied_count,
+            MIN(submitted_at) as first_response_at,
+            MAX(submitted_at) as last_response_at
+        FROM meeting_survey_responses
+        WHERE meeting_id = #{meetingId}
+    </select>
+
+    <!-- 인플루언서별 설문 응답 요약 통계 -->
+    <select id="getSurveyStatsByInfluencerId" resultType="map">
+        SELECT 
+            COUNT(*) as total_responses,
+            COUNT(DISTINCT msr.meeting_id) as total_meetings,
+            AVG(msr.overall_rating) as avg_overall_rating,
+            COUNT(CASE WHEN msr.overall_rating &gt;= 4 THEN 1 END) as satisfied_count,
+            COUNT(CASE WHEN msr.overall_rating &lt;= 2 THEN 1 END) as dissatisfied_count,
+            MIN(msr.submitted_at) as first_response_at,
+            MAX(msr.submitted_at) as last_response_at
+        FROM meeting_survey_responses msr
+        JOIN fan_meetings fm ON msr.meeting_id = fm.meeting_id
+        WHERE fm.influencer_id = #{influencerId}
+    </select>
+
+    <!-- AI 분석 결과 저장 -->
+    <insert id="insertSurveyAnalysis"
+            parameterType="org.example.fanzip.survey.domain.MeetingSurveyAnalysisVO"
+            useGeneratedKeys="true" keyProperty="analysisId">
+        INSERT INTO meeting_survey_analyses (
+            meeting_id, model, summary,
+            themes_json, actions_json,
+            sentiment_avg, csat_avg,
+            run_at
+        ) VALUES (
+            #{meetingId}, #{model}, #{summary},
+            #{themesJson}, #{actionsJson},
+            #{sentimentAvg}, #{csatAvg},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- 특정 팬미팅의 최신 AI 분석 결과 조회 -->
+    <select id="findLatestAnalysisByMeetingId" resultType="org.example.fanzip.survey.domain.MeetingSurveyAnalysisVO">
+        SELECT 
+            analysis_id as analysisId,
+            meeting_id as meetingId,
+            run_at as runAt,
+            model,
+            summary,
+            themes_json as themesJson,
+            actions_json as actionsJson,
+            sentiment_avg as sentimentAvg,
+            csat_avg as csatAvg
+        FROM meeting_survey_analyses
+        WHERE meeting_id = #{meetingId}
+        ORDER BY run_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 인플루언서의 모든 AI 분석 결과 조회 -->
+    <select id="findAnalysesByInfluencerId" resultType="org.example.fanzip.survey.domain.MeetingSurveyAnalysisVO">
+        SELECT 
+            msa.analysis_id as analysisId,
+            msa.meeting_id as meetingId,
+            msa.run_at as runAt,
+            msa.model,
+            msa.summary,
+            msa.themes_json as themesJson,
+            msa.actions_json as actionsJson,
+            msa.sentiment_avg as sentimentAvg,
+            msa.csat_avg as csatAvg
+        FROM meeting_survey_analyses msa
+        JOIN fan_meetings fm ON msa.meeting_id = fm.meeting_id
+        WHERE fm.influencer_id = #{influencerId}
+        ORDER BY msa.run_at DESC
+    </select>
+
+</mapper>
