@@ -8,6 +8,8 @@ import org.example.fanzip.influencer.dto.InfluencerProfileResponseDTO;
 import org.example.fanzip.influencer.dto.InfluencerProfileUpdateRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerResponseDTO;
+import org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO;
+import org.example.fanzip.influencer.dto.SubscriberStatusResponseDTO;
 import org.example.fanzip.influencer.service.InfluencerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -79,5 +81,36 @@ public class InfluencerController {
 
         influencerService.updateInfluencerProfile(influencerId, requestDTO, userId);
         return ResponseEntity.ok().build();
+    }
+
+
+    // 일별 구독자 통계
+    @GetMapping("/{influencerId}/subscribers/stats/daily")
+    public ResponseEntity<SubscriberStatsResponseDTO> getSubscriberStatsDaily(@PathVariable Long influencerId) {
+        SubscriberStatsResponseDTO responseDTO = influencerService.getSubscriberStatsDaily(influencerId);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    // 주별 구독자 통계
+    @GetMapping("/{influencerId}/subscribers/stats/weekly")
+    public ResponseEntity<List<SubscriberStatsResponseDTO>> getSubscriberStatsWeekly(@PathVariable Long influencerId) {
+        List<SubscriberStatsResponseDTO> responseDTO = influencerService.getSubscriberStatsWeekly(influencerId);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+
+    // 월별 구독자 통계
+    @GetMapping("/{influencerId}/subscribers/stats/monthly")
+    public ResponseEntity<SubscriberStatsResponseDTO> getSubscriberStatsMonthly(@PathVariable Long influencerId) {
+        SubscriberStatsResponseDTO responseDTO = influencerService.getSubscriberStatsMonthly(influencerId);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+
+    // 실시간 구독자 현황 (오늘 증감 포함)
+    @GetMapping("/{influencerId}/subscribers/status")
+    public ResponseEntity<SubscriberStatusResponseDTO> getSubscriberStatus(@PathVariable Long influencerId) {
+        SubscriberStatusResponseDTO responseDTO = influencerService.getSubscriberStatus(influencerId);
+        return ResponseEntity.ok(responseDTO);
     }
 }
