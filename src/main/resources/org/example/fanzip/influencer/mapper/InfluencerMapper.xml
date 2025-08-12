@@ -100,4 +100,121 @@
         WHERE influencer_id = #{influencerId}
     </select>
 
+
+    <!-- 일별 구독자 통계 -->
+    <select id="getSubscriberStatsDaily" resultType="org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO" parameterType="long">
+        SELECT 
+            DATE_FORMAT(CURDATE(), '%Y-%m-%d') as date,
+            COALESCE(COUNT(m.membership_id), 0) as subscriberCount
+        FROM (SELECT CURDATE() as today) d
+        LEFT JOIN memberships m ON 
+            DATE(m.subscription_start) = CURDATE()
+            AND m.influencer_id = #{influencerId}
+            AND m.status = 'ACTIVE'
+    </select>
+
+    <!-- 주별 구독자 통계 -->
+    <select id="getSubscriberStatsWeekly" resultType="org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO" parameterType="long">
+        <![CDATA[
+        WITH RECURSIVE week_days AS (
+            SELECT DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) as week_date
+            UNION ALL
+            SELECT DATE_ADD(week_date, INTERVAL 1 DAY)
+            FROM week_days
+            WHERE week_date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 6 DAY)
+        )
+        SELECT 
+            DATE_FORMAT(wd.week_date, '%Y-%m-%d') as date,
+            COALESCE(COUNT(m.membership_id), 0) as subscriberCount
+        FROM week_days wd
+        LEFT JOIN memberships m ON 
+            DATE(m.subscription_start) = wd.week_date
+            AND m.influencer_id = #{influencerId}
+            AND m.status = 'ACTIVE'
+        GROUP BY wd.week_date
+        ORDER BY wd.week_date
+        ]]>
+    </select>
+
+    <!-- 월별 구독자 통계 -->
+    <select id="getSubscriberStatsMonthly" resultType="org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO" parameterType="long">
+        SELECT 
+            DATE_FORMAT(CURDATE(), '%Y-%m') as date,
+            COALESCE(COUNT(m.membership_id), 0) as subscriberCount
+        FROM (SELECT 1 as dummy) d
+        LEFT JOIN memberships m ON 
+            DATE_FORMAT(m.subscription_start, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+            AND m.influencer_id = #{influencerId}
+            AND m.status = 'ACTIVE'
+    </select>
+
+    <!-- 주별 구독자 누적 추이 -->
+    <select id="getSubscriberTrendsWeekly" resultType="org.example.fanzip.influencer.dto.SubscriberTrendResponseDTO" parameterType="long">
+        <![CDATA[
+        WITH RECURSIVE week_days AS (
+            SELECT DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) as week_date
+            UNION ALL
+            SELECT DATE_ADD(week_date, INTERVAL 1 DAY)
+            FROM week_days
+            WHERE week_date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 6 DAY)
+        ),
+        daily_totals AS (
+            SELECT 
+                wd.week_date,
+                (
+                    SELECT COUNT(*)
+                    FROM memberships m
+                    WHERE m.influencer_id = #{influencerId}
+                    AND m.status = 'ACTIVE'
+                    AND DATE(m.subscription_start) <= wd.week_date
+                    AND (m.subscription_end IS NULL OR DATE(m.subscription_end) > wd.week_date)
+                ) as total_subscribers
+            FROM week_days wd
+        ),
+        daily_changes AS (
+            SELECT 
+                week_date,
+                total_subscribers,
+                total_subscribers - LAG(total_subscribers, 1, total_subscribers) OVER (ORDER BY week_date) as change_from_previous
+            FROM daily_totals
+        )
+        SELECT 
+            DATE_FORMAT(week_date, '%Y-%m-%d') as date,
+            total_subscribers as totalSubscribers,
+            change_from_previous as changeFromPrevious
+        FROM daily_changes
+        ORDER BY week_date
+        ]]>
+    </select>
+
+    <!-- 실시간 구독자 현황 -->
+    <select id="getSubscriberStatus" resultType="org.example.fanzip.influencer.dto.SubscriberStatusResponseDTO" parameterType="long">
+        <![CDATA[
+        SELECT 
+            #{influencerId} as influencerId,
+            (
+                SELECT COUNT(*)
+                FROM memberships
+                WHERE influencer_id = #{influencerId}
+                AND status = 'ACTIVE'
+                AND (subscription_end IS NULL OR subscription_end > NOW())
+            ) as totalSubscribers,
+            (
+                (
+                    SELECT COUNT(*)
+                    FROM memberships
+                    WHERE influencer_id = #{influencerId}
+                    AND DATE(subscription_start) = CURDATE()
+                    AND status = 'ACTIVE'
+                ) - (
+                    SELECT COUNT(*)
+                    FROM memberships
+                    WHERE influencer_id = #{influencerId}
+                    AND DATE(subscription_end) = CURDATE()
+                    AND status = 'CANCELLED'
+                )
+            ) as todayNetChange
+        ]]>
+    </select>
+
 </mapper>
