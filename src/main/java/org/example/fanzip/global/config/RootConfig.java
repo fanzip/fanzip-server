@@ -29,6 +29,8 @@ import javax.sql.DataSource;
         "org.example.fanzip.membership.mapper",
         "org.example.fanzip.influencer.mapper",
         "org.example.fanzip.meeting.mapper",
+        "org.example.fanzip.survey.mapper",
+        "org.example.fanzip.meeting.mapper",
         "org.example.fanzip.survey.mapper"
         "org.example.fanzip.notification.mapper"
 })
@@ -41,7 +43,6 @@ import javax.sql.DataSource;
         "org.example.fanzip.membership.service",
         "org.example.fanzip.influencer.service",
         "org.example.fanzip.meeting.service",
-        "org.example.fanzip.survey"
         "org.example.fanzip.notification.service"
 }, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
 public class RootConfig {
