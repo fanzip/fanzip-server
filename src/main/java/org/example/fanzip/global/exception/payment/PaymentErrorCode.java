@@ -13,7 +13,8 @@ public enum PaymentErrorCode implements ErrorCode {
     ALREADY_SUBSCRIBED("PAYMENT_007", HttpStatus.BAD_REQUEST, "이미 구독 중인 멤버십입니다."),
     ORDER_STOCK_UNAVAILABLE("STOCK_001", HttpStatus.CONFLICT, "상품 재고가 부족합니다."),
     SEATS_UNAVAILABLE("STOCK_002", HttpStatus.CONFLICT, "예약 가능한 인원이 없습니다."),
-    MEMBERSHIP_NOT_FOUND("MEMBERSHIP_001", HttpStatus.NOT_FOUND, "멤버십 가입 정보를 찾을 수 없습니다.");
+    MEMBERSHIP_NOT_FOUND("MEMBERSHIP_001", HttpStatus.NOT_FOUND, "멤버십 가입 정보를 찾을 수 없습니다."),
+    ORDER_NOT_FOUND("ORDER_001", HttpStatus.NOT_FOUND, "주문을 찾을 수 없습니다.");
 
     private final String code;
     private final HttpStatus status;
