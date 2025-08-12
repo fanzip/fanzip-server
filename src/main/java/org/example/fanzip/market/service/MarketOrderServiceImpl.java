@@ -2,6 +2,7 @@ package org.example.fanzip.market.service;
 
 import org.example.fanzip.cart.mapper.CartMapper;
 import org.example.fanzip.market.dto.MarketOrderItemDto;
+import org.example.fanzip.market.dto.MarketOrderPaymentDto;
 import org.example.fanzip.market.dto.MarketOrderRequestDto;
 import org.example.fanzip.market.dto.MarketOrderResponseDto;
 import org.example.fanzip.market.mapper.MarketMapper;
@@ -62,6 +63,22 @@ public class MarketOrderServiceImpl implements MarketOrderService {
         marketOrderMapper.insertOrderItems(orderId, request.getItems());
 
         return new MarketOrderResponseDto(orderId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MarketOrderPaymentDto getOrderPayment(Long requestUserId, Long orderId) {
+        Map<String, Object> row = marketOrderMapper.selectOrderForPayment(orderId);
+        if(row == null || row.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "can't find order. orderId: " + orderId);
+        }
+        Long ownerId = ((Number) row.get("userId")).longValue();
+        // 주문자 소유자 검증
+        if(!ownerId.equals(requestUserId)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "주문 접근 권한이 없습니다");
+        }
+        java.math.BigDecimal finalAmount = (java.math.BigDecimal) row.get("finalAmount");
+        return new MarketOrderPaymentDto(orderId, ownerId, finalAmount);
     }
 
     // 결제 성공 -> 재고차감, 카트에서 삭제, status 업데이트
@@ -126,4 +143,5 @@ public class MarketOrderServiceImpl implements MarketOrderService {
         marketOrderMapper.deleteOrderItemsByOrderId(orderId);
         marketOrderMapper.deleteOrderById(orderId);
     }
+
 }

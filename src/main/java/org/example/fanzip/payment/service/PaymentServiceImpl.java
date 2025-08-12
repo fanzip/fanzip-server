@@ -1,6 +1,7 @@
 package org.example.fanzip.payment.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.global.exception.BusinessException;
 import org.example.fanzip.global.exception.payment.PaymentErrorCode;
 import org.example.fanzip.payment.dto.PaymentRequestDto;

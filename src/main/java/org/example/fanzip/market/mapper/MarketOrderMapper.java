@@ -3,6 +3,7 @@ package org.example.fanzip.market.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.example.fanzip.market.dto.MarketOrderItemDto;
+import org.example.fanzip.market.dto.MarketOrderPaymentDto;
 import org.springframework.security.core.parameters.P;
 
 import java.util.List;
@@ -36,4 +37,6 @@ public interface MarketOrderMapper {
     int deleteOrderItemsByOrderId(@Param("orderId") Long orderId);
     int deleteOrderById(@Param("orderId") Long orderId);
 
+    // payment 연동
+    Map<String, Object> selectOrderForPayment(@Param("orderId") Long orderId);
 }

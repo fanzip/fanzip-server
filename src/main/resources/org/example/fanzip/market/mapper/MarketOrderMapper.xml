@@ -78,7 +78,7 @@
           AND status = #{currentStatus}
     </update>
 
-    <select id="selectOrderStatus" parameterType="long">
+    <select id="selectOrderStatus" parameterType="java.lang.String">
         SELECT status FROM orders WHERE order_id = #{orderId}
     </select>
 
@@ -89,4 +89,13 @@
     <delete id="deleteOrderById" parameterType="long">
         DELETE FROM orders WHERE order_id=#{orderId}
     </delete>
+
+    <select id="selectOrderForPayment" parameterType="long" resultType="map">
+        SELECT
+            order_id AS orderId,
+            user_id AS userId,
+            final_amount as finalAmount
+        FROM orders
+        WHERE order_id=#{orderId}
+    </select>
 </mapper>
