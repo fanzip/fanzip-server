@@ -118,10 +118,6 @@ public class InfluencerServiceImpl implements InfluencerService {
         return influencerMapper.getSubscriberStatsMonthly(influencerId);
     }
 
-    @Override
-    public List<SubscriberTrendResponseDTO> getSubscriberTrendsWeekly(Long influencerId) {
-        return influencerMapper.getSubscriberTrendsWeekly(influencerId);
-    }
 
     @Override
     public SubscriberStatusResponseDTO getSubscriberStatus(Long influencerId) {
