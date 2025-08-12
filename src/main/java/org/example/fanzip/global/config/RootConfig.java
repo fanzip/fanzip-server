@@ -31,7 +31,7 @@ import javax.sql.DataSource;
         "org.example.fanzip.meeting.mapper",
         "org.example.fanzip.survey.mapper",
         "org.example.fanzip.meeting.mapper",
-        "org.example.fanzip.survey.mapper"
+        "org.example.fanzip.survey.mapper",
         "org.example.fanzip.notification.mapper"
 })
 @ComponentScan(basePackages = {
