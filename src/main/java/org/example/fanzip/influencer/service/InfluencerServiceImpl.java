@@ -101,4 +101,30 @@ public class InfluencerServiceImpl implements InfluencerService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "프로필 수정에 실패했습니다.");
         }
     }
+
+
+    @Override
+    public SubscriberStatsResponseDTO getSubscriberStatsDaily(Long influencerId) {
+        return influencerMapper.getSubscriberStatsDaily(influencerId);
+    }
+
+    @Override
+    public List<SubscriberStatsResponseDTO> getSubscriberStatsWeekly(Long influencerId) {
+        return influencerMapper.getSubscriberStatsWeekly(influencerId);
+    }
+
+    @Override
+    public SubscriberStatsResponseDTO getSubscriberStatsMonthly(Long influencerId) {
+        return influencerMapper.getSubscriberStatsMonthly(influencerId);
+    }
+
+    @Override
+    public List<SubscriberTrendResponseDTO> getSubscriberTrendsWeekly(Long influencerId) {
+        return influencerMapper.getSubscriberTrendsWeekly(influencerId);
+    }
+
+    @Override
+    public SubscriberStatusResponseDTO getSubscriberStatus(Long influencerId) {
+        return influencerMapper.getSubscriberStatus(influencerId);
+    }
 }
