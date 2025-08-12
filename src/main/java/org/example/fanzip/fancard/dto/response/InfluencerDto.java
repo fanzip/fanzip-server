@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class InfluencerDto {
     private Long influencerId;
+    private String influencerName;
     private String category;
     private String profileImage;
     private Boolean isVerified;

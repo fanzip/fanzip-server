@@ -14,5 +14,13 @@ import java.util.List;
 @AllArgsConstructor
 public class CartResponseDto {
     private List<CartItemDto> items;
-    private BigDecimal grandTotal; // 선택 항목만 최종 금액
+    // 선택 항목만 최종 금액
+    private BigDecimal grandTotal;
+
+    // 유저 정보 (배송관련)
+    private String address1;
+    private String address2;
+    private String zipcode;
+    private String name;
+    private String phone;
 }

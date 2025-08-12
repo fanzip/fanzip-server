@@ -3,6 +3,7 @@ package org.example.fanzip.cart.service;
 import org.example.fanzip.cart.dto.*;
 import org.example.fanzip.cart.mapper.CartMapper;
 import org.example.fanzip.market.mapper.MarketMapper;
+import org.h2.engine.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -75,9 +76,17 @@ public class CartServiceImpl implements CartService {
                 .map(CartItemDto::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // 유저 배송 정보
+        UserShippingInfoDto userInfo = cartMapper.getUserShippingInfo(userId);
+
         return CartResponseDto.builder()
                 .items(items)
                 .grandTotal(grandTotal)
+                .address1(userInfo.getAddress1())
+                .address2(userInfo.getAddress2())
+                .zipcode(userInfo.getZipcode())
+                .name(userInfo.getName())
+                .phone(userInfo.getPhone())
                 .build();
     }
 

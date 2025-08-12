@@ -20,7 +20,7 @@ public class UserService {
     public UserDTO findBySocialTypeAndSocialId(String socialType, String socialId){
         return mapper.findBySocialTypeAndSocialId(socialType, socialId);
     }
-    public Long register(RegisterDTO dto){
+    public UserDTO register(RegisterDTO dto){
         UserDTO newUser=UserDTO.builder()
                 .socialType(dto.getSocialType())
                 .socialId(dto.getSocialId())
@@ -30,7 +30,7 @@ public class UserService {
                 .build();
 
         mapper.insertUser(newUser);
-        return newUser.getUserId();
+        return newUser;
     }
     public UserDTO getUser(@Param("userId") Long userId){
         return mapper.getUser(userId);

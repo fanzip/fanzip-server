@@ -18,9 +18,6 @@ public class FancardResponse {
     Long cardId;
     Long membershipId;
     String cardNumber;
-    String qrCode;
-    LocalDate issueDate;
-    LocalDate expiryDate;
     String cardDesignUrl;
     Boolean isActive;
     String influencerName;

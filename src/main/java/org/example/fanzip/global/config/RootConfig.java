@@ -1,7 +1,6 @@
 package org.example.fanzip.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -20,7 +19,6 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import javax.sql.DataSource;
 
 @Configuration
-@PropertySource(value = "classpath:/application.yml", factory = YamlPropertySourceFactory.class)
 @PropertySource(value = "classpath:application.yml", factory = YamlPropertySourceFactory.class)
 @MapperScan(basePackages = {
         "org.example.fanzip.fancard.mapper",
@@ -32,6 +30,7 @@ import javax.sql.DataSource;
         "org.example.fanzip.influencer.mapper",
         "org.example.fanzip.meeting.mapper",
         "org.example.fanzip.survey.mapper"
+        "org.example.fanzip.notification.mapper"
 })
 @ComponentScan(basePackages = {
         "org.example.fanzip",
@@ -43,6 +42,7 @@ import javax.sql.DataSource;
         "org.example.fanzip.influencer.service",
         "org.example.fanzip.meeting.service",
         "org.example.fanzip.survey"
+        "org.example.fanzip.notification.service"
 }, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
 public class RootConfig {
     @Value("${spring.datasource.driver-class-name}") String driver;

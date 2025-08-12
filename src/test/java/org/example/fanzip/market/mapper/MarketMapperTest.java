@@ -52,9 +52,9 @@ class MarketMapperTest {
 
     @Test
     void findProductById() {
-        ProductDetailDto dto = marketMapper.findProductById(5L, 1L);
+        ProductDetailDto dto = marketMapper.findProductById(1L, 1L);
         assertNotNull(dto, "해당 상품 없음");
-        log.info("findProductById: {}", dto);
+        log.info("=========> findProductById: {}", dto);
     }
 
     @Test
@@ -76,9 +76,4 @@ class MarketMapperTest {
 
     }
 
-    @Test
-    void getStock() {
-        int stock = marketMapper.getStock(1L);
-        log.info("getStock: {}", stock);
-    }
 }

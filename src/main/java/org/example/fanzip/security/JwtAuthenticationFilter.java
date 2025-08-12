@@ -2,6 +2,8 @@ package org.example.fanzip.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 
 @Component
@@ -25,6 +28,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("=========Jwt Authentication Filter 진입 ==========");
+        
+        String requestURI = request.getRequestURI();
+        if (requestURI.startsWith("/api/auth/oauth/") || 
+            requestURI.startsWith("/api/auth/reissue") || 
+            requestURI.startsWith("/api/user/register") ||
+            requestURI.startsWith("/swagger-ui") ||
+            requestURI.startsWith("/v2/api-docs") ||
+            requestURI.startsWith("/swagger-resources") ||
+            requestURI.startsWith("/configuration") ||
+            requestURI.startsWith("/webjars")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         String header = request.getHeader("Authorization");
 
         if (header == null || !header.startsWith("Bearer ")) {
@@ -43,8 +60,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 //            유효한 토큰일 경우 SecurityContext에 인증 객체 등록
             Long userId = jwtProcessor.getUserIdFromToken(token);
+            String role = jwtProcessor.getRoleFromToken(token);
+
+            List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+role));
+
             CustomUserPrincipal principal = new CustomUserPrincipal(userId);
-            UsernamePasswordAuthenticationToken auth=new UsernamePasswordAuthenticationToken(principal,null, Collections.emptyList());
+
+            UsernamePasswordAuthenticationToken auth=new UsernamePasswordAuthenticationToken(principal,null, authorities);
 
             SecurityContextHolder.getContext().setAuthentication(auth); //✅인증 성공
         } catch (Exception e) {

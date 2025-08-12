@@ -43,10 +43,8 @@ class MarketServiceImplTest {
 
     @Test
     void getProductDetail() {
-        ProductDetailDto dto = marketService.getProductDetail(1L, 5L);
-        log.info(dto.toString());
-        dto = marketService.getProductDetail(2L, 5L);
-        log.info(dto.toString());
+        ProductDetailDto dto = marketService.getProductDetail(1L, 1L);
+        log.info("==========> getProductDetail()" + dto.toString());
     }
 
     @Test

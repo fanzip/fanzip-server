@@ -17,7 +17,6 @@
             thumbnail_image     as thumbnailImage,
             stock
         from products
-        where status='ACTIVE'
         order by product_id DESC
         LIMIT #{limit}
     </select>
@@ -35,8 +34,7 @@
             thumbnail_image     as thumbnailImage,
             stock
         FROM products
-        WHERE status = 'ACTIVE'
-            and product_id &lt; #{lastProductId}
+        WHERE product_id &lt; #{lastProductId}
         ORDER BY product_id DESC
         LIMIT #{limit}
     </select>
@@ -61,7 +59,6 @@
             p.product_id            as productId,
             p.influencer_id         as influencerId,
             p.name,
-            p.description,
             p.price,
             p.discounted_price      as discountedPrice,
             p.discount_rate         as discountRate,
@@ -70,7 +67,7 @@
             p.thumbnail_image       as thumbnailImage,
             p.detail_images         as detailImages,
             p.description_images    as descriptionImages,
-            m.grade_id              as gradeId,
+            ifnull(m.grade_id, 0)              as gradeId,
             case m.grade_id
                 when 1 then p.white_open_time
                 when 2 then p.silver_open_time
@@ -91,7 +88,6 @@
         from products p left join memberships m
             on m.user_id = #{userId}
             and m.influencer_id = p.influencer_id
-            and m.status = 'ACTIVE'
         where p.product_id = #{productId}
     </select>
 
@@ -108,8 +104,7 @@
             thumbnail_image     as thumbnailImage,
             stock
         from products
-        where status = 'ACTIVE'
-            AND name LIKE CONCAT('%', #{keyword}, '%')
+        where name LIKE CONCAT('%', #{keyword}, '%')
         order by product_id desc
         limit #{limit}
     </select>
@@ -128,7 +123,6 @@
             stock
         from products
         where product_id &lt; #{lastProductId}
-          and status = 'ACTIVE'
           and name LIKE CONCAT('%', #{keyword}, '%')
         order by product_id desc
         limit #{limit}

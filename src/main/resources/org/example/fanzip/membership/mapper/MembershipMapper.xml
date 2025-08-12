@@ -32,25 +32,23 @@
     <insert id="insertMembership"
             parameterType="org.example.fanzip.membership.domain.MembershipVO"
             useGeneratedKeys="true" keyProperty="membershipId">
-        INSERT INTO test_db.memberships (
+        INSERT INTO memberships (
             user_id, influencer_id, grade_id, status,
             subscription_start, subscription_end,
             monthly_amount, total_paid_amount, auto_renewal,
-            created_at, updated_at
         )
         VALUES (
                    #{userId}, #{influencerId}, #{gradeId}, #{status},
                    NOW(), DATE_ADD(NOW(), INTERVAL 1 MONTH),
                    #{monthlyAmount}, #{totalPaidAmount},
-                   #{autoRenewal},
-                   NOW(), NOW()
+                   #{autoRenewal}
                )
     </insert>
 
     <!-- SELECT by user & influencer -->
     <select id="findByUserIdAndInfluencerId" resultMap="membershipMap">
         SELECT *
-        FROM test_db.memberships
+        FROM memberships
         WHERE user_id = #{userId} AND influencer_id = #{influencerId}
     </select>
 
@@ -63,7 +61,7 @@
             benefits_description AS benefitsDescription,
             color               AS color,
             monthly_amount      AS monthlyAmount
-        FROM test_db.membership_grades
+        FROM membership_grades
         ORDER BY CASE grade_name
                      WHEN 'VIP' THEN 1
                      WHEN 'GOLD' THEN 2
@@ -76,7 +74,7 @@
 
     <!-- DELETE -->
     <delete id="deleteByUserIdAndInfluencerId">
-        DELETE FROM test_db.memberships
+        DELETE FROM memberships
         WHERE user_id = #{userId} AND influencer_id = #{influencerId}
     </delete>
 

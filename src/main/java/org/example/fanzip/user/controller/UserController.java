@@ -29,10 +29,10 @@ public class UserController {
     //회원가입
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDTO registerDTO, HttpServletResponse response) throws Exception{
-        Long userId=userService.register(registerDTO);
+        UserDTO userDTO=userService.register(registerDTO);
 
-        String accessToken=jwtProcessor.generateAccessToken(userId);
-        String refreshToken=jwtProcessor.generateRefreshToken(userId);
+        String accessToken=jwtProcessor.generateAccessToken(userDTO.getUserId(), String.valueOf(userDTO.getRole()));
+        String refreshToken=jwtProcessor.generateRefreshToken(userDTO.getUserId(), String.valueOf(userDTO.getRole()));
 
         int cookieAge=jwtProcessor.getRefreshTokenExpiryInSeconds();
         CookieUtil.addHttpOnlyCookie(response, "refresh-token", refreshToken, cookieAge);

@@ -23,4 +23,5 @@ public class CartItemDto {
     private BigDecimal totalPrice;
     private Long influencerId;
     private String influencerName;
+    private BigDecimal shippingPrice;
 }

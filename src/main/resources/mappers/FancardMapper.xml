@@ -8,43 +8,31 @@
         <id property="cardId" column="card_id"/>
         <result property="membershipId" column="membership_id"/>
         <result property="cardNumber" column="card_number"/>
-        <result property="qrCode" column="qr_code"/>
-        <result property="issueDate" column="issue_date"/>
-        <result property="expiryDate" column="expiry_date"/>
         <result property="cardDesignUrl" column="card_design_url"/>
         <result property="isActive" column="is_active"/>
-        <result property="registeredDeviceId" column="registered_device_id"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
     <!-- 멤버십 ID로 팬카드 목록 조회 -->
     <select id="findByMembershipId" parameterType="long" resultMap="fancardResultMap">
-        SELECT card_id, membership_id, card_number, qr_code, issue_date, expiry_date, 
-               card_design_url, is_active, registered_device_id, created_at
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
         FROM fan_cards
         WHERE membership_id = #{membershipId}
     </select>
 
     <!-- 카드 번호로 팬카드 조회 -->
     <select id="findByCardNumber" parameterType="string" resultMap="fancardResultMap">
-        SELECT card_id, membership_id, card_number, qr_code, issue_date, expiry_date, 
-               card_design_url, is_active, registered_device_id, created_at
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
         FROM fan_cards
         WHERE card_number = #{cardNumber}
     </select>
 
-    <!-- QR 코드로 팬카드 조회 -->
-    <select id="findByQrCode" parameterType="string" resultMap="fancardResultMap">
-        SELECT card_id, membership_id, card_number, qr_code, issue_date, expiry_date, 
-               card_design_url, is_active, registered_device_id, created_at
-        FROM fan_cards
-        WHERE qr_code = #{qrCode}
-    </select>
-
     <!-- 여러 멤버십 ID의 활성 팬카드 목록 조회 -->
     <select id="findActiveCardsByMembershipIds" resultMap="fancardResultMap">
-        SELECT card_id, membership_id, card_number, qr_code, issue_date, expiry_date, 
-               card_design_url, is_active, registered_device_id, created_at
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
         FROM fan_cards
         <where>
             <if test="membershipIds != null and membershipIds.size() > 0">
@@ -62,8 +50,8 @@
 
     <!-- 멤버십 ID의 활성 팬카드 조회 -->
     <select id="findActiveCardByMembershipId" parameterType="long" resultMap="fancardResultMap">
-        SELECT card_id, membership_id, card_number, qr_code, issue_date, expiry_date, 
-               card_design_url, is_active, registered_device_id, created_at
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
         FROM fan_cards
         WHERE membership_id = #{membershipId}
         AND is_active = true
@@ -72,24 +60,22 @@
 
     <!-- ID로 팬카드 조회 -->
     <select id="findById" parameterType="long" resultMap="fancardResultMap">
-        SELECT card_id, membership_id, card_number, qr_code, issue_date, expiry_date, 
-               card_design_url, is_active, registered_device_id, created_at
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
         FROM fan_cards
         WHERE card_id = #{cardId}
     </select>
 
     <!-- 팬카드 등록 -->
     <insert id="insert" parameterType="org.example.fanzip.fancard.domain.Fancard" useGeneratedKeys="true" keyProperty="cardId">
-        INSERT INTO fan_cards (membership_id, card_number, qr_code, issue_date, expiry_date, 
-                              card_design_url, is_active, registered_device_id)
-        VALUES (#{membershipId}, #{cardNumber}, #{qrCode}, #{issueDate}, #{expiryDate}, 
-                #{cardDesignUrl}, #{isActive}, #{registeredDeviceId})
+        INSERT INTO fan_cards (membership_id, card_number, card_design_url, is_active)
+        VALUES (#{membershipId}, #{cardNumber}, #{cardDesignUrl}, #{isActive})
     </insert>
 
     <!-- 팬카드 수정 -->
     <update id="updateCardDesignByInfluencerId"
             parameterType="org.example.fanzip.fancard.domain.Fancard">
-        UPDATE fan_cards
+        UPDATE FanCards
         SET card_design_url = #{cardDesignUrl}
         WHERE membership_id IN (
             SELECT membership_id
@@ -103,5 +89,74 @@
         DELETE FROM fan_cards
         WHERE card_id = #{cardId}
     </delete>
+
+    <!-- 사용자의 멤버십 ID 목록 조회 -->
+    <select id="findMembershipIdsByUserId" parameterType="long" resultType="long">
+        SELECT membership_id
+        FROM memberships
+        WHERE user_id = #{userId}
+        AND status = 'ACTIVE'
+    </select>
+
+    <!-- InfluencerDto ResultMap -->
+    <resultMap id="influencerDtoResultMap" type="org.example.fanzip.fancard.dto.response.InfluencerDto">
+        <id property="influencerId" column="influencer_id"/>
+        <result property="influencerName" column="influencer_name"/>
+        <result property="category" column="category"/>
+        <result property="profileImage" column="profile_image"/>
+        <result property="isVerified" column="is_verified"/>
+    </resultMap>
+
+    <!-- 멤버십 ID로 인플루언서 정보 조회 -->
+    <select id="findInfluencerByMembershipId" parameterType="long" resultMap="influencerDtoResultMap">
+        SELECT i.influencer_id, i.influencer_name, i.category, i.profile_image, i.is_verified
+        FROM influencers i
+        JOIN memberships m ON i.influencer_id = m.influencer_id
+        WHERE m.membership_id = #{membershipId}
+    </select>
+
+    <!-- MembershipGradeDto ResultMap -->
+    <resultMap id="membershipGradeDtoResultMap" type="org.example.fanzip.fancard.dto.response.MembershipGradeDto">
+        <id property="gradeId" column="grade_id"/>
+        <result property="gradeName" column="grade_name"/>
+        <result property="color" column="color"/>
+        <result property="benefitsDescription" column="benefits_description"/>
+    </resultMap>
+
+    <!-- 등급 ID로 멤버십 등급 정보 조회 -->
+    <select id="findMembershipGradeById" parameterType="long" resultMap="membershipGradeDtoResultMap">
+        SELECT grade_id, grade_name, color, benefits_description
+        FROM membership_grades
+        WHERE grade_id = #{gradeId}
+    </select>
+
+    <!-- MembershipDto ResultMap -->
+    <resultMap id="membershipDtoResultMap" type="org.example.fanzip.fancard.dto.response.MembershipDto">
+        <id property="membershipId" column="membership_id"/>
+        <result property="subscriptionStart" column="subscription_start"/>
+        <result property="monthlyAmount" column="monthly_amount"/>
+        <result property="totalPaidAmount" column="total_paid_amount"/>
+        <result property="status" column="status"/>
+        <result property="autoRenewal" column="auto_renewal"/>
+        <association property="grade" resultMap="membershipGradeDtoResultMap"/>
+    </resultMap>
+
+    <!-- 멤버십 ID로 멤버십 정보 조회 -->
+    <select id="findMembershipById" parameterType="long" resultMap="membershipDtoResultMap">
+        SELECT m.membership_id, m.subscription_start, m.monthly_amount, 
+               m.total_paid_amount, m.status, m.auto_renewal,
+               mg.grade_id, mg.grade_name, mg.color, mg.benefits_description
+        FROM memberships m
+        JOIN membership_grades mg ON m.grade_id = mg.grade_id
+        WHERE m.membership_id = #{membershipId}
+    </select>
+
+    <!-- 멤버십 ID로 인플루언서 이름 조회 -->
+    <select id="findInfluencerNameByMembershipId" parameterType="long" resultType="string">
+        SELECT i.influencer_name
+        FROM influencers i
+        JOIN memberships m ON i.influencer_id = m.influencer_id
+        WHERE m.membership_id = #{membershipId}
+    </select>
 
 </mapper>

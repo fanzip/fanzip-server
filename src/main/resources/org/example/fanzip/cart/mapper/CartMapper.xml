@@ -4,14 +4,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.fanzip.cart.mapper.CartMapper">
     <!-- 사용자별 장바구니 ID 조회 -->
-    <select id="findCartIdByUserId" resultType="java.lang.Long" parameterType="java.lang.Long">
+    <select id="findCartIdByUserId" resultType="long" parameterType="long">
         select cart_id as cartId
         from cart
         where user_id = #{userId}
     </select>
 
     <!-- 장바구니 없는 경우 생성 -->
-    <insert id="createCart" parameterType="java.lang.Long" useGeneratedKeys="true" keyProperty="cartId">
+    <insert id="createCart" parameterType="long" useGeneratedKeys="true" keyProperty="cartId">
         insert into cart (user_id, created_at, updated_at)
         values (#{userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     </insert>
@@ -34,7 +34,8 @@
             c.quantity          as quantity,
             c.is_selected       as isSelected,
             i.influencer_id     as influencerId,
-            i.influencer_name   as influencerName
+            i.influencer_name   as influencerName,
+            p.shipping_price    as shippingPrice
         from cart_items c join products p on c.product_id = p.product_id
                     join influencers i on i.influencer_id = p.influencer_id
         where c.cart_id = (
@@ -52,7 +53,8 @@
             p.name                              as productName,
             p.thumbnail_image                   as thumbnailImage,
             p.discounted_price                  as discountedPrice,
-            (c.quantity * p.discounted_price)   as totalPrice
+            (c.quantity * p.discounted_price)   as totalPrice,
+            p.shipping_price                    as shippingPirce
         from cart_items c join products p on c.product_id=p.product_id
         where c.cart_item_id=#{cartItemId}
     </select>
@@ -66,7 +68,7 @@
     </select>
 
     <!-- 상품 id로 cartItemId 확인 -->
-    <select id="findCartItemIdByProductId" resultType="java.lang.Long">
+    <select id="findCartItemIdByProductId" resultType="long">
         select cart_item_id
         from cart_items ci join cart c on ci.cart_id = c.cart_id
         where c.user_id = #{userId}
@@ -95,4 +97,11 @@
         where cart_item_id=#{cartItemId}
     </delete>
 
+    <!-- 유저 정보 조회 (배송관련) -->
+    <select id="getUserShippingInfo" parameterType="java.lang.Long"
+            resultType="org.example.fanzip.cart.dto.UserShippingInfoDto">
+        select address1, address2, name, phone, zipcode
+        from users
+        where user_id = #{userId}
+    </select>
 </mapper>

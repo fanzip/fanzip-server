@@ -50,8 +50,8 @@ public class AuthController {
         if(kakaoUser.isRegistered()){//가입한 유저
             log.info("기존회원입니다.");
 
-            String accessToken=jwtProcessor.generateAccessToken(kakaoUser.getUserId());
-            String refreshToken=jwtProcessor.generateRefreshToken(kakaoUser.getUserId());
+            String accessToken=jwtProcessor.generateAccessToken(kakaoUser.getUserId(), String.valueOf(kakaoUser.getRole()));
+            String refreshToken=jwtProcessor.generateRefreshToken(kakaoUser.getUserId(),  String.valueOf(kakaoUser.getRole()));
 
             int cookieAge=jwtProcessor.getRefreshTokenExpiryInSeconds();
             CookieUtil.addHttpOnlyCookie(response, "refresh-token", refreshToken, cookieAge);
@@ -79,8 +79,9 @@ public class AuthController {
         }
 
         Long userId = jwtProcessor.getUserIdFromToken(refreshToken);
-        String newAccessToken=jwtProcessor.generateAccessToken(userId);
-        String newRefreshToken = jwtProcessor.generateRefreshToken(userId);
+        String role=jwtProcessor.getRoleFromToken(refreshToken);
+        String newAccessToken=jwtProcessor.generateAccessToken(userId, role);
+        String newRefreshToken = jwtProcessor.generateRefreshToken(userId, role);
 
         int cookieAge=jwtProcessor.getRefreshTokenExpiryInSeconds();
         CookieUtil.addHttpOnlyCookie(response, "refresh-token", newRefreshToken, cookieAge);
