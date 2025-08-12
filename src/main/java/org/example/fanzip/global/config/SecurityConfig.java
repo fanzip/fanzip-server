@@ -58,7 +58,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                             "/api/auth/reissue/**",
                             "/api/user/register/**"
                     ).permitAll()//jwt 인증 필요x
-                    .antMatchers("/api/influencers/{InfluencerId}/**").hasRole("INFLUENCER")
+                    .antMatchers("/api/influencers/{influencerId}/**").hasRole("INFLUENCER")
                     .anyRequest().authenticated()//jwt 인증 필요
                 .and()
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
