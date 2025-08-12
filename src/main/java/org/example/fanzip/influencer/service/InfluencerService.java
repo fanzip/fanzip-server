@@ -8,7 +8,6 @@ import org.example.fanzip.influencer.dto.InfluencerRequestDTO;
 import org.example.fanzip.influencer.dto.InfluencerResponseDTO;
 import org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO;
 import org.example.fanzip.influencer.dto.SubscriberStatusResponseDTO;
-import org.example.fanzip.influencer.dto.SubscriberTrendResponseDTO;
 
 import java.util.List;
 
@@ -29,7 +28,6 @@ public interface InfluencerService {
 
     SubscriberStatsResponseDTO getSubscriberStatsMonthly(Long influencerId);
 
-    List<SubscriberTrendResponseDTO> getSubscriberTrendsWeekly(Long influencerId);
 
     SubscriberStatusResponseDTO getSubscriberStatus(Long influencerId);
 }
