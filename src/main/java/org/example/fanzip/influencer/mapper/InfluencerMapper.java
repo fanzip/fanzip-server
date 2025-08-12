@@ -4,6 +4,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.example.fanzip.influencer.domain.InfluencerVO;
 import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
+import org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO;
+import org.example.fanzip.influencer.dto.SubscriberStatusResponseDTO;
+import org.example.fanzip.influencer.dto.SubscriberTrendResponseDTO;
 
 import java.util.List;
 
@@ -39,5 +42,19 @@ public interface InfluencerMapper {
     String selectFanCardImageUrl(@Param("influencerId") Long influencerId);
 
 
+    // 일별 구독자 통계
+    SubscriberStatsResponseDTO getSubscriberStatsDaily(@Param("influencerId") Long influencerId);
+
+    // 주별 구독자 통계
+    List<SubscriberStatsResponseDTO> getSubscriberStatsWeekly(@Param("influencerId") Long influencerId);
+
+    // 월별 구독자 통계
+    SubscriberStatsResponseDTO getSubscriberStatsMonthly(@Param("influencerId") Long influencerId);
+
+    // 주별 구독자 누적 추이
+    List<SubscriberTrendResponseDTO> getSubscriberTrendsWeekly(@Param("influencerId") Long influencerId);
+
+    // 실시간 구독자 현황
+    SubscriberStatusResponseDTO getSubscriberStatus(@Param("influencerId") Long influencerId);
 
 }
