@@ -76,17 +76,17 @@ public class MeetingSurveyController {
     public ResponseEntity<String> getAIReport(
             @PathVariable Long influencerId,
             @RequestParam Long meetingId,
-            @RequestParam(defaultValue = "false") boolean regenerate,
+            @RequestParam(defaultValue = "true") boolean regenerate,
             @AuthenticationPrincipal CustomUserPrincipal principal) {
         
         try {
             String narrativeReport;
             
             if (regenerate) {
-                // 새로운 분석 생성
+                // 새로운 분석 생성 (기본값)
                 narrativeReport = meetingSurveyService.generateNarrativeReport(meetingId);
             } else {
-                // 기존 분석 결과 조회
+                // 기존 분석 결과 조회 (캐시 사용)
                 narrativeReport = meetingSurveyService.getLatestNarrativeReport(meetingId);
                 
                 if (narrativeReport == null) {

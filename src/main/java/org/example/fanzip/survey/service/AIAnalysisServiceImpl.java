@@ -11,13 +11,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class AIAnalysisServiceImpl implements AIAnalysisService {
@@ -48,8 +46,8 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
             // OpenAI API를 사용한 줄글 리포트 생성
             String openAIResult = callOpenAIForNarrative(avgRating, responses.size(), textFeedbacks);
             
-            // JSON 파싱해서 narrative 부분만 반환
-            return parseNarrativeFromJSON(openAIResult);
+            // 줄글 그대로 반환 (JSON 파싱 없이)
+            return openAIResult;
             
         } catch (Exception e) {
             // OpenAI API 호출 실패 시 fallback으로 기본 줄글 생성
@@ -87,11 +85,14 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
             String prompt = buildNarrativePrompt(avgRating, responseCount, textFeedbacks);
             
             List<OpenAIRequestDTO.Message> messages = Arrays.asList(
-                new OpenAIRequestDTO.Message("system", "당신은 팬미팅 설문조사 결과를 친근하고 자연스러운 줄글로 작성하는 전문 작가입니다. 데이터를 바탕으로 따뜻하고 읽기 쉬운 보고서를 작성해주세요."),
+                new OpenAIRequestDTO.Message("system", "당신은 친근하지만 정중한 톤으로 카카오톡 스타일의 팬미팅 후기를 전달하는 전문가입니다. '🌟 좋았던 점들' 같은 구조적 제목은 절대 쓰지 말고, 자연스럽게 좋았던 점과 아쉬운 점을 대화하듯 섞어서 말하세요. '~했어요', '~랍니다', '~거든요' 같은 정중하면서 친근한 말투로 400-600자 분량으로 길게 써주세요!"),
                 new OpenAIRequestDTO.Message("user", prompt)
             );
             
-            OpenAIRequestDTO request = new OpenAIRequestDTO(openaiModel, messages, 0.7, 1000);
+            OpenAIRequestDTO request = new OpenAIRequestDTO(openaiModel, messages, 0.9, 1500);
+            
+            // 요청 로깅 (필요시 활성화)
+            // System.out.println("OpenAI API 호출 중...");
             
             OpenAIResponseDTO response = openAIRestTemplate.postForObject(
                 openaiApiUrl, 
@@ -106,6 +107,13 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
             throw new RuntimeException("OpenAI API 응답이 비어있습니다.");
             
         } catch (Exception e) {
+            System.err.println("OpenAI API 호출 실패: " + e.getMessage());
+            
+            // 503 에러의 경우 잠시 대기 후 재시도 (선택사항)
+            if (e.getMessage().contains("503")) {
+                System.err.println("OpenAI 서버 과부하로 fallback 사용");
+            }
+            
             throw new RuntimeException("OpenAI API 호출 실패: " + e.getMessage());
         }
     }
@@ -113,7 +121,7 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
     private String buildNarrativePrompt(double avgRating, int responseCount, List<String> textFeedbacks) {
         StringBuilder prompt = new StringBuilder();
         
-        prompt.append("인플루언서를 위한 팬미팅 후기 AI 리포트를 작성해주세요. 줄글 리포트와 함께 구조화된 분석 데이터도 함께 제공해야 합니다.\n\n");
+        prompt.append("인플루언서를 위한 팬미팅 후기 AI 리포트를 작성해주세요. 반드시 카카오톡 메시지처럼 짧은 줄로 나누어서 작성하세요.\n\n");
         prompt.append("📊 기본 정보:\n");
         prompt.append("- 참여한 구독자/팬: ").append(responseCount).append("명\n");
         prompt.append("- 평균 만족도: ").append(String.format("%.1f", avgRating)).append("점/5점\n\n");
@@ -126,39 +134,29 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
             prompt.append("\n");
         }
         
-        prompt.append("다음 JSON 형식으로 응답해주세요:\n\n");
-        prompt.append("{\n");
-        prompt.append("  \"narrative\": \"친근하고 상세한 줄글 리포트 (400-600자)\",\n");
-        prompt.append("  \"themes\": [\n");
-        prompt.append("    {\n");
-        prompt.append("      \"tag\": \"좌석/공간\",\n");
-        prompt.append("      \"summary\": \"해당 테마에 대한 팬들의 반응 요약 (긍정적/아쉬운 등)\",\n");
-        prompt.append("      \"examples\": [\"팬들이 언급한 구체적 후기 1-2개\"]\n");
-        prompt.append("    }\n");
-        prompt.append("  ],\n");
-        prompt.append("  \"actions\": [\n");
-        prompt.append("    {\n");
-        prompt.append("      \"assignee\": \"운영팀\",\n");
-        prompt.append("      \"action\": \"구체적인 개선 방안\",\n");
-        prompt.append("      \"timeline\": \"다음주까지\",\n");
-        prompt.append("      \"priority\": \"급해요\"\n");
-        prompt.append("    }\n");
-        prompt.append("  ]\n");
-        prompt.append("}\n\n");
+        prompt.append("친근한 카톡 스타일의 줄글로만 응답해주세요. JSON이나 구조화된 형태는 절대 사용하지 마세요.\n\n");
         
         prompt.append("📝 줄글 리포트 작성 가이드:\n");
-        prompt.append("- 첫 문단: 전체 분위기 소개 ('이번 팬미팅에는 총 X명의 소중한 구독자들이...')\n");
-        prompt.append("- 두 번째 문단: 특히 만족했던 부분들 ('특히 ~에 대한 만족도가 높았습니다. 팬들은 \"~\"라는 의견과...')\n");
-        prompt.append("- 세 번째 문단: 아쉬웠던 점들 ('다만, ~에서는 일부 팬들이 \"~\"라는 의견을...')\n");
-        prompt.append("- 네 번째 문단: 개선 방안 제시 ('이에 따라 운영팀은 ~ 방안을 마련하기로...')\n");
-        prompt.append("- 다섯 번째 문단: 마무리 ('종합적으로 이번 행사는 ~했지만, ~을 통해...')\n\n");
+        prompt.append("다음과 같은 친근하고 구분되는 포맷으로 작성해주세요:\n\n");
+        prompt.append("=== 친근한 줄글 스타일 예시 ===\n");
+        prompt.append("팬미팅 후기 결과 나왔어요! 🎉 총 X명이 참여해주셨고 평균 X.X점 나왔답니다! 😊\n\n");
+        prompt.append("정말 좋았던 부분들이 많았어요! 좌석이 편안했다는 후기가 정말 많았거든요 👍 그리고 진행도 매끄럽게 잘 되었대요! 팬들이 만족해했답니다 ✨\n\n");
+        prompt.append("조금 아쉬웠던 점은 입장 대기 시간이 길었다는 의견이 있었어요 🤔 하지만 전반적으로는 만족스러운 결과였고 다음번엔 더 좋아질 것 같아요! 💪\n");
+        prompt.append("====================================\n\n");
         
-        prompt.append("✨ 요구사항:\n");
-        prompt.append("- 인플루언서에게 말하듯 친근한 톤\n");
-        prompt.append("- 구체적인 후기 인용과 데이터 활용\n");
-        prompt.append("- 건설적이고 따뜻한 개선 제안\n");
-        prompt.append("- 테마는 후기 내용을 기반으로 5개 이하로 분류\n");
-        prompt.append("- 액션 아이템은 실질적이고 구체적으로 작성");
+        prompt.append("✨ 친근한 카톡 스타일 작성 규칙:\n");
+        prompt.append("❗ IMPORTANT: 친근하지만 정중한 톤으로 작성하세요!\n");
+        prompt.append("- 🌟, 💡 같은 구조적 이모지 헤더는 절대 사용 금지!\n");
+        prompt.append("- '좋았던 점들', '개선해보면 좋을 것들' 같은 딱딱한 제목 금지!\n");
+        prompt.append("- 친근하지만 예의 있게, 자연스러운 줄글로 작성\n");
+        prompt.append("- '~했어요', '~랍니다', '~했거든요', '~대요', '~네요' 같은 정중하면서 친근한 말투\n");
+        prompt.append("- '야야', 'ㅋㅋ' 같은 너무 친한 표현은 피하고 적절한 거리감 유지\n");
+        prompt.append("- 줄바꿈은 문단별로만 사용 (한 문장마다 줄바꿈 절대 금지!)\n");
+        prompt.append("- 400-600자로 충분히 길게 작성\n");
+        prompt.append("- 좋았던 점들과 아쉬운 점들을 자연스러운 문장 안에 섞어서 언급\n");
+        prompt.append("- 이모티콘은 자연스럽게 문장 끝에 적당히\n");
+        prompt.append("- 마지막에 격려나 다음 계획에 대한 긍정적 멘트\n");
+        prompt.append("- 연결된 줄글 형태로 읽기 쉽게!");
         
         return prompt.toString();
     }
@@ -171,44 +169,163 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
             
         List<String> textFeedbacks = extractTextFeedbacks(responses);
         
+        // 친근한 줄글 시작 문구
+        String[] greetings = {
+            "📢 팬미팅 결과 나왔어요! 총 %d명이 참여해주셨고 평균 만족도는 %.1f점이었답니다! 🎉",
+            "🔥 드디어 후기 결과가 나왔어요! %d명의 소중한 팬들이 %.1f점을 주셨어요! 👏✨",
+            "📊 이번 행사 결과를 공개해드려요! %d명이 응답해주셨고 평균 %.1f점 나왔네요! 🌟",
+            "💕 팬들 후기가 도착했어요! 총 %d명이 솔직하게 %.1f점 매겨주셨답니다! 😊",
+            "🥳 결과 발표 시간이에요! %d명의 팬분들께서 %.1f점 주셨어요! 💖"
+        };
+        
         StringBuilder report = new StringBuilder();
         
-        // 첫 문단: 전체 분위기 소개
-        report.append(String.format("이번 팬미팅에는 총 %d명의 소중한 구독자들이 참여해서 후기를 남겨주었어요! 평균 만족도는 %.1f점으로 ", responses.size(), avgRating));
+        // 랜덤하게 인사말 선택
+        int randomGreeting = (int)(Math.random() * greetings.length);
+        report.append(String.format(greetings[randomGreeting], responses.size(), avgRating)).append("\n\n");
         
-        if (avgRating >= 4.0) {
-            report.append("정말 높은 만족도를 보여주셨네요. 구독자들이 이번 팬미팅을 진심으로 즐겼다는 게 느껴져요! ");
-        } else if (avgRating >= 3.5) {
-            report.append("전반적으로 만족스러운 반응을 보였어요. 대부분의 구독자들이 좋은 시간을 보냈다고 하네요. ");
-        } else if (avgRating >= 3.0) {
-            report.append("무난하고 긍정적인 반응을 보였어요. 구독자들이 나름 즐거운 시간을 보낸 것 같아요. ");
-        } else {
-            report.append("아직 개선할 부분들이 보이는 점수네요. 하지만 구독자들의 솔직한 피드백이 정말 소중해요. ");
-        }
-        
-        // 두 번째 문단: 긍정적 부분
-        if (avgRating >= 3.0) {
-            report.append("구독자들이 특히 만족했던 부분들을 보면, 전반적인 행사 진행과 분위기에 대해서는 좋은 평가를 해주셨어요. ");
-        }
-        
-        // 세 번째 문단: 개선점과 제안
-        if (!textFeedbacks.isEmpty()) {
-            if (avgRating < 4.0) {
-                report.append("다만 일부 구독자들은 몇 가지 아쉬운 점들을 언급해주셨는데요, 이런 피드백들이 오히려 다음 팬미팅을 더욱 완벽하게 만드는 데 도움이 될 것 같아요. ");
+        // 좋았던 점들을 자연스러운 문장으로
+        List<String> highlights = generateHighlightsFromFeedback(textFeedbacks, avgRating);
+        if (!highlights.isEmpty()) {
+            report.append(" 특히 좋았던 점들을 보면 ");
+            for (int i = 0; i < highlights.size(); i++) {
+                String highlight = highlights.get(i).replace("!", "");
+                report.append(highlight);
+                if (i < highlights.size() - 1) {
+                    report.append(", ");
+                } else {
+                    report.append("! ");
+                }
             }
         }
         
-        // 네 번째 문단: 개선 제안과 격려  
-        if (avgRating < 3.5) {
-            report.append("앞으로 더 좋은 팬미팅을 위해서는 구독자들의 니즈를 좀 더 세심하게 파악해보시면 좋을 것 같아요. ");
-        } else {
-            report.append("이미 구독자들이 많이 만족해하고 있지만, 더 특별한 경험을 위해 작은 디테일들을 보완해보시면 어떨까요? ");
-        }
+        report.append("\n\n아쉬웠던 부분도 조금 있었는데 ");
         
-        // 다섯 번째 문단: 마무리 격려
-        report.append("구독자들의 사랑이 정말 많이 느껴지는 후기들이었어요. 이런 소중한 피드백들을 바탕으로 다음 팬미팅에서는 더욱 만족도 높고 특별한 경험을 선사하실 수 있을 거예요. 구독자들도 분명 기대하고 있을 거고요!");
+        // 💡 제안 섹션 - 후기 내용 기반
+        String suggestion = generateSuggestionFromFeedback(textFeedbacks, avgRating);
+        report.append(suggestion);
         
         return report.toString();
+    }
+    
+    private List<String> generateHighlightsFromFeedback(List<String> textFeedbacks, double avgRating) {
+        List<String> highlights = new ArrayList<>();
+        
+        // 후기 키워드 분석
+        Map<String, Integer> positiveKeywords = new HashMap<>();
+        Map<String, Integer> negativeKeywords = new HashMap<>();
+        
+        for (String feedback : textFeedbacks) {
+            String lower = feedback.toLowerCase();
+            
+            // 긍정적 키워드 카운트
+            if (lower.contains("좋") || lower.contains("완벽") || lower.contains("만족")) {
+                positiveKeywords.merge("만족도", 1, Integer::sum);
+            }
+            if (lower.contains("좌석") || lower.contains("자리")) {
+                if (lower.contains("편안") || lower.contains("좋")) {
+                    positiveKeywords.merge("좌석", 1, Integer::sum);
+                } else if (lower.contains("불편") || lower.contains("아쉬")) {
+                    negativeKeywords.merge("좌석", 1, Integer::sum);
+                }
+            }
+            if (lower.contains("진행") || lower.contains("프로그램")) {
+                if (lower.contains("좋") || lower.contains("깔끔") || lower.contains("매끄")) {
+                    positiveKeywords.merge("진행", 1, Integer::sum);
+                } else if (lower.contains("지루") || lower.contains("아쉬")) {
+                    negativeKeywords.merge("진행", 1, Integer::sum);
+                }
+            }
+            if (lower.contains("소통") || lower.contains("상호작용")) {
+                if (lower.contains("좋") || lower.contains("친근")) {
+                    positiveKeywords.merge("소통", 1, Integer::sum);
+                }
+            }
+            if (lower.contains("음향") || lower.contains("소리")) {
+                if (lower.contains("울") || lower.contains("작") || lower.contains("아쉬")) {
+                    negativeKeywords.merge("음향", 1, Integer::sum);
+                }
+            }
+            if (lower.contains("대기") || lower.contains("줄") || lower.contains("입장")) {
+                if (lower.contains("길") || lower.contains("오래") || lower.contains("아쉬")) {
+                    negativeKeywords.merge("대기", 1, Integer::sum);
+                }
+            }
+        }
+        
+        // 키워드 기반으로 하이라이트 생성 (이모티콘 추가)
+        if (positiveKeywords.getOrDefault("좌석", 0) >= 2) {
+            highlights.add("좌석 배치와 공간 활용에 대한 긍정적 평가가 쏟아졌어요! 👏✨");
+        }
+        if (positiveKeywords.getOrDefault("진행", 0) >= 2) {
+            highlights.add("매끄럽고 안정적인 행사 진행으로 팬들이 정말 만족했답니다! 🎯💕");
+        }
+        if (positiveKeywords.getOrDefault("소통", 0) >= 1) {
+            highlights.add("아티스트와 팬들 간의 자연스러운 소통이 빛났어요! 💬🌟");
+        }
+        if (positiveKeywords.getOrDefault("만족도", 0) >= 3) {
+            highlights.add("전반적인 만족도에서 탄탄한 점수를 확보했네요! 📈👍");
+        }
+        
+        // 기본 하이라이트 (키워드가 부족할 때) - 이모티콘 추가
+        if (highlights.isEmpty()) {
+            if (avgRating >= 4.0) {
+                highlights.add("팬들의 높은 참여도와 긍정적인 반응이 대박이었어요! 🥳💖");
+                highlights.add("행사 전반에 걸쳐 만족스러운 경험을 선사했답니다! ✨🎉");
+            } else if (avgRating >= 3.5) {
+                highlights.add("안정적인 행사 운영으로 기본기를 탄탄히 다졌어요! 💪😊");
+                highlights.add("팬들과의 소통에서 정말 좋은 반응을 얻었네요! 💬👏");
+            } else {
+                highlights.add("다양한 피드백으로 소중한 개선점을 찾았어요! 🔍💡");
+                highlights.add("팬들의 솔직한 의견이 성장의 기회가 되었답니다! 🌱📈");
+            }
+        }
+        
+        // 항상 마지막에 데이터 관련 하이라이트 추가
+        if (textFeedbacks.size() > 5) {
+            highlights.add(String.format("%d개의 알찬 후기로 풍성한 인사이트를 얻었어요! 📊💕", textFeedbacks.size()));
+        }
+        
+        return highlights;
+    }
+    
+    private String generateSuggestionFromFeedback(List<String> textFeedbacks, double avgRating) {
+        List<String> suggestions = new ArrayList<>();
+        
+        // 후기 기반 개선사항 추출
+        boolean hasAudioIssue = textFeedbacks.stream().anyMatch(f -> 
+            f.toLowerCase().contains("음향") || f.toLowerCase().contains("소리"));
+        boolean hasWaitingIssue = textFeedbacks.stream().anyMatch(f -> 
+            f.toLowerCase().contains("대기") || f.toLowerCase().contains("줄"));
+        boolean hasProgramIssue = textFeedbacks.stream().anyMatch(f -> 
+            f.toLowerCase().contains("지루") || f.toLowerCase().contains("노잼"));
+            
+        if (hasAudioIssue) {
+            suggestions.add("음향 시설 점검");
+        }
+        if (hasWaitingIssue) {
+            suggestions.add("입장 절차 개선");
+        }
+        if (hasProgramIssue) {
+            suggestions.add("프로그램 구성 다양화");
+        }
+        
+        // 제안문 생성 (카톡 스타일)
+        if (!suggestions.isEmpty()) {
+            return String.format("%s 조금만 신경쓰면\n다음 행사가 완전 대박날듯! 🎉", 
+                String.join("과\n", suggestions));
+        }
+        
+        // 기본 제안문들 (카톡 스타일)
+        String[] defaultSuggestions = {
+            "팬들 피드백 보니까\n작은 디테일들만\n조금 더 신경쓰면\n완전 완벽할 것 같아요! ✨",
+            "이번 후기들 분석해서\n팬들이 더 만족할\n포인트들 찾아보면\n좋을 것 같아요! 💡",
+            "지금도 좋지만\n아쉬웠던 부분들만\n살짝 개선하면\n더 대박날듯! 🚀",
+            "팬들 솔직한 의견으로\n다음 행사는\n한 단계 업그레이드\n해보시면 어떨까요! 🌟"
+        };
+        
+        int randomIndex = (int)(Math.random() * defaultSuggestions.length);
+        return defaultSuggestions[randomIndex];
     }
     
     private String parseNarrativeFromJSON(String jsonResult) {
