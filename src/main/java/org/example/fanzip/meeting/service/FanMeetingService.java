@@ -14,4 +14,14 @@ public interface FanMeetingService {
     List<FanMeetingSeatResponseDTO> getSeats(Long meetingId);
     void createFanMeeting(FanMeetingVO meeting);
     FanMeetingDetailResponseDTO createFanMeeting(FanMeetingRequestDTO request);
+
+    /**
+     * 구독중인 인플루언서의 팬미팅 조회
+     */
+    List<FanMeetingResponseDTO> getSubscribedInfluencerMeetings(String userGrade, Long userId);
+
+    /**
+     * 구독하지 않은 인플루언서의 팬미팅 조회
+     */
+    List<FanMeetingResponseDTO> getNonSubscribedInfluencerMeetings(String userGrade, Long userId);
 }
