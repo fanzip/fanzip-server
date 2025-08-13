@@ -48,7 +48,7 @@ class MarketMapperTest {
 
     @Test
     void searchProducts() {
-        List<ProductListDto> list = marketMapper.searchProducts(1L,"상품", 20L, 8);
+        List<ProductListDto> list = marketMapper.searchProducts(1L,"상품", 20L, 8, "priceAsc", "FOOD");
         for(ProductListDto dto : list) {
             assertNotNull(dto.getProductId(), "productID not null");
             log.info("searchProductsAfter: {}", dto);
