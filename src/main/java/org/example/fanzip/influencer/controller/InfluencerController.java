@@ -73,6 +73,16 @@ public class InfluencerController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<InfluencerProfileResponseDTO> getMyProfile(
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ){
+        Long userId = principal.getUserId();
+
+        InfluencerProfileResponseDTO responseDTO=influencerService.findMyProfile(userId);
+        return ResponseEntity.ok(responseDTO);
+    }
+
     // 인플루언서 프로필 수정
     @PutMapping("/{influencerId}/profile")
     public ResponseEntity<Void> updateProfile(
@@ -89,9 +99,9 @@ public class InfluencerController {
 
     // 일별 구독자 통계
     @GetMapping("/{influencerId}/subscribers/stats/daily")
-    public ResponseEntity<SubscriberStatsResponseDTO> getSubscriberStatsDaily(@PathVariable Long influencerId) {
-        SubscriberStatsResponseDTO responseDTO = influencerService.getSubscriberStatsDaily(influencerId);
-        return ResponseEntity.ok(responseDTO);
+    public ResponseEntity<List<SubscriberStatsResponseDTO>> getSubscriberStatsDaily(@PathVariable Long influencerId) {
+        List<SubscriberStatsResponseDTO> stats = influencerService.getSubscriberStatsDaily(influencerId);
+        return ResponseEntity.ok(stats);
     }
 
     // 주별 구독자 통계
@@ -105,10 +115,11 @@ public class InfluencerController {
 
     // 월별 구독자 통계
     @GetMapping("/{influencerId}/subscribers/stats/monthly")
-    public ResponseEntity<SubscriberStatsResponseDTO> getSubscriberStatsMonthly(@PathVariable Long influencerId) {
-        SubscriberStatsResponseDTO responseDTO = influencerService.getSubscriberStatsMonthly(influencerId);
+    public ResponseEntity<List<SubscriberStatsResponseDTO>> getSubscriberStatsMonthly(@PathVariable Long influencerId) {
+        List<SubscriberStatsResponseDTO> responseDTO = influencerService.getSubscriberStatsMonthly(influencerId);
         return ResponseEntity.ok(responseDTO);
     }
+
 
 
     // 실시간 구독자 현황 (오늘 증감 포함)

@@ -103,51 +103,77 @@
 
     <!-- 일별 구독자 통계 -->
     <select id="getSubscriberStatsDaily" resultType="org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO" parameterType="long">
-        SELECT 
-            DATE_FORMAT(CURDATE(), '%Y-%m-%d') as date,
+        SELECT
+            DATE_FORMAT(d.date, '%e일') as date,
             COALESCE(COUNT(m.membership_id), 0) as subscriberCount
-        FROM (SELECT CURDATE() as today) d
+        FROM (
+            SELECT DATE_SUB(CURDATE(), INTERVAL 6 DAY) as date
+            UNION ALL SELECT DATE_SUB(CURDATE(), INTERVAL 5 DAY)
+            UNION ALL SELECT DATE_SUB(CURDATE(), INTERVAL 4 DAY)
+            UNION ALL SELECT DATE_SUB(CURDATE(), INTERVAL 3 DAY)
+            UNION ALL SELECT DATE_SUB(CURDATE(), INTERVAL 2 DAY)
+            UNION ALL SELECT DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+            UNION ALL SELECT CURDATE()
+            ) d
         LEFT JOIN memberships m ON 
-            DATE(m.subscription_start) = CURDATE()
+            m.subscription_start = d.date
             AND m.influencer_id = #{influencerId}
             AND m.status = 'ACTIVE'
+        GROUP BY d.date
+        ORDER BY d.date ASC
     </select>
 
     <!-- 주별 구독자 통계 -->
     <select id="getSubscriberStatsWeekly" resultType="org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO" parameterType="long">
-        <![CDATA[
-        WITH RECURSIVE week_days AS (
-            SELECT DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) as week_date
-            UNION ALL
-            SELECT DATE_ADD(week_date, INTERVAL 1 DAY)
-            FROM week_days
-            WHERE week_date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 6 DAY)
-        )
-        SELECT 
-            DATE_FORMAT(wd.week_date, '%Y-%m-%d') as date,
-            (
-                SELECT COUNT(*)
-                FROM memberships m
-                WHERE m.influencer_id = #{influencerId}
-                AND m.status = 'ACTIVE'
-                AND DATE(m.subscription_start) <= wd.week_date
-                AND (m.subscription_end IS NULL OR DATE(m.subscription_end) > wd.week_date)
-            ) as subscriberCount
-        FROM week_days wd
-        ORDER BY wd.week_date
+    <![CDATA[
+        SELECT
+            CASE
+                WHEN d.week_number = 6 THEN '6주전'
+                WHEN d.week_number = 5 THEN '5주전'
+                WHEN d.week_number = 4 THEN '4주전'
+                WHEN d.week_number = 3 THEN '3주전'
+                WHEN d.week_number = 2 THEN '2주전'
+                WHEN d.week_number = 1 THEN '1주전'
+                END as date,
+        COALESCE(COUNT(m.membership_id), 0) as subscriberCount
+        FROM (
+            SELECT 6 as week_number, DATE_SUB(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 6*7 DAY) as week_start
+            UNION ALL SELECT 5, DATE_SUB(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 5*7 DAY)
+            UNION ALL SELECT 4, DATE_SUB(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 4*7 DAY)
+            UNION ALL SELECT 3, DATE_SUB(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 3*7 DAY)
+            UNION ALL SELECT 2, DATE_SUB(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 2*7 DAY)
+            UNION ALL SELECT 1, DATE_SUB(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), INTERVAL 1*7 DAY)
+            ) d
+            LEFT JOIN memberships m ON
+            m.subscription_start >= d.week_start
+            AND m.subscription_start < DATE_ADD(d.week_start, INTERVAL 7 DAY)
+            AND m.influencer_id = #{influencerId}
+            AND m.status = 'ACTIVE'
+        GROUP BY d.week_number, d.week_start
+        ORDER BY d.week_number DESC
         ]]>
     </select>
 
     <!-- 월별 구독자 통계 -->
     <select id="getSubscriberStatsMonthly" resultType="org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO" parameterType="long">
-        SELECT 
-            DATE_FORMAT(CURDATE(), '%Y-%m') as date,
-            COALESCE(COUNT(m.membership_id), 0) as subscriberCount
-        FROM (SELECT 1 as dummy) d
-        LEFT JOIN memberships m ON 
-            DATE_FORMAT(m.subscription_start, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+        SELECT
+            CONCAT(d.month_number, '월') as date,
+        COALESCE(COUNT(m.membership_id), 0) as subscriberCount
+        FROM (
+            SELECT 2 as month_number, '2025-02-01' as month_start, '2025-02-28' as month_end
+            UNION ALL SELECT 3, '2025-03-01', '2025-03-31'
+            UNION ALL SELECT 4, '2025-04-01', '2025-04-30'
+            UNION ALL SELECT 5, '2025-05-01', '2025-05-31'
+            UNION ALL SELECT 6, '2025-06-01', '2025-06-30'
+            UNION ALL SELECT 7, '2025-07-01', '2025-07-31'
+            UNION ALL SELECT 8, '2025-08-01', '2025-08-31'
+            ) d
+            LEFT JOIN memberships m ON
+            m.subscription_start BETWEEN d.month_start AND d.month_end
             AND m.influencer_id = #{influencerId}
             AND m.status = 'ACTIVE'
+        GROUP BY d.month_number, d.month_start
+        ORDER BY d.month_number ASC
     </select>
 
 
@@ -179,6 +205,11 @@
                 )
             ) as todayNetChange
         ]]>
+    </select>
+    <select id="findMyProfile" resultType="org.example.fanzip.influencer.domain.InfluencerVO">
+        SELECT influencer_id, influencer_name, category, profile_image, fancard_image, description
+        FROM influencers
+        WHERE user_id = #{userId}
     </select>
 
 </mapper>

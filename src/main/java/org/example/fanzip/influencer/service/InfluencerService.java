@@ -18,15 +18,15 @@ public interface InfluencerService {
     InfluencerDetailResponseDTO findDetailed(Long userId, Long influencerId);
 
     InfluencerProfileResponseDTO findProfile(Long influencerId, Long userId);
-
+    InfluencerProfileResponseDTO findMyProfile(Long userId);
     void updateInfluencerProfile(Long influencerId, InfluencerProfileUpdateRequestDTO requestDTO, Long userId);
 
 
-    SubscriberStatsResponseDTO getSubscriberStatsDaily(Long influencerId);
+    List<SubscriberStatsResponseDTO> getSubscriberStatsDaily(Long influencerId);
 
     List<SubscriberStatsResponseDTO> getSubscriberStatsWeekly(Long influencerId);
 
-    SubscriberStatsResponseDTO getSubscriberStatsMonthly(Long influencerId);
+    List<SubscriberStatsResponseDTO> getSubscriberStatsMonthly(Long influencerId);
 
 
     SubscriberStatusResponseDTO getSubscriberStatus(Long influencerId);

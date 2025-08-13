@@ -19,7 +19,7 @@ public interface InfluencerMapper {
 
     // 프로필 조회
     InfluencerVO findProfile(@Param("influencerId") Long influencerId);
-
+    InfluencerVO findMyProfile(@Param("userId") Long userId);
     // 프로필 수정
     int updateProfile(@Param("influencerId") Long influencerId,
                       @Param("influencerName") String influencerName,
@@ -42,13 +42,13 @@ public interface InfluencerMapper {
 
 
     // 일별 구독자 통계
-    SubscriberStatsResponseDTO getSubscriberStatsDaily(@Param("influencerId") Long influencerId);
+    List<SubscriberStatsResponseDTO> getSubscriberStatsDaily(@Param("influencerId") Long influencerId);
 
     // 주별 구독자 통계
     List<SubscriberStatsResponseDTO> getSubscriberStatsWeekly(@Param("influencerId") Long influencerId);
 
     // 월별 구독자 통계
-    SubscriberStatsResponseDTO getSubscriberStatsMonthly(@Param("influencerId") Long influencerId);
+    List<SubscriberStatsResponseDTO> getSubscriberStatsMonthly(@Param("influencerId") Long influencerId);
 
 
     // 실시간 구독자 현황
