@@ -1,5 +1,7 @@
 package org.example.fanzip.market.service;
 
+import org.example.fanzip.market.dto.ProductAddRequestDto;
+import org.example.fanzip.market.dto.ProductAddResponseDto;
 import org.example.fanzip.market.dto.ProductDetailDto;
 import org.example.fanzip.market.dto.ProductListDto;
 
@@ -17,5 +19,8 @@ public interface MarketService {
 
     // 검색
     List<ProductListDto> searchProducts(String keyword, Long lastProductId, int limit);
+
+    // 상품 추가
+    ProductAddResponseDto addProduct(ProductAddRequestDto requestDto);
 
 }

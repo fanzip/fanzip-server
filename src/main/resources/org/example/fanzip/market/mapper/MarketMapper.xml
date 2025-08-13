@@ -136,4 +136,49 @@
         from products
         where product_id = #{productId}
     </select>
+
+    <!-- 상품 추가 -->
+    <insert id="insertProduct"
+            parameterType="org.example.fanzip.market.domain.MarketVO"
+            useGeneratedKeys="true"
+            keyProperty="productId">
+        insert into products (
+            influencer_id,
+            name,
+            description,
+            price,
+            discounted_price,
+            shipping_price,
+            stock,
+            thumbnail_image,
+            detail_images,
+            description_images,
+            white_open_time,
+            silver_open_time,
+            gold_open_time,
+            vip_open_time,
+            general_open_time
+        ) values (
+            #{influencerId},
+            #{name},
+            #{description},
+            #{price},
+            #{discountedPrice},
+            #{shippingPrice},
+            #{stock},
+            #{thumbnailImage},
+            #{detailImages},
+            #{descriptionImages},
+            #{whiteOpenTime},
+            #{silverOpenTime},
+            #{goldOpenTime},
+            #{vipOpenTime},
+            #{generalOpenTime}
+        )
+    </insert>
+
+    <!-- 마지막 삽입된 ID 조회 -->
+    <select id="getLastInsertId" resultType="long">
+        SELECT LAST_INSERT_ID()
+    </select>
 </mapper>
