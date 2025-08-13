@@ -22,4 +22,7 @@ public interface PushTokenMapper {
 
     // 발송실패 등으로 무효가 된 토큰 정리
     int deleteTokens(@Param("tokens") List<String> tokens);
+    
+    // 특정 사용자의 FCM 토큰 조회 (QR 코드 생성용)
+    String findTokenByUserId(@Param("userId") Long userId);
 }
