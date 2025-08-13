@@ -14,6 +14,7 @@ import org.example.fanzip.payment.domain.enums.PaymentType;
 import org.example.fanzip.payment.dto.PaymentRequestDto;
 import org.example.fanzip.payment.dto.PaymentResponseDto;
 import org.example.fanzip.payment.service.PaymentService;
+import org.example.fanzip.membership.service.MembershipService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
     private final RedissonClient redissonClient;
     private final FanMeetingMapper meetingMapper;
     private final PaymentService paymentService;
+    private final MembershipService membershipService;
 
     @Override
     @Transactional
@@ -71,7 +73,7 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
             if (open == null || open.getStatus() != FanMeetingStatus.PLANNED) {
                 throw new IllegalStateException("예약 불가한 팬미팅입니다.");
             }
-            UserGrade grade = /* JWT or DB에서 */ UserGrade.VIP; // TODO 실제 로딩
+            UserGrade grade = membershipService.getUserMembershipInfo(userId).getUserGrade();
             LocalDateTime now = LocalDateTime.now(); // 서버 TZ 설정 확인
             LocalDateTime openTime = switch (grade) {
                 case VIP -> open.getVipOpenTime();
@@ -177,7 +179,7 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
         if (open == null || open.getStatus() != FanMeetingStatus.PLANNED) {
             throw new IllegalStateException("예약 불가한 팬미팅입니다.");
         }
-        UserGrade grade = UserGrade.GENERAL;
+        UserGrade grade = membershipService.getUserMembershipInfo(userId).getUserGrade();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime openTime = switch (grade) {
             case VIP -> open.getVipOpenTime();
