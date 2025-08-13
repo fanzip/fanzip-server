@@ -77,6 +77,21 @@ public class InfluencerServiceImpl implements InfluencerService {
         return InfluencerProfileResponseDTO.from(influencer, userId, isVerified);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public InfluencerProfileResponseDTO findMyProfile(Long userId) {
+        InfluencerVO influencer = influencerMapper.findMyProfile(userId);
+
+        if (influencer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
+        }
+
+        // isVerified는 임시로 true로 설정 (실제로는 DB에서 조회하거나 비즈니스 로직에 따라 결정)
+        Boolean isVerified = true;
+
+        return InfluencerProfileResponseDTO.from(influencer, userId, isVerified);
+    }
+
     // 인플루언서 프로필 수정 (공개 API용)
     @Override
     @Transactional
@@ -104,7 +119,7 @@ public class InfluencerServiceImpl implements InfluencerService {
 
 
     @Override
-    public SubscriberStatsResponseDTO getSubscriberStatsDaily(Long influencerId) {
+    public List<SubscriberStatsResponseDTO> getSubscriberStatsDaily(Long influencerId) {
         return influencerMapper.getSubscriberStatsDaily(influencerId);
     }
 
@@ -114,7 +129,7 @@ public class InfluencerServiceImpl implements InfluencerService {
     }
 
     @Override
-    public SubscriberStatsResponseDTO getSubscriberStatsMonthly(Long influencerId) {
+    public List<SubscriberStatsResponseDTO> getSubscriberStatsMonthly(Long influencerId) {
         return influencerMapper.getSubscriberStatsMonthly(influencerId);
     }
 
