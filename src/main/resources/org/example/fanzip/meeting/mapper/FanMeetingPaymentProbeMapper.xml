@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.fanzip.meeting.mapper.FanMeetingPaymentProbeMapper">
+
+    <!-- 결제는 PAID, 예약은 아직 PENDING -->
+    <select id="findPaidReservationPaymentIdsNeedingConfirm" resultType="long">
+        SELECT p.payment_id
+        FROM payments p
+                 JOIN fan_meeting_reservations r ON r.reservation_id = p.reservation_id
+        WHERE p.payment_type = 'RESERVATION'
+          AND p.status = 'PAID'
+          AND r.status = 'PENDING'
+        ORDER BY p.created_at ASC
+            LIMIT #{limit}
+    </select>
+
+    <!-- 결제는 FAILED/CANCELLED, 예약은 아직 PENDING -->
+    <select id="findFailedOrCancelledReservationPaymentIdsNeedingCancel" resultType="long">
+        SELECT p.payment_id
+        FROM payments p
+                 JOIN fan_meeting_reservations r ON r.reservation_id = p.reservation_id
+        WHERE p.payment_type = 'RESERVATION'
+          AND p.status IN ('FAILED', 'CANCELLED')
+          AND r.status = 'PENDING'
+        ORDER BY p.created_at ASC
+            LIMIT #{limit}
+    </select>
+</mapper>
