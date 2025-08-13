@@ -78,7 +78,7 @@
     <!-- 인플루언서 월별 수익 조회 -->
     <select id="selectMonthlyRevenue" parameterType="long" resultType="org.example.fanzip.payment.dto.RevenueResponseDto">
         SELECT
-            CONCAT(year_val, '-', LPAD(month_val, 2, '0')) as date,
+            CONCAT(month_val, '월') as date,
             SUM(amount) as revenue
         FROM (
             SELECT 
