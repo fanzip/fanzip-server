@@ -3,6 +3,7 @@ package org.example.fanzip.payment.repository;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.payment.domain.Payments;
 import org.example.fanzip.payment.domain.enums.PaymentStatus;
+import org.example.fanzip.payment.dto.RevenueResponseDto;
 import org.example.fanzip.payment.mapper.PaymentMapper;
 import org.springframework.stereotype.Repository;
 
@@ -42,5 +43,17 @@ public class PaymentRepository {
     }
     public List<Payments> findAllByReservationId(Long reservationId) {
         return paymentMapper.findAllByReservationId(reservationId);
+    }
+    
+    public List<RevenueResponseDto> findMonthlyRevenue(Long influencerId) {
+        return paymentMapper.selectMonthlyRevenue(influencerId);
+    }
+    
+    public RevenueResponseDto findTodayRevenue(Long influencerId) {
+        return paymentMapper.selectTodayRevenue(influencerId);
+    }
+    
+    public RevenueResponseDto findTotalRevenue(Long influencerId) {
+        return paymentMapper.selectTotalRevenue(influencerId);
     }
 }
