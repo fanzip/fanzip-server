@@ -11,6 +11,8 @@ import org.example.fanzip.influencer.dto.InfluencerResponseDTO;
 import org.example.fanzip.influencer.dto.SubscriberStatsResponseDTO;
 import org.example.fanzip.influencer.dto.SubscriberStatusResponseDTO;
 import org.example.fanzip.influencer.service.InfluencerService;
+import org.example.fanzip.payment.dto.RevenueResponseDto;
+import org.example.fanzip.payment.service.RevenueService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,6 +26,7 @@ import java.util.List;
 public class InfluencerController {
 
     private final InfluencerService influencerService;
+    private final RevenueService revenueService;
 
     // 전체 인플루언서 목록 조회 (필터: 선택적 카테고리 지정 가능)
     @GetMapping
@@ -99,6 +102,7 @@ public class InfluencerController {
     }
 
 
+
     // 월별 구독자 통계
     @GetMapping("/{influencerId}/subscribers/stats/monthly")
     public ResponseEntity<SubscriberStatsResponseDTO> getSubscriberStatsMonthly(@PathVariable Long influencerId) {
@@ -112,5 +116,26 @@ public class InfluencerController {
     public ResponseEntity<SubscriberStatusResponseDTO> getSubscriberStatus(@PathVariable Long influencerId) {
         SubscriberStatusResponseDTO responseDTO = influencerService.getSubscriberStatus(influencerId);
         return ResponseEntity.ok(responseDTO);
+    }
+
+    // 인플루언서 월별 수익 추이
+    @GetMapping("/{influencerId}/revenue/monthly")
+    public ResponseEntity<List<RevenueResponseDto>> getMonthlyRevenue(@PathVariable Long influencerId) {
+        List<RevenueResponseDto> revenue = revenueService.getMonthlyRevenue(influencerId);
+        return ResponseEntity.ok(revenue);
+    }
+
+    // 인플루언서 오늘 수익
+    @GetMapping("/{influencerId}/revenue/today")
+    public ResponseEntity<RevenueResponseDto> getTodayRevenue(@PathVariable Long influencerId) {
+        RevenueResponseDto revenue = revenueService.getTodayRevenue(influencerId);
+        return ResponseEntity.ok(revenue);
+    }
+
+    // 인플루언서 누적 수익 (첫 결제일부터 현재까지)
+    @GetMapping("/{influencerId}/revenue/total")
+    public ResponseEntity<RevenueResponseDto> getTotalRevenue(@PathVariable Long influencerId) {
+        RevenueResponseDto revenue = revenueService.getTotalRevenue(influencerId);
+        return ResponseEntity.ok(revenue);
     }
 }
