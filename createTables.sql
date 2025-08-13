@@ -148,6 +148,7 @@ CREATE TABLE products (
                           general_open_time DATETIME,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                          categories JSON,
                           FOREIGN KEY (influencer_id) REFERENCES influencers(influencer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

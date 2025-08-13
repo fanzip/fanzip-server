@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.fanzip.market.domain.enums.ProductCategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,4 +34,5 @@ public class ProductDetailDto {
     private LocalDateTime openTime;
     private boolean isAvailable;
 
+    private String categories;
 }
