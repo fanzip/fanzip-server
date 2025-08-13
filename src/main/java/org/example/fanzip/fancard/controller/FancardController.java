@@ -58,6 +58,18 @@ public class FancardController {
         return ResponseEntity.ok(java.util.Collections.emptyMap());
     }
     
+    @ApiOperation(value = "모바일 티켓 조회", notes = "특정 예약에 대한 모바일 티켓 정보를 조회합니다.")
+    @GetMapping("/mobile-ticket/{reservationId}/{seatId}/{meetingId}")
+    public ResponseEntity<QrCodeResponse> getMobileTicket(
+            @ApiParam(value = "예약 ID", required = true) @PathVariable Long reservationId,
+            @ApiParam(value = "좌석 ID", required = true) @PathVariable Long seatId,
+            @ApiParam(value = "팬미팅 ID", required = true) @PathVariable Long meetingId,
+            HttpServletRequest request) {
+        Long userId = extractUserIdFromJWT(request);
+        QrCodeResponse mobileTicket = fancardService.getMobileTicketData(userId, reservationId, seatId, meetingId);
+        return ResponseEntity.ok(mobileTicket);
+    }
+    
     @ApiOperation(value = "입장 QR 코드 생성", notes = "팬미팅 입장용 QR 코드를 생성합니다. 행사장 범위 내에서만 생성 가능합니다.")
     @PostMapping("/qr")
     public ResponseEntity<QrCodeResponse> generateQrCode(

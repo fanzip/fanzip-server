@@ -13,6 +13,8 @@ import org.example.fanzip.meeting.mapper.FanMeetingMapper;
 import org.example.fanzip.meeting.mapper.FanMeetingReservationMapper;
 import org.example.fanzip.meeting.domain.FanMeetingVO;
 import org.example.fanzip.meeting.domain.FanMeetingReservationVO;
+import org.example.fanzip.notification.mapper.PushTokenMapper;
+import org.example.fanzip.global.fcm.FcmService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,16 +36,21 @@ public class FancardServiceImpl implements FancardService {
     private final UserService userService;
     private final FanMeetingMapper fanMeetingMapper;
     private final FanMeetingReservationMapper reservationMapper;
+    private final PushTokenMapper pushTokenMapper;
+    private final FcmService fcmService;
 
     public FancardServiceImpl(FancardMapper fancardMapper, LocationService locationService, 
                              QrCodeGeneratorService qrCodeGeneratorService, UserService userService,
-                             FanMeetingMapper fanMeetingMapper, FanMeetingReservationMapper reservationMapper) {
+                             FanMeetingMapper fanMeetingMapper, FanMeetingReservationMapper reservationMapper,
+                             PushTokenMapper pushTokenMapper, FcmService fcmService) {
         this.fancardMapper = fancardMapper;
         this.locationService = locationService;
         this.qrCodeGeneratorService = qrCodeGeneratorService;
         this.userService = userService;
         this.fanMeetingMapper = fanMeetingMapper;
         this.reservationMapper = reservationMapper;
+        this.pushTokenMapper = pushTokenMapper;
+        this.fcmService = fcmService;
     }
 
     @Override
@@ -95,13 +102,18 @@ public class FancardServiceImpl implements FancardService {
                     .build();
         }
         
-        // QR 코드 데이터 생성
+        // 사용자의 FCM 토큰 조회
+        String fcmToken = pushTokenMapper.findTokenByUserId(request.getUserId());
+        System.out.println("🔍 FCM 토큰 조회: userId=" + request.getUserId() + ", fcmToken=" + fcmToken);
+        
+        // QR 코드 데이터 생성 (FCM 토큰 포함)
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String qrData = qrCodeGeneratorService.generateQrDataString(
                 request.getUserId(), 
                 request.getFanMeetingId(), 
                 request.getReservationId(), 
-                timestamp
+                timestamp,
+                fcmToken
         );
         
         // QR 코드 이미지 생성 (Base64)
@@ -132,6 +144,7 @@ public class FancardServiceImpl implements FancardService {
     @Override
     public QrCodeValidationResponse validateQrCode(QrCodeValidationRequest request) {
         LocalDateTime validatedAt = LocalDateTime.now();
+        System.out.println("🔍 QR 검증 요청 시작: " + request.getQrData() + " at " + validatedAt);
         
         try {
             // 1. QR 코드 형식 검증
@@ -142,21 +155,22 @@ public class FancardServiceImpl implements FancardService {
                         validatedAt, "QR_FORMAT_001", "QR 데이터가 FANZIP_ 형식이 아닙니다.");
             }
             
-            // 2. QR 데이터 파싱
+            // 2. QR 데이터 파싱 (4부분 또는 5부분 지원)
             String[] parts = qrData.substring(FancardConstants.QrCode.FANZIP_PREFIX.length()).split("_");
-            if (parts.length != FancardConstants.QrCode.QR_DATA_PARTS) {
+            if (parts.length < 4 || parts.length > 5) {
                 return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_FORMAT,
                         FancardConstants.QrCode.INVALID_FORMAT_MESSAGE, null, null, null, null, null,
-                        validatedAt, "QR_FORMAT_002", "QR 데이터 파트 수가 올바르지 않습니다.");
+                        validatedAt, "QR_FORMAT_002", "QR 데이터 파트 수가 올바르지 않습니다. (4-5개 파트 필요)");
             }
             
             Long userId, fanMeetingId, reservationId;
-            String timestamp;
+            String timestamp, fcmToken;
             try {
                 userId = Long.parseLong(parts[0]);
                 fanMeetingId = Long.parseLong(parts[1]);
                 reservationId = Long.parseLong(parts[2]);
                 timestamp = parts[3];
+                fcmToken = parts.length > 4 ? parts[4] : "NO_TOKEN"; // 호환성을 위해 옵셔널 처리
             } catch (NumberFormatException e) {
                 return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_FORMAT,
                         FancardConstants.QrCode.INVALID_FORMAT_MESSAGE, null, null, null, null, null,
@@ -204,6 +218,13 @@ public class FancardServiceImpl implements FancardService {
                         user.getName(), user.getEmail(), validatedAt, "RESERVATION_001", "유효하지 않은 예약 정보입니다.");
             }
             
+            // 6-1. 중복 입장 방지 (이미 사용된 예약인지 확인)
+            if ("USED".equals(reservation.getStatus())) {
+                return buildValidationResponse(false, "ALREADY_USED",
+                        "이미 입장 처리된 예약입니다.", userId, fanMeetingId, reservationId,
+                        user.getName(), user.getEmail(), validatedAt, "RESERVATION_002", "이미 입장 처리된 예약입니다.");
+            }
+            
             // 7. 위치 검증 (optional - if latitude/longitude provided)
             if (request.getLatitude() != null && request.getLongitude() != null) {
                 if (!locationService.isWithinVenueRange(request.getLatitude(), request.getLongitude(), fanMeetingId)) {
@@ -213,7 +234,34 @@ public class FancardServiceImpl implements FancardService {
                 }
             }
             
-            // 8. 성공 응답 - 예약 정보 구성
+            // 8. 예약 상태를 USED로 업데이트 (중복 입장 방지)
+            try {
+                reservationMapper.updateReservationStatus(reservationId, "USED", validatedAt);
+                System.out.println("예약 상태를 USED로 업데이트 완료: reservationId=" + reservationId);
+            } catch (Exception e) {
+                System.err.println("예약 상태 업데이트 실패: " + e.getMessage());
+                // 상태 업데이트 실패 시 검증 실패로 처리
+                return buildValidationResponse(false, "SYSTEM_ERROR",
+                        "시스템 오류가 발생했습니다.", userId, fanMeetingId, reservationId,
+                        user.getName(), user.getEmail(), validatedAt, "SYSTEM_003", "예약 상태 업데이트 실패");
+            }
+            
+            // 9. FCM 알림 전송 (QR 코드에서 추출한 FCM 토큰 사용)
+            if (fcmToken != null && !fcmToken.equals("NO_TOKEN")) {
+                try {
+                    String notificationTitle = "✅ 입장 확인";
+                    String notificationBody = String.format("%s 팬미팅 입장이 확인되었습니다! 🎉", meeting.getTitle());
+                    String targetUrl = "/fancard/mobile-ticket/" + reservationId + "/" + reservation.getSeatId() + "/" + fanMeetingId;
+                    
+                    fcmService.sendToToken(fcmToken, notificationTitle, notificationBody, targetUrl);
+                    System.out.println("QR 검증 성공 알림 전송 완료: " + fcmToken);
+                } catch (Exception e) {
+                    System.err.println("FCM 알림 전송 실패: " + e.getMessage());
+                    // 알림 전송 실패해도 QR 검증은 성공으로 처리
+                }
+            }
+            
+            // 9. 성공 응답 - 예약 정보 구성
             ReservationDto reservationDto = ReservationDto.builder()
                     .reservationId(reservation.getReservationId())
                     .reservationNumber("FM" + reservation.getReservationId().toString())
@@ -245,6 +293,68 @@ public class FancardServiceImpl implements FancardService {
         } catch (Exception e) {
             return buildValidationResponse(false, "SYSTEM_ERROR", "시스템 오류가 발생했습니다.", 
                     null, null, null, null, null, validatedAt, "SYSTEM_001", e.getMessage());
+        }
+    }
+    
+    @Override
+    public QrCodeResponse getMobileTicketData(Long userId, Long reservationId, Long seatId, Long meetingId) {
+        try {
+            // 예약 정보 검증 (데이터가 없으면 테스트 데이터로 대체)
+            FanMeetingReservationVO reservation = reservationMapper.findByUserAndMeeting(userId, meetingId);
+            
+            // 팬미팅 정보 조회 (데이터가 없으면 테스트 데이터로 대체)
+            FanMeetingVO meeting = fanMeetingMapper.findById(meetingId);
+            
+            // 좌석 정보는 현재 간단히 처리
+            String seatNumber = "A-" + (seatId % 100); // 임시 좌석 번호 생성
+            
+            // 예약 정보 구성 (실제 데이터가 없으면 테스트 데이터 사용)
+            ReservationDto reservationDto;
+            if (reservation != null && meeting != null) {
+                // 실제 데이터 사용
+                reservationDto = ReservationDto.builder()
+                        .reservationId(reservation.getReservationId())
+                        .reservationNumber("FM" + reservation.getReservationId().toString())
+                        .meetingTitle(meeting.getTitle())
+                        .meetingDate(meeting.getMeetingDate())
+                        .venueName(meeting.getVenueName())
+                        .seatNumber(seatNumber)
+                        .build();
+            } else {
+                // 테스트 데이터 사용
+                reservationDto = ReservationDto.builder()
+                        .reservationId(reservationId)
+                        .reservationNumber("FM" + reservationId.toString())
+                        .meetingTitle(FancardConstants.TestData.TEST_MEETING_TITLE)
+                        .meetingDate(LocalDateTime.now().plusDays(30))
+                        .venueName(FancardConstants.TestData.TEST_VENUE_NAME)
+                        .seatNumber(seatNumber)
+                        .build();
+                
+                System.out.println("⚠️ 실제 예약/팬미팅 데이터가 없어서 테스트 데이터를 사용합니다.");
+                System.out.println("   - userId: " + userId + ", meetingId: " + meetingId);
+                System.out.println("   - reservationId: " + reservationId + ", seatId: " + seatId);
+            }
+            
+            // 사용자의 FCM 토큰 조회
+            String fcmToken = pushTokenMapper.findTokenByUserId(userId);
+            
+            // 기본 QR 코드 응답 (생성되지 않은 상태)
+            LocalDateTime now = LocalDateTime.now();
+            return QrCodeResponse.builder()
+                    .qrCode(null) // QR 코드는 사용자가 생성 버튼을 눌렀을 때 생성
+                    .qrCodeUrl(null)
+                    .status("READY") // 생성 준비 상태
+                    .generatedAt(now)
+                    .expiresAt(null)
+                    .reservation(reservationDto)
+                    .fcmToken(fcmToken) // FCM 토큰 포함
+                    .build();
+                    
+        } catch (Exception e) {
+            System.err.println("모바일 티켓 데이터 조회 중 오류: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("모바일 티켓 정보 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }
     
