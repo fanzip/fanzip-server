@@ -77,8 +77,8 @@ public class MarketServiceImpl implements MarketService {
     }
 
     @Override
-    public List<ProductListDto> searchProducts(Long userId, String keyword, Long lastProductId, int limit) {
-        return marketMapper.searchProducts(userId, keyword, lastProductId, limit);
+    public List<ProductListDto> searchProducts(Long userId, String keyword, Long lastProductId, int limit, String sort, String category) {
+        return marketMapper.searchProducts(userId, keyword, lastProductId, limit, sort, category);
     }
 
     @Override
