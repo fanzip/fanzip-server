@@ -30,4 +30,5 @@ public class FanMeetingDetailResponseDTO {
     private String profileImageUrl;
     private String posterImageUrl;
     private String influencerName;
+    private Long influencerId;
 }
