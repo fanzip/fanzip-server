@@ -16,4 +16,6 @@ public interface FancardService {
     QrCodeResponse generateQrCode(QrCodeRequest request);
     
     QrCodeValidationResponse validateQrCode(QrCodeValidationRequest request);
+    
+    QrCodeResponse getMobileTicketData(Long userId, Long reservationId, Long seatId, Long meetingId);
 }

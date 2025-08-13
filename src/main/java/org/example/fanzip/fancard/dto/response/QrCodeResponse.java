@@ -24,4 +24,6 @@ public class QrCodeResponse {
     private LocalDateTime expiresAt;
     
     private ReservationDto reservation;
+    
+    private String fcmToken;
 }

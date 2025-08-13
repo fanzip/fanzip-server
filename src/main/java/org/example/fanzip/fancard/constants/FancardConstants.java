@@ -72,7 +72,7 @@ public final class FancardConstants {
         
         // QR 코드 포맷
         public static final String FANZIP_PREFIX = "FANZIP_";
-        public static final int QR_DATA_PARTS = 4; // userId, fanMeetingId, reservationId, timestamp
+        public static final int QR_DATA_PARTS = 5; // userId, fanMeetingId, reservationId, timestamp, fcmToken
         
         // 메시지
         public static final String SUCCESS_MESSAGE = "입장하세요! 팬미팅을 즐겨보세요 🎉";

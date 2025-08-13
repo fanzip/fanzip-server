@@ -37,9 +37,18 @@ public class QrCodeGeneratorService {
     }
     
     /**
-     * QR 코드 데이터 문자열 생성
+     * QR 코드 데이터 문자열 생성 (FCM 토큰 포함)
+     */
+    public String generateQrDataString(Long userId, Long fanMeetingId, Long reservationId, String timestamp, String fcmToken) {
+        // FCM 토큰이 null이거나 빈 문자열인 경우 "NO_TOKEN"으로 대체
+        String tokenPart = (fcmToken != null && !fcmToken.trim().isEmpty()) ? fcmToken : "NO_TOKEN";
+        return String.format("FANZIP_%d_%d_%d_%s_%s", userId, fanMeetingId, reservationId, timestamp, tokenPart);
+    }
+    
+    /**
+     * QR 코드 데이터 문자열 생성 (기존 호환성을 위한 메서드)
      */
     public String generateQrDataString(Long userId, Long fanMeetingId, Long reservationId, String timestamp) {
-        return String.format("FANZIP_%d_%d_%d_%s", userId, fanMeetingId, reservationId, timestamp);
+        return generateQrDataString(userId, fanMeetingId, reservationId, timestamp, "NO_TOKEN");
     }
 }
