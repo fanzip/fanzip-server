@@ -55,13 +55,15 @@
 
     <select id="findSeatsByMeetingId" resultType="org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO">
         SELECT
-            seat_id,
-            meeting_id,
-            seat_number,
-            price,
-            reserved
-        FROM fan_meeting_seats
-        WHERE meeting_id = #{meetingId}
+            s.seat_id as seatId,
+            s.seat_number as seatNumber,
+            s.price,
+            s.reserved,
+            CASE WHEN r.status = 'PENDING' THEN true ELSE false END as pending
+        FROM fan_meeting_seats s
+        LEFT JOIN fan_meeting_reservations r ON s.seat_id = r.seat_id AND r.status = 'PENDING'
+        WHERE s.meeting_id = #{meetingId}
+        ORDER BY s.seat_number
     </select>
 
     <insert id="insertSeatList" parameterType="java.util.List">
