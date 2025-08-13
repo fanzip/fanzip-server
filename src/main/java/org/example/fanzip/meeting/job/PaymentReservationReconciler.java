@@ -40,7 +40,7 @@ public class PaymentReservationReconciler {
                 try {
                     reservationService.cancelByPaymentId(paymentId);
                 } catch (Exception e) {
-                    log.warn("[Reconcile][CANCEL ] paymentId={} failed: {}", paymentId, e.getMessage());
+                    log.warn("[Reconcile][CANCEL] paymentId={} failed: {}", paymentId, e.getMessage());
                 }
             }
         } catch (Exception e) {

@@ -104,6 +104,9 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
             vo.setUserId(userId);
             vo.setInfluencerId(meetingMapper.findInfluencerIdByMeetingId(meetingId));
             vo.setSeatId(seatId);
+            // 외부(프론트/결제사) 연동 시 내부 PK 대신 안전하게 노출하기 위해 설계한 식별자
+            // 현재 결제 연동은 reservationId(PK) 기반으로 구현되어 있어 실제로는 사용되지 않음
+            // 추후 외부 식별자 전환 시 활용할 수 있도록 UUID로 발급 후 DB에 저장
             vo.setReservationNumber(UUID.randomUUID().toString());
             vo.setStatus(ReservationStatus.RESERVED);
             vo.setReservedAt(LocalDateTime.now());
