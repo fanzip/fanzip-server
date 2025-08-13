@@ -16,7 +16,8 @@ public interface MarketService {
     ProductDetailDto getProductDetail(Long userId, Long productId);
 
     // 검색
-    List<ProductListDto> searchProducts(Long userId, String keyword, Long lastProductId, int limit);
+    List<ProductListDto> searchProducts(Long userId, String keyword, Long lastProductId, int limit,
+                                        String sort, String category);
 
     // 상품 추가
     ProductAddResponseDto addProduct(ProductAddRequestDto requestDto);

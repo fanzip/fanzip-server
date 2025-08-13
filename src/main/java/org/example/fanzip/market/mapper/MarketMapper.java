@@ -33,7 +33,9 @@ public interface MarketMapper {
             @Param("userId") Long userId,
             @Param("keyword") String keyword,
             @Param("lastProductId") Long lastProductId,
-            @Param("limit") int limit
+            @Param("limit") int limit,
+            @Param("sort") String sort,
+            @Param("category") String category
     );
 
     // 재고 조회

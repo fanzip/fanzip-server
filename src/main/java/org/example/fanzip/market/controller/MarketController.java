@@ -42,7 +42,7 @@ public class MarketController {
         Long userId = customUserPrincipal.getUserId();
 
         if(keyword != null && !keyword.isBlank()) {
-            return marketService.searchProducts(userId, keyword, lastProductId, limit);
+            return marketService.searchProducts(userId, keyword, lastProductId, limit, sort, category);
         }
 
         return marketService.getProducts(userId, lastProductId, limit, sort, category, onlySubscribed);

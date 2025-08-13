@@ -4,9 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.fanzip.market.mapper.MarketMapper">
 
-
-
-    <!-- lastProductId 이후 커서 페이징 -->
+    <!-- 상품 조회 -->
     <select id="getProducts"
             resultType="org.example.fanzip.market.dto.ProductListDto"
             parameterType="map">
@@ -67,6 +65,9 @@
             </if>
         </where>
         <choose>
+            <when test="onlySubscribed">
+                ORDER BY gradeId DESC, p.product_id DESC
+            </when>
             <when test="sort == 'latest'">
                 ORDER BY p.product_id DESC
             </when>
@@ -125,7 +126,7 @@
         where p.product_id = #{productId}
     </select>
 
-     <!-- 검색(중간페이지) -->
+     <!-- 검색 -->
     <select id="searchProducts"
             parameterType="map"
             resultType="org.example.fanzip.market.dto.ProductListDto">
@@ -177,12 +178,26 @@
             <if test="lastProductId != null">
                 AND p.product_id &lt; #{lastProductId}
             </if>
+            <if test="category != null and category != ''">
+                AND JSON_CONTAINS(p.categories, JSON_QUOTE(#{category}), '$')
+            </if>
         </where>
-        ORDER BY
-            subscribed DESC,
-            sameInfCategory DESC,
-            catMatch DESC,
-            p.product_id DESC
+        <choose>
+            <when test="sort == 'latest'">
+                ORDER BY p.product_id DESC
+            </when>
+            <when test="sort == 'priceAsc'">
+                ORDER BY p.discounted_price ASC, p.product_id DESC
+            </when>
+            <otherwise>
+                ORDER BY
+                subscribed DESC,
+                gradeId DESC,
+                sameInfCategory DESC,
+                catMatch DESC,
+                p.product_id DESC
+            </otherwise>
+        </choose>
         LIMIT #{limit}
     </select>
 
