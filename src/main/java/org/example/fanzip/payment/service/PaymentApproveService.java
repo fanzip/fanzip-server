@@ -20,7 +20,7 @@ public class PaymentApproveService {
     private final PaymentRepository paymentRepository;
     private final PaymentRollbackService paymentRollbackService;
     private final PaymentValidator paymentValidator;
-    private final MarketOrderMapper marketOrderMapper;
+//    private final MarketOrderMapper marketOrderMapper;
 
     @Transactional
     public PaymentResponseDto approvePaymentById(Long paymentId) {
@@ -30,24 +30,24 @@ public class PaymentApproveService {
         }
         paymentValidator.validateStockAvailability(payments.getOrderId(), payments.getReservationId(), payments.getMembershipId()); // 결제 승인 시 재고 수량 검사 홤수
         // TODO : 주문 금액과 결제 요청 금액이 맞는지 로직 변경 필요
-//        BigDecimal expectedAmount = getExpectedAmountMock(payments);
-//        if (payments.getAmount().compareTo(expectedAmount) != 0)  {
-//            throw new BusinessException(PaymentErrorCode.AMOUNT_MISMATCH);
-//        }
-
-        // 주문 금액으로 검증 (ORDERS)
-        BigDecimal expectedAmount;
-        if (payments.getOrderId() != null) {
-            Map<String, Object> row = marketOrderMapper.selectOrderForPayment(payments.getOrderId());
-            if (row == null) throw new BusinessException(PaymentErrorCode.ORDER_NOT_FOUND);
-            expectedAmount = (BigDecimal) row.get("finalAmount");
-        } else {
-            throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_TYPE);
+        BigDecimal expectedAmount = getExpectedAmountMock(payments);
+        if (payments.getAmount().compareTo(expectedAmount) != 0)  {
+            throw new BusinessException(PaymentErrorCode.AMOUNT_MISMATCH);
         }
 
-        // 금액 검증
-        if (payments.getAmount().compareTo(expectedAmount) != 0)
-            throw new BusinessException(PaymentErrorCode.AMOUNT_MISMATCH);
+        // 주문 금액으로 검증 (ORDERS)
+//        BigDecimal expectedAmount;
+//        if (payments.getOrderId() != null) {
+//            Map<String, Object> row = marketOrderMapper.selectOrderForPayment(payments.getOrderId());
+//            if (row == null) throw new BusinessException(PaymentErrorCode.ORDER_NOT_FOUND);
+//            expectedAmount = (BigDecimal) row.get("finalAmount");
+//        } else {
+//            throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_TYPE);
+//        }
+//
+//        // 금액 검증
+//        if (payments.getAmount().compareTo(expectedAmount) != 0)
+//            throw new BusinessException(PaymentErrorCode.AMOUNT_MISMATCH);
 
 
         payments.approve();
