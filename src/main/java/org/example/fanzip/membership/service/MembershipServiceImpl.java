@@ -6,6 +6,8 @@ import org.example.fanzip.membership.domain.enums.MembershipStatus;
 import org.example.fanzip.membership.dto.MembershipGradeDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeRequestDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeResponseDTO;
+import org.example.fanzip.membership.dto.UserMembershipInfoDTO;
+import org.example.fanzip.meeting.domain.UserGrade;
 import org.example.fanzip.membership.mapper.MembershipMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,5 +48,23 @@ public class MembershipServiceImpl implements MembershipService{
     @Override
     public List<MembershipGradeDTO> getMembershipGrades() {
         return membershipMapper.findGradesByInfluencerId(null);
+    }
+    
+    @Override
+    public UserMembershipInfoDTO getUserMembershipInfo(Long userId) {
+        String highestGrade = membershipMapper.findHighestGradeByUserId(userId);
+        
+        UserGrade userGrade = highestGrade != null ? 
+            UserGrade.from(highestGrade) : UserGrade.GENERAL;
+            
+        return UserMembershipInfoDTO.builder()
+                .userGrade(userGrade)
+                .subscription(null)
+                .build();
+    }
+    
+    @Override
+    public UserMembershipInfoDTO.UserMembershipSubscriptionDTO getUserSubscriptionByInfluencer(Long userId, Long influencerId) {
+        return membershipMapper.findUserSubscriptionByInfluencerId(userId, influencerId);
     }
 }
