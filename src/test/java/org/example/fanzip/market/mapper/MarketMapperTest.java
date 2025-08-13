@@ -28,26 +28,14 @@ class MarketMapperTest {
     private MarketMapper marketMapper;
 
     @Test
-    void getAllProducts() {
-        List<ProductListDto> list = marketMapper.getAllProducts(10);
+    void getProducts() {
+        List<ProductListDto> list = marketMapper.getProducts(1L,null, 20, "priceAsc", "FOOD", false);
         assertNotNull(list, "상품 목록 not null");
         for(ProductListDto dto : list) {
             assertNotNull(dto.getProductId(), "productID not null");
             assertNotNull(dto.getName(), "상품명 not null");
-            log.info("getAllProducts: {}", dto);
+            log.info("=========getProducts=============: {}", dto);
         }
-    }
-
-    @Test
-    void getProductsAfter() {
-        List<ProductListDto> list = marketMapper.getProductsAfter(40L, 20);
-        assertNotNull(list, "상품 목록 not null");
-        for(ProductListDto dto : list) {
-            assertNotNull(dto.getProductId(), "productID not null");
-            assertNotNull(dto.getName(), "상품명 not null");
-            log.info("getProductsAfter: {}", dto);
-        }
-
     }
 
     @Test
@@ -57,18 +45,10 @@ class MarketMapperTest {
         log.info("=========> findProductById: {}", dto);
     }
 
-    @Test
-    void searchProducts() {
-        List<ProductListDto> list = marketMapper.searchProducts("00", 20);
-        for(ProductListDto dto : list) {
-            assertNotNull(dto.getProductId(), "productID not null");
-            log.info("searchProducts: {}", dto);
-        }
-    }
 
     @Test
-    void searchProductsAfter() {
-        List<ProductListDto> list = marketMapper.searchProductsAfter("상품", 20L, 8);
+    void searchProducts() {
+        List<ProductListDto> list = marketMapper.searchProducts(1L,"상품", 20L, 8);
         for(ProductListDto dto : list) {
             assertNotNull(dto.getProductId(), "productID not null");
             log.info("searchProductsAfter: {}", dto);
