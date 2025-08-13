@@ -3,11 +3,13 @@ package org.example.fanzip.meeting.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.meeting.dto.FanMeetingReservationResponseDTO;
 import org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO;
+import org.example.fanzip.meeting.dto.PaymentIntentResponseDTO;
 import org.example.fanzip.meeting.service.FanMeetingReservationService;
 import org.example.fanzip.meeting.service.FanMeetingService;
 import org.example.fanzip.security.CustomUserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -67,4 +69,14 @@ public class FanMeetingReservationController {
         return response;
     }
 
+    @PostMapping("/{meetingId}/seats/{seatId}/start-payment")
+    public ResponseEntity<PaymentIntentResponseDTO> startPayment(
+            @PathVariable Long meetingId,
+            @PathVariable Long seatId) {
+
+        Long userId = ((CustomUserPrincipal) SecurityContextHolder
+                .getContext().getAuthentication().getPrincipal()).getUserId();
+
+        return ResponseEntity.ok(reservationService.startPayment(meetingId, seatId, userId));
+    }
 }
