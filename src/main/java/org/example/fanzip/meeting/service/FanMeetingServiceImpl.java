@@ -11,6 +11,7 @@ import org.example.fanzip.meeting.dto.FanMeetingResponseDTO;
 import org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO;
 import org.example.fanzip.meeting.mapper.FanMeetingMapper;
 import org.example.fanzip.meeting.mapper.FanMeetingSeatMapper;
+import org.example.fanzip.membership.mapper.MembershipMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class FanMeetingServiceImpl implements FanMeetingService {
     private final FanMeetingMapper fanMeetingMapper;
     private final FanMeetingSeatMapper fanMeetingSeatMapper;
+    private final MembershipMapper membershipMapper;
 
     @Autowired
     private FanMeetingSeatMapper seatMapper;
@@ -76,6 +78,7 @@ public class FanMeetingServiceImpl implements FanMeetingService {
                 .profileImageUrl(dto.getProfileImageUrl())
                 .posterImageUrl(dto.getPosterImageUrl())
                 .influencerName(dto.getInfluencerName())
+                .influencerId(dto.getInfluencerId())
                 .build();
     }
 
@@ -173,6 +176,73 @@ public class FanMeetingServiceImpl implements FanMeetingService {
         fanMeetingSeatMapper.insertSeatList(seats);
 
         return fanMeetingMapper.findDetailById(meeting.getMeetingId());
+    }
+
+    @Override
+    public List<FanMeetingResponseDTO> getSubscribedInfluencerMeetings(String userGradeStr, Long userId) {
+        if (userGradeStr == null) {
+            throw new IllegalArgumentException("회원 등급은 필수입니다.");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+
+        UserGrade userGrade = UserGrade.from(userGradeStr);
+        List<Long> subscribedInfluencerIds = membershipMapper.findSubscribedInfluencerIdsByUserId(userId);
+
+        if (subscribedInfluencerIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<FanMeetingVO> meetings = fanMeetingMapper.findOpenMeetingsByInfluencerIds(subscribedInfluencerIds);
+
+        return meetings.stream().map(meeting -> {
+            FanMeetingResponseDTO dto = new FanMeetingResponseDTO();
+            dto.setMeetingId(meeting.getMeetingId());
+            dto.setTitle(meeting.getTitle());
+            dto.setVenueName(meeting.getVenueName());
+            dto.setVenueAddress(meeting.getVenueAddress());
+            dto.setMeetingDate(meeting.getMeetingDate());
+            dto.setAvailableSeats(meeting.getAvailableSeats());
+            dto.setStatus(meeting.getStatus());
+            dto.setProfileImageUrl(meeting.getProfileImageUrl());
+            dto.setOpenTime(extractOpenTime(meeting, userGrade));
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<FanMeetingResponseDTO> getNonSubscribedInfluencerMeetings(String userGradeStr, Long userId) {
+        if (userGradeStr == null) {
+            throw new IllegalArgumentException("회원 등급은 필수입니다.");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+
+        UserGrade userGrade = UserGrade.from(userGradeStr);
+        List<Long> subscribedInfluencerIds = membershipMapper.findSubscribedInfluencerIdsByUserId(userId);
+
+        List<FanMeetingVO> meetings;
+        if (subscribedInfluencerIds.isEmpty()) {
+            meetings = fanMeetingMapper.findAllOpenMeetings();
+        } else {
+            meetings = fanMeetingMapper.findOpenMeetingsExcludingInfluencerIds(subscribedInfluencerIds);
+        }
+
+        return meetings.stream().map(meeting -> {
+            FanMeetingResponseDTO dto = new FanMeetingResponseDTO();
+            dto.setMeetingId(meeting.getMeetingId());
+            dto.setTitle(meeting.getTitle());
+            dto.setVenueName(meeting.getVenueName());
+            dto.setVenueAddress(meeting.getVenueAddress());
+            dto.setMeetingDate(meeting.getMeetingDate());
+            dto.setAvailableSeats(meeting.getAvailableSeats());
+            dto.setStatus(meeting.getStatus());
+            dto.setProfileImageUrl(meeting.getProfileImageUrl());
+            dto.setOpenTime(extractOpenTime(meeting, userGrade));
+            return dto;
+        }).collect(Collectors.toList());
     }
 
 }
