@@ -282,21 +282,98 @@ CREATE INDEX ix_fb_user_created ON feedbacks(user_id, created_at);
 CREATE INDEX ix_fb_context_id   ON feedbacks(context_id);
 
 
-DROP TABLE IF EXISTS notifications;
-DROP TABLE IF EXISTS user_push_token;
-DROP TABLE IF EXISTS settlements;
-DROP TABLE IF EXISTS pg_transactions;
-DROP TABLE IF EXISTS payments;
-DROP TABLE IF EXISTS order_items;
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS cart_items;
-DROP TABLE IF EXISTS cart;
-DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS fan_meeting_reservations;
-DROP TABLE IF EXISTS fan_meeting_seats;
-DROP TABLE IF EXISTS fan_meetings;
-DROP TABLE IF EXISTS memberships;
-DROP TABLE IF EXISTS membership_grades;
-DROP TABLE IF EXISTS influencers;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS feedbacks;
+
+-- 1) 인플루언서 더미 유저 선삽입 (user_id를 influencers와 맞춤)
+INSERT INTO users
+(user_id, email, name, phone, role, social_type, social_id, address1, address2, zipcode, recipient_phone)
+VALUES
+    (1,  'influencer001@fanzip.local', '침착맨',   '010-0000-0001', 'INFLUENCER', 'SEED', 'seed-0001', NULL, NULL, NULL, NULL),
+    (2,  'influencer002@fanzip.local', '김승원빈', '010-0000-0002', 'INFLUENCER', 'SEED', 'seed-0002', NULL, NULL, NULL, NULL),
+    (3,  'influencer003@fanzip.local', '안성재',   '010-0000-0003', 'INFLUENCER', 'SEED', 'seed-0003', NULL, NULL, NULL, NULL),
+    (4,  'influencer004@fanzip.local', '여단오',   '010-0000-0004', 'INFLUENCER', 'SEED', 'seed-0004', NULL, NULL, NULL, NULL),
+    (5,  'influencer005@fanzip.local', '레오제이', '010-0000-0005', 'INFLUENCER', 'SEED', 'seed-0005', NULL, NULL, NULL, NULL),
+    (6,  'influencer006@fanzip.local', '속삭이는 몽자', '010-0000-0006', 'INFLUENCER', 'SEED', 'seed-0006', NULL, NULL, NULL, NULL),
+    (7,  'influencer007@fanzip.local', '심으뜸',   '010-0000-0007', 'INFLUENCER', 'SEED', 'seed-0007', NULL, NULL, NULL, NULL),
+    (8,  'influencer008@fanzip.local', '빠니보틀', '010-0000-0008', 'INFLUENCER', 'SEED', 'seed-0008', NULL, NULL, NULL, NULL),
+    (9,  'influencer009@fanzip.local', '혜안',     '010-0000-0009', 'INFLUENCER', 'SEED', 'seed-0009', NULL, NULL, NULL, NULL),
+    (10, 'influencer010@fanzip.local', '궤도',     '010-0000-0010', 'INFLUENCER', 'SEED', 'seed-0010', NULL, NULL, NULL, NULL),
+    (11, 'influencer011@fanzip.local', '태요미네', '010-0000-0011', 'INFLUENCER', 'SEED', 'seed-0011', NULL, NULL, NULL, NULL),
+    (12, 'influencer012@fanzip.local', '김종국',   '010-0000-0012', 'INFLUENCER', 'SEED', 'seed-0012', NULL, NULL, NULL, NULL),
+    (13, 'influencer013@fanzip.local', '올리버쌤', '010-0000-0013', 'INFLUENCER', 'SEED', 'seed-0013', NULL, NULL, NULL, NULL);
+
+
+
+INSERT INTO influencers (
+    user_id,
+    influencer_id,
+    influencer_name,
+    category,
+    description,
+    profile_image,
+    fancard_image,
+    is_verified
+) VALUES
+      (1, 1, '침착맨', 'DAILY', '안녕하세요, 침착맨입니다. 일상 이야기와 다양한 콘텐츠를 전하는 유튜버입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/d4e62e73-7853-48d2-9156-95af8743324f.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/ChimChakMan.png', 1),
+      (2, 2, '김승원빈', 'FASHION', '패션과 스타일링 팁을 공유하는 김승원빈입니다. 최신 트렌드와 코디를 소개합니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/0b2d03bc-18f0-4692-bc23-de7f4edca4cd.png', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/WonBean.png', 1),
+      (3, 3, '안성재', 'COOKING', '맛있는 집밥과 특별한 레시피를 알려주는 안성재입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/86193442-30c2-434f-8384-184070a45948.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/AnSungJae.png', 1),
+      (4, 4, '여단오', 'ETC', '다양한 주제와 일상 브이로그를 전하는 여단오입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/a72fb485-e5e1-43da-adc5-218f075e18bc.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/YeoDanO.png', 1),
+      (5, 5, '레오제이', 'BEAUTY', '메이크업과 뷰티 팁을 전문적으로 알려주는 레오제이입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/604fb1de-a856-4764-8286-75b086145358.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/LeoJ.png', 1),
+      (6, 6, '속삭이는 몽자', 'PET', '귀여운 반려동물 몽자와의 일상을 담은 채널입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/0c8d6d20-ffad-4817-93ea-33a8dac71d5e.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/WhisperingMongJa.png', 1),
+      (7, 7, '심으뜸', 'HEALTH', '건강과 운동 루틴, 홈트레이닝 팁을 전하는 심으뜸입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/e3d8f60b-808d-4186-96ef-8b9ec609699c.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/ShimEuDdem.png', 1),
+      (8, 8, '빠니보틀', 'TRAVEL', '세계 곳곳을 여행하며 새로운 문화를 소개하는 빼니보틀입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/6509fa56-ab11-47f8-80d2-f66d61634fde.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/BbanniBottle.png', 1),
+      (9, 9, '혜안', 'GAME', '다양한 게임 플레이와 리뷰를 전하는 혜안입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/2a63ee9f-a2ed-4ff8-84e8-73d6507d2540.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/HyeAn.png', 1),
+      (10, 10, '궤도', 'EDUCATION', '과학과 우주, 흥미로운 지식을 쉽고 재미있게 설명하는 궤도입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/e14524ff-21f8-4eaf-a175-103f74b186fd.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/GyeDo.png', 1),
+      (11, 11, '태요미네', 'KIDS', '아이들과 함께 즐길 수 있는 교육적이고 재미있는 콘텐츠를 전합니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/4b415657-36b4-4662-aa6f-b1f44e349487.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/TaeYoMiNae.png', 1),
+      (12, 12, '김종국', 'FITNESS', '운동과 건강 관리, 체력 향상 팁을 알려주는 김종국입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/33852516-1184-4b28-8082-4af912c0d031.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/KimJongGuk.png', 1),
+      (13, 13, '올리버쌤', 'LANGUAGE', '영어와 문화 이야기를 쉽고 재미있게 알려주는 올리버쌤입니다.', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/influencer_profile/0731ac95-fe24-4ec1-bf00-3a71ec545e5f.jpg', 'https://fanzip.s3.ap-northeast-2.amazonaws.com/fancard_image/OliverTeacher.png', 1);
+
+
+INSERT INTO membership_grades
+(grade_id, grade_name, color, benefits_description, monthly_amount, created_at)
+VALUES
+(1, 'WHITE',  '#EFEFEF', '상시 5% 할인',                          7900.00, NOW()),
+    ( 2,'SILVER', '#D9D9D9', '상시 5% 할인 + 1시간 선오픈',           9900.00, NOW()),
+    ( 3,'GOLD',   '#FFD633', '상시 10% 할인 + 2시간 선오픈',         11900.00, NOW()),
+    ( 4,'VIP',    '#000000', '상시 20% 할인 + 3시간 선오픈 + 무료', 13900.00, NOW());
+
+
+
+-- QR 검증 테스트용 더미 데이터 추가
+
+-- 팬미팅 더미 데이터
+INSERT INTO fan_meetings (meeting_id, influencer_id, title, description, venue_name, venue_address, meeting_date, total_seats, available_seats, white_open_time, silver_open_time, gold_open_time, vip_open_time, general_open_time, status, poster_image_url)
+VALUES 
+(1, 1, '침착맨 팬미팅 2025', '침착맨과 함께하는 특별한 시간', '올림픽공원 체조경기장', '서울특별시 송파구 올림픽로 424', '2025-12-25 19:00:00', 100, 50, 
+'2025-12-20 10:00:00', '2025-12-20 11:00:00', '2025-12-20 12:00:00', '2025-12-20 13:00:00', '2025-12-20 14:00:00', 'ACTIVE', 
+'https://fanzip.s3.ap-northeast-2.amazonaws.com/poster/chimchakman_fanmeeting.jpg');
+
+-- 좌석 더미 데이터
+INSERT INTO fan_meeting_seats (seat_id, meeting_id, seat_number, price, reserved)
+VALUES 
+(1, 1, 'A-1', 50000.00, true),
+(2, 1, 'A-2', 50000.00, false),
+(3, 1, 'A-3', 50000.00, false);
+
+-- 예약 더미 데이터 (userId=18, reservationId=1)
+INSERT INTO fan_meeting_reservations (reservation_id, meeting_id, influencer_id, user_id, seat_id, reservation_number, status, reserved_at)
+
+
+VALUES
+(1, 1, 1, 18, 1, 'RES20250812001', 'CONFIRMED', NOW());
+
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+SET @tables = (
+    SELECT GROUP_CONCAT(CONCAT('`', table_name, '`'))
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE()
+);
+
+SET @sql = CONCAT('DROP TABLE IF EXISTS ', @tables);
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET FOREIGN_KEY_CHECKS = 1;
