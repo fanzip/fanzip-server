@@ -26,16 +26,8 @@ class MarketServiceImplTest {
     private MarketService marketService;
 
     @Test
-    void getAllProducts() {
-        List<ProductListDto> list = marketService.getAllProducts(10);
-        for (ProductListDto dto : list) {
-            log.info(dto.toString());
-        }
-    }
-
-    @Test
-    void getProductsAfter() {
-        List<ProductListDto> list = marketService.getProductsAfter(60L, 10);
+    void getProducts() {
+        List<ProductListDto> list = marketService.getProducts(1L,60L, 10, "latest", "FOOD", false);
         for (ProductListDto dto : list) {
             log.info(dto.toString());
         }
@@ -49,7 +41,7 @@ class MarketServiceImplTest {
 
     @Test
     void searchProducts() {
-        List<ProductListDto> list = marketService.searchProducts("상품", 30L, 20);
+        List<ProductListDto> list = marketService.searchProducts(1L,"상품", 30L, 20);
         for (ProductListDto dto : list) {
             log.info(dto.toString());
         }
