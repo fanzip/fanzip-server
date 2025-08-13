@@ -2,6 +2,7 @@ package org.example.fanzip.market.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.example.fanzip.market.domain.MarketVO;
 import org.example.fanzip.market.dto.ProductDetailDto;
 import org.example.fanzip.market.dto.ProductListDto;
 
@@ -41,4 +42,10 @@ public interface MarketMapper {
     // 재고 조회
     int getStock(
             @Param("productId") Long productId);
+    
+    // 상품 추가
+    int insertProduct(MarketVO marketVO);
+    
+    // 마지막 삽입된 상품 ID 조회
+    Long getLastInsertId();
 }
