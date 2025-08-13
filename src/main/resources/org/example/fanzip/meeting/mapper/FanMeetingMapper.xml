@@ -65,36 +65,92 @@
             fm.white_open_time AS whiteOpenTime,
             fm.general_open_time AS generalOpenTime,
             i.profile_image AS profileImageUrl,
-            i.influencer_name AS influencerName
+            i.influencer_name AS influencerName,
+            i.influencer_id AS influencerId
         FROM fan_meetings fm
                  JOIN influencers i ON i.influencer_id = fm.influencer_id
         WHERE fm.meeting_id = #{meetingId}
     </select>
 
     <select id="findOpenInfo" resultType="org.example.fanzip.meeting.dto.FanMeetingOpenInfoDTO">
-        SELECT
-            fm.status                               AS status,
-            fm.vip_open_time                        AS vipOpenTime,
-            fm.gold_open_time                       AS goldOpenTime,
-            fm.silver_open_time                     AS silverOpenTime,
-            fm.white_open_time                      AS whiteOpenTime,
-            fm.general_open_time                    AS generalOpenTime
-        FROM fan_meetings fm
-        WHERE fm.meeting_id = #{meetingId}
+        SELECT status AS status,
+               vip_open_time AS vipOpenTime,
+               gold_open_time AS goldOpenTime,
+               silver_open_time AS silverOpenTime,
+               white_open_time AS whiteOpenTime,
+               general_open_time AS generalOpenTime
+        FROM fan_meetings WHERE meeting_id=#{meetingId}
     </select>
 
     <update id="decrementAvailableSeats">
         UPDATE fan_meetings
         SET available_seats = available_seats - 1
-        WHERE meeting_id = #{meetingId}
-          AND available_seats > 0
+        WHERE meeting_id=#{meetingId} AND available_seats > 0
     </update>
 
     <update id="incrementAvailableSeats">
         UPDATE fan_meetings
         SET available_seats = available_seats + 1
-        WHERE meeting_id = #{meetingId}
+        WHERE meeting_id=#{meetingId}
     </update>
+    <select id="findInfluencerIdByMeetingId" resultType="long">
+        SELECT influencer_id
+        FROM fan_meetings
+        WHERE meeting_id = #{meetingId}
+    </select>
 
+    <!-- 구독중인 인플루언서의 팬미팅 조회 -->
+    <select id="findOpenMeetingsByInfluencerIds" resultType="org.example.fanzip.meeting.domain.FanMeetingVO">
+        SELECT
+            fm.meeting_id        AS meetingId,
+            fm.title             AS title,
+            fm.venue_name        AS venueName,
+            fm.venue_address     AS venueAddress,
+            fm.meeting_date      AS meetingDate,
+            fm.available_seats   AS availableSeats,
+            fm.status            AS status,
+            fm.vip_open_time     AS vipOpenTime,
+            fm.gold_open_time    AS goldOpenTime,
+            fm.silver_open_time  AS silverOpenTime,
+            fm.white_open_time   AS whiteOpenTime,
+            fm.general_open_time AS generalOpenTime,
+            i.profile_image      AS profileImageUrl,
+            i.influencer_name    AS influencerName
+        FROM fan_meetings fm
+                 JOIN influencers i ON i.influencer_id = fm.influencer_id
+        WHERE fm.status = 'PLANNED'
+          AND fm.influencer_id IN
+        <foreach collection="influencerIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY fm.meeting_date ASC
+    </select>
+
+    <!-- 구독하지 않은 인플루언서의 팬미팅 조회 -->
+    <select id="findOpenMeetingsExcludingInfluencerIds" resultType="org.example.fanzip.meeting.domain.FanMeetingVO">
+        SELECT
+            fm.meeting_id        AS meetingId,
+            fm.title             AS title,
+            fm.venue_name        AS venueName,
+            fm.venue_address     AS venueAddress,
+            fm.meeting_date      AS meetingDate,
+            fm.available_seats   AS availableSeats,
+            fm.status            AS status,
+            fm.vip_open_time     AS vipOpenTime,
+            fm.gold_open_time    AS goldOpenTime,
+            fm.silver_open_time  AS silverOpenTime,
+            fm.white_open_time   AS whiteOpenTime,
+            fm.general_open_time AS generalOpenTime,
+            i.profile_image      AS profileImageUrl,
+            i.influencer_name    AS influencerName
+        FROM fan_meetings fm
+                 JOIN influencers i ON i.influencer_id = fm.influencer_id
+        WHERE fm.status = 'PLANNED'
+          AND fm.influencer_id NOT IN
+        <foreach collection="influencerIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY fm.meeting_date ASC
+    </select>
 
 </mapper>

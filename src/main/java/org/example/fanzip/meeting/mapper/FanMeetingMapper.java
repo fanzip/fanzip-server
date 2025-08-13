@@ -15,5 +15,7 @@ public interface FanMeetingMapper {
     FanMeetingOpenInfoDTO findOpenInfo(@Param("meetingId") Long meetingId);
     int decrementAvailableSeats(@Param("meetingId") Long meetingId);
     int incrementAvailableSeats(@Param("meetingId") Long meetingId);
-
+    Long findInfluencerIdByMeetingId(@Param("meetingId") Long meetingId);
+    List<FanMeetingVO> findOpenMeetingsByInfluencerIds(@Param("influencerIds") List<Long> influencerIds);
+    List<FanMeetingVO> findOpenMeetingsExcludingInfluencerIds(@Param("influencerIds") List<Long> influencerIds);
 }
