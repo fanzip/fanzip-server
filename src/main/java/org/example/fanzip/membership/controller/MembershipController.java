@@ -6,8 +6,10 @@ import org.example.fanzip.membership.dto.MembershipSubscribeRequestDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeResponseDTO;
 import org.example.fanzip.membership.dto.UserMembershipInfoDTO;
 import org.example.fanzip.membership.service.MembershipService;
+import org.example.fanzip.security.CustomUserPrincipal;
 import org.example.fanzip.security.JwtProcessor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,28 +40,29 @@ public class MembershipController {
     public ResponseEntity<List<MembershipGradeDTO>> getMembershipGrades() {
         return ResponseEntity.ok(membershipService.getMembershipGrades());
     }
-    
+
     @GetMapping("/my-info")
     public ResponseEntity<UserMembershipInfoDTO> getUserMembershipInfo(
-            @RequestHeader("Authorization") String authorizationHeader
+            Authentication authentication
     ) {
-        String token = authorizationHeader.substring(7);
-        Long userId = jwtProcessor.getUserIdFromToken(token);
-        
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
         UserMembershipInfoDTO userInfo = membershipService.getUserMembershipInfo(userId);
         return ResponseEntity.ok(userInfo);
     }
-    
+
     @GetMapping("/subscription/{influencerId}")
     public ResponseEntity<UserMembershipInfoDTO.UserMembershipSubscriptionDTO> getUserSubscriptionByInfluencer(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable Long influencerId
+            @PathVariable Long influencerId,
+            Authentication authentication
     ) {
-        String token = authorizationHeader.substring(7);
-        Long userId = jwtProcessor.getUserIdFromToken(token);
-        
-        UserMembershipInfoDTO.UserMembershipSubscriptionDTO subscription = 
-            membershipService.getUserSubscriptionByInfluencer(userId, influencerId);
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
+        UserMembershipInfoDTO.UserMembershipSubscriptionDTO subscription =
+                membershipService.getUserSubscriptionByInfluencer(userId, influencerId);
         return ResponseEntity.ok(subscription);
     }
+
 }
