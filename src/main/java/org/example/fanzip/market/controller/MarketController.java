@@ -31,18 +31,21 @@ public class MarketController {
     // 전체 상품 조회
     @GetMapping("/products")
     public List<ProductListDto> getProducts(
+            @AuthenticationPrincipal CustomUserPrincipal customUserPrincipal,
             @RequestParam(value = "limit", defaultValue = "20") int limit,
             @RequestParam(value = "lastProductId", required = false) Long lastProductId,
-            @RequestParam(value = "q", required = false) String keyword
+            @RequestParam(value = "q", required = false) String keyword,
+            @RequestParam(value="sort", defaultValue = "recommended") String sort,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "onlySubscribed", required = false, defaultValue = "false") boolean onlySubscribed
     ) {
+        Long userId = customUserPrincipal.getUserId();
+
         if(keyword != null && !keyword.isBlank()) {
-            return marketService.searchProducts(keyword, lastProductId, limit);
+            return marketService.searchProducts(userId, keyword, lastProductId, limit);
         }
 
-        if (lastProductId == null) {
-            return marketService.getAllProducts(limit);
-        }
-        return marketService.getProductsAfter(lastProductId, limit);
+        return marketService.getProducts(userId, lastProductId, limit, sort, category, onlySubscribed);
     }
 
     // 상세 상품 조회

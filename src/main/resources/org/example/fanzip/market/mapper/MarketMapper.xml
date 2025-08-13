@@ -4,52 +4,86 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.example.fanzip.market.mapper.MarketMapper">
 
-    <!-- limit 개수만큼 최신 상품 조회 (1페이지) -->
-    <select id="getAllProducts"
-            resultType="org.example.fanzip.market.dto.ProductListDto"
-            parameterType="int">
-        select
-            product_id          as productId,
-            name,
-            price,
-            discounted_price    as discountedPrice,
-            discount_rate       as discountRate,
-            thumbnail_image     as thumbnailImage,
-            stock
-        from products
-        order by product_id DESC
-        LIMIT #{limit}
-    </select>
+
 
     <!-- lastProductId 이후 커서 페이징 -->
-    <select id="getProductsAfter"
+    <select id="getProducts"
             resultType="org.example.fanzip.market.dto.ProductListDto"
             parameterType="map">
-        select
-            product_id          as productId,
-            name,
-            price,
-            discounted_price    as discountedPrice,
-            discount_rate       as discountRate,
-            thumbnail_image     as thumbnailImage,
-            stock
-        FROM products
-        WHERE product_id &lt; #{lastProductId}
-        ORDER BY product_id DESC
+        SELECT
+            p.product_id        AS productId,
+            p.name,
+            p.price,
+            p.discounted_price  AS discountedPrice,
+            p.discount_rate     AS discountRate,
+            p.thumbnail_image   AS thumbnailImage,
+            p.stock,
+            p.categories,
+            CASE WHEN ms.user_id IS NOT NULL THEN 1 ELSE 0 END AS subscribed,
+            IFNULL(ms.grade_id, 0)   as gradeId,
+            CASE WHEN EXISTS (
+                SELECT 1
+                FROM (
+                         SELECT DISTINCT i2.category
+                         FROM memberships m2
+                         JOIN influencers i2 ON i2.influencer_id = m2.influencer_id
+                         WHERE m2.user_id = #{userId}
+                           AND m2.status = 'ACTIVE'
+                ) sic
+                WHERE sic.category = i.category
+            ) THEN 1 ELSE 0 END AS sameInfCategory,
+            CASE WHEN EXISTS (
+                SELECT 1
+                FROM JSON_TABLE(p.categories, '$[*]'
+                                COLUMNS(cat VARCHAR(50) PATH '$')) pc
+                JOIN (
+                    SELECT DISTINCT jt.cat
+                    FROM products sp
+                             JOIN memberships m3
+                                  ON m3.influencer_id = sp.influencer_id
+                                      AND m3.user_id = #{userId}
+                                      AND m3.status = 'ACTIVE'
+                             JOIN JSON_TABLE(sp.categories, '$[*]'
+                                             COLUMNS(cat VARCHAR(50) PATH '$')) jt
+                ) subpc ON subpc.cat = pc.cat
+            ) THEN 1 ELSE 0 END AS catMatch
+        FROM products p
+        JOIN influencers i ON i.influencer_id = p.influencer_id
+        LEFT JOIN memberships ms
+             ON ms.influencer_id = p.influencer_id
+             AND ms.user_id = #{userId}
+             AND ms.status = 'ACTIVE'
+        <where>
+            <if test="lastProductId != null">
+                p.product_id &lt; #{lastProductId}
+            </if>
+            <if test="category != null and category != ''">
+                <if test="lastProductId != null"> AND </if>
+                JSON_CONTAINS(p.categories, JSON_QUOTE(#{category}), '$')
+            </if>
+            <if test="onlySubscribed">
+                <if test="lastProductId != null or (category != null and category != '')"> AND </if>
+                ms.user_id IS NOT NULL
+            </if>
+        </where>
+        <choose>
+            <when test="sort == 'latest'">
+                ORDER BY p.product_id DESC
+            </when>
+            <when test="sort == 'priceAsc'">
+                ORDER BY p.discounted_price ASC, p.product_id DESC
+            </when>
+            <otherwise>
+            ORDER BY
+                subscribed DESC,
+                gradeId DESC,
+                sameInfCategory DESC,
+                catMatch DESC,
+                p.product_id DESC
+            </otherwise>
+        </choose>
         LIMIT #{limit}
     </select>
-
-<!--    &lt;!&ndash; 내등급 확인 &ndash;&gt;-->
-<!--    <select id="findMyGrade"-->
-<!--            resultType="java.lang.Integer"-->
-<!--            parameterType="map">-->
-<!--        select grade_id  as gradeId-->
-<!--        from memberships-->
-<!--        where user_id = #{userId}-->
-<!--          and influencer_id = #{influencerId}-->
-<!--          and status = 'ACTIVE'-->
-<!--        limit 1-->
-<!--    </select>-->
 
     <!-- 상세 상품 내역 조회 -->
     <select id="findProductById"
@@ -67,7 +101,7 @@
             p.thumbnail_image       as thumbnailImage,
             p.detail_images         as detailImages,
             p.description_images    as descriptionImages,
-            ifnull(m.grade_id, 0)              as gradeId,
+            p.categories            as categories,
             case m.grade_id
                 when 1 then p.white_open_time
                 when 2 then p.silver_open_time
@@ -91,41 +125,65 @@
         where p.product_id = #{productId}
     </select>
 
-    <!-- 검색(1페이지) -->
+     <!-- 검색(중간페이지) -->
     <select id="searchProducts"
             parameterType="map"
             resultType="org.example.fanzip.market.dto.ProductListDto">
-        select
-            product_id          as productId,
-            name,
-            price,
-            discounted_price    as discountedPrice,
-            discount_rate       as discountRate,
-            thumbnail_image     as thumbnailImage,
-            stock
-        from products
-        where name LIKE CONCAT('%', #{keyword}, '%')
-        order by product_id desc
-        limit #{limit}
-    </select>
-
-    <!-- 검색(중간페이지) -->
-    <select id="searchProductsAfter"
-            parameterType="map"
-            resultType="org.example.fanzip.market.dto.ProductListDto">
-        select
-            product_id          as productId,
-            name,
-            price,
-            discounted_price    as discountedPrice,
-            discount_rate       as discountRate,
-            thumbnail_image     as thumbnailImage,
-            stock
-        from products
-        where product_id &lt; #{lastProductId}
-          and name LIKE CONCAT('%', #{keyword}, '%')
-        order by product_id desc
-        limit #{limit}
+        SELECT
+            p.product_id        AS productId,
+            p.name,
+            p.price,
+            p.discounted_price  AS discountedPrice,
+            p.discount_rate     AS discountRate,
+            p.thumbnail_image   AS thumbnailImage,
+            p.stock,
+            p.categories,
+            CASE WHEN ms.user_id IS NOT NULL THEN 1 ELSE 0 END AS subscribed,
+            IFNULL(ms.grade_id, 0)   as gradeId,
+            CASE WHEN EXISTS (
+                SELECT 1
+                FROM (
+                         SELECT DISTINCT i2.category
+                         FROM memberships m2
+                                  JOIN influencers i2 ON i2.influencer_id = m2.influencer_id
+                         WHERE m2.user_id = #{userId}
+                           AND m2.status = 'ACTIVE'
+                     ) sic
+                WHERE sic.category = i.category
+            ) THEN 1 ELSE 0 END AS sameInfCategory,
+            CASE WHEN EXISTS (
+                SELECT 1
+                FROM JSON_TABLE(p.categories, '$[*]'
+                                COLUMNS(cat VARCHAR(50) PATH '$')) pc
+                         JOIN (
+                    SELECT DISTINCT jt.cat
+                    FROM products sp
+                             JOIN memberships m3
+                                  ON m3.influencer_id = sp.influencer_id
+                                      AND m3.user_id = #{userId}
+                                      AND m3.status = 'ACTIVE'
+                             JOIN JSON_TABLE(sp.categories, '$[*]'
+                                             COLUMNS(cat VARCHAR(50) PATH '$')) jt
+                ) subpc ON subpc.cat = pc.cat
+            ) THEN 1 ELSE 0 END AS catMatch
+        FROM products p
+                 JOIN influencers i ON i.influencer_id = p.influencer_id
+                 LEFT JOIN memberships ms
+                           ON ms.influencer_id = p.influencer_id
+                               AND ms.user_id = #{userId}
+                               AND ms.status = 'ACTIVE'
+        <where>
+            p.name LIKE CONCAT('%', #{keyword}, '%')
+            <if test="lastProductId != null">
+                AND p.product_id &lt; #{lastProductId}
+            </if>
+        </where>
+        ORDER BY
+            subscribed DESC,
+            sameInfCategory DESC,
+            catMatch DESC,
+            p.product_id DESC
+        LIMIT #{limit}
     </select>
 
     <!-- 재고 조회 -->
