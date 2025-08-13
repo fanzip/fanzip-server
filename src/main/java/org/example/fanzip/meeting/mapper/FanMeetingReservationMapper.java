@@ -18,6 +18,13 @@ public interface FanMeetingReservationMapper {
             @Param("reservationId") Long reservationId,
             @Param("cancelledAt") LocalDateTime cancelledAt
     );
+    
+    int updateReservationStatus(
+            @Param("reservationId") Long reservationId,
+            @Param("status") String status,
+            @Param("usedAt") LocalDateTime usedAt
+    );
+    
     boolean existsByMeetingIdAndUserId(@Param("meetingId") Long meetingId, @Param("userId") Long userId);
 
 }

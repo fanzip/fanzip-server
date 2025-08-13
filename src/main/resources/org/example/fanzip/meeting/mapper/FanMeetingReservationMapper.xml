@@ -43,6 +43,13 @@
         WHERE reservation_id = #{reservationId}
     </update>
 
+    <update id="updateReservationStatus">
+        UPDATE fan_meeting_reservations
+        SET status = #{status},
+            used_at = #{usedAt}
+        WHERE reservation_id = #{reservationId}
+    </update>
+
     <select id="findByUserAndMeeting" resultType="org.example.fanzip.meeting.domain.FanMeetingReservationVO">
         SELECT * FROM fan_meeting_reservations
         WHERE user_id = #{userId}
