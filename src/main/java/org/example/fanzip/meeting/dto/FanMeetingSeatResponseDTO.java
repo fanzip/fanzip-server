@@ -10,4 +10,5 @@ public class FanMeetingSeatResponseDTO {
     private String seatNumber;
     private BigDecimal price;
     private boolean reserved;
+    private boolean pending;
 }
