@@ -24,7 +24,6 @@ public class ProductAddResponseDto {
     private BigDecimal shippingPrice;
     private Integer stock;
     private String thumbnailImage;
-    private String category;
     private LocalDateTime createdAt;
     
     // API 응답 메시지
