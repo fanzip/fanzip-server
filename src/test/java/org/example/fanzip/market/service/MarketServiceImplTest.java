@@ -41,7 +41,7 @@ class MarketServiceImplTest {
 
     @Test
     void searchProducts() {
-        List<ProductListDto> list = marketService.searchProducts(1L,"상품", 30L, 20);
+        List<ProductListDto> list = marketService.searchProducts(1L,"상품", 30L, 20, "priceAsc", "FOOD");
         for (ProductListDto dto : list) {
             log.info(dto.toString());
         }
