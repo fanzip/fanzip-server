@@ -22,6 +22,7 @@ public class MarketVO {
     private BigDecimal discountedPrice;
     private BigDecimal discountRate;
     private String thumbnailImage;
+    private String categories;
 
     private Integer stock;
     private Boolean isSoldOut;
