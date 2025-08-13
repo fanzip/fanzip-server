@@ -40,4 +40,13 @@
         </foreach>
     </delete>
 
+    <!-- 특정 사용자의 FCM 토큰 조회 (QR 코드 생성용) -->
+    <select id="findTokenByUserId" resultType="string">
+        SELECT push_token
+        FROM user_push_token
+        WHERE user_id = #{userId}
+        ORDER BY updated_at DESC
+        LIMIT 1
+    </select>
+
 </mapper>

@@ -15,6 +15,7 @@ public class FcmService {
 
     /** 단일 토큰 발송 */
     public String sendToToken(String token, String title, String body, String targetUrl) throws Exception {
+        System.out.println("🚀 FCM 전송 시도: token=" + hide(token) + ", title=" + title);
         WebpushConfig webpush = WebpushConfig.builder()
                 .setNotification(WebpushNotification.builder()
                         .setTitle(title)

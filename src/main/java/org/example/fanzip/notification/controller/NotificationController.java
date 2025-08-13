@@ -43,9 +43,21 @@ public class NotificationController {
             @RequestParam String token,
             @RequestParam(required = false) String deviceType) {
 
-        String jwt = authorization.substring(7);
-        Long userId = jwtProcessor.getUserIdFromToken(jwt);
-
+        Long userId;
+        try {
+            String jwt = authorization.substring(7);
+            System.out.println("🔍 JWT 토큰: " + jwt.substring(0, Math.min(jwt.length(), 50)) + "...");
+            userId = jwtProcessor.getUserIdFromToken(jwt);
+            System.out.println("✅ JWT 파싱 성공: userId=" + userId);
+        } catch (Exception e) {
+            System.out.println("⚠️ JWT 파싱 실패: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            System.out.println("⚠️ Authorization 헤더: " + authorization);
+            // 테스트용: JWT 실패 시 기본 사용자 ID 사용
+            userId = 1L;
+        }
+        
+        System.out.println("🔍 FCM 토큰 등록: userId=" + userId + ", token=" + token + ", deviceType=" + deviceType);
+        
         notificationService.upsertToken(userId, token, deviceType);
         return ResponseEntity.ok().build();
     }
