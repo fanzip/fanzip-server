@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.fanzip.membership.dto.MembershipGradeDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeRequestDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeResponseDTO;
+import org.example.fanzip.membership.dto.UserMembershipInfoDTO;
 import org.example.fanzip.membership.service.MembershipService;
 import org.example.fanzip.security.JwtProcessor;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +34,32 @@ public class MembershipController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    // ✅ 등급/금액 목록 조회 API
     @GetMapping("/grades")
     public ResponseEntity<List<MembershipGradeDTO>> getMembershipGrades() {
         return ResponseEntity.ok(membershipService.getMembershipGrades());
+    }
+    
+    @GetMapping("/my-info")
+    public ResponseEntity<UserMembershipInfoDTO> getUserMembershipInfo(
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        String token = authorizationHeader.substring(7);
+        Long userId = jwtProcessor.getUserIdFromToken(token);
+        
+        UserMembershipInfoDTO userInfo = membershipService.getUserMembershipInfo(userId);
+        return ResponseEntity.ok(userInfo);
+    }
+    
+    @GetMapping("/subscription/{influencerId}")
+    public ResponseEntity<UserMembershipInfoDTO.UserMembershipSubscriptionDTO> getUserSubscriptionByInfluencer(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable Long influencerId
+    ) {
+        String token = authorizationHeader.substring(7);
+        Long userId = jwtProcessor.getUserIdFromToken(token);
+        
+        UserMembershipInfoDTO.UserMembershipSubscriptionDTO subscription = 
+            membershipService.getUserSubscriptionByInfluencer(userId, influencerId);
+        return ResponseEntity.ok(subscription);
     }
 }

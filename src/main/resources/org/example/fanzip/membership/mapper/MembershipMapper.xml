@@ -78,4 +78,50 @@
         WHERE user_id = #{userId} AND influencer_id = #{influencerId}
     </delete>
 
+    <!-- 사용자가 구독중인 인플루언서 ID 목록 조회 -->
+    <select id="findSubscribedInfluencerIdsByUserId" resultType="Long">
+        SELECT DISTINCT influencer_id
+        FROM memberships
+        WHERE user_id = #{userId}
+          AND status = 'ACTIVE'
+          AND subscription_end >= CURDATE()
+    </select>
+    
+    <!-- 사용자의 최고 등급 조회 -->
+    <select id="findHighestGradeByUserId" resultType="String">
+        SELECT mg.grade_name
+        FROM memberships m
+        JOIN membership_grades mg ON m.grade_id = mg.grade_id
+        WHERE m.user_id = #{userId}
+          AND m.status = 'ACTIVE'
+          AND m.subscription_end >= CURDATE()
+        ORDER BY CASE mg.grade_name
+                     WHEN 'VIP' THEN 1
+                     WHEN 'GOLD' THEN 2  
+                     WHEN 'SILVER' THEN 3
+                     WHEN 'WHITE' THEN 4
+                     ELSE 5
+                 END
+        LIMIT 1
+    </select>
+    
+    <!-- 특정 인플루언서에 대한 사용자의 구독 정보 조회 -->
+    <select id="findUserSubscriptionByInfluencerId" resultType="org.example.fanzip.membership.dto.UserMembershipInfoDTO$UserMembershipSubscriptionDTO">
+        SELECT 
+            m.membership_id AS membershipId,
+            m.influencer_id AS influencerId,
+            i.influencer_name AS influencerName,
+            m.grade_id AS gradeId,
+            mg.grade_name AS gradeName,
+            mg.color AS gradeColor,
+            (m.status = 'ACTIVE' AND m.subscription_end >= CURDATE()) AS isActive
+        FROM memberships m
+        JOIN influencers i ON m.influencer_id = i.influencer_id
+        JOIN membership_grades mg ON m.grade_id = mg.grade_id
+        WHERE m.user_id = #{userId} 
+          AND m.influencer_id = #{influencerId}
+        ORDER BY m.membership_id DESC
+        LIMIT 1
+    </select>
+
 </mapper>
