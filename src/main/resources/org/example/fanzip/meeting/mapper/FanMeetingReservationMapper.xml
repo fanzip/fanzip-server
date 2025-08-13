@@ -36,11 +36,12 @@
           AND seat_id = #{seatId}
     </select>
 
-    <update id="updateStatusToCanceled">
+    <update id="updateStatusToCancelled">
         UPDATE fan_meeting_reservations
-        SET status = 'CANCELED',
-            cancelled_at = #{cancelledAt}
+        SET status = 'CANCELLED',
+        cancelled_at = #{cancelledAt}
         WHERE reservation_id = #{reservationId}
+        AND status IN ('PENDING')  <!-- 확정 후엔 취소 불가 -->
     </update>
 
     <update id="updateReservationStatus">
@@ -66,4 +67,64 @@
         )
     </select>
 
+    <select id="existConfirmedByUserAndMeeting" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM fan_meeting_reservations
+            WHERE meeting_id=#{meetingId} AND user_id=#{userId} AND status='RESERVED'
+        )
+    </select>
+
+    <select id="existAnyReservationByUserAndMeeting" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM fan_meeting_reservations
+            WHERE meeting_id=#{meetingId} AND user_id=#{userId} 
+            AND status IN ('PENDING', 'RESERVED')
+        )
+    </select>
+
+    <insert id="upsertPending">
+        INSERT INTO fan_meeting_reservations
+        (meeting_id, influencer_id, seat_id, user_id, payment_id, status, reserved_at, expires_at)
+
+        VALUES
+            (#{meetingId}, #{influencerId}, #{seatId}, #{userId}, #{paymentId}, 'PENDING', NOW(), #{expiresAt})
+            ON DUPLICATE KEY UPDATE
+            status='PENDING', reserved_at=NOW(), expires_at=#{expiresAt}
+    </insert>
+
+    <select id="findByPaymentId"
+            resultType="org.example.fanzip.meeting.domain.FanMeetingReservationVO">
+        SELECT r.*
+        FROM fan_meeting_reservations r
+                 JOIN payments p ON p.reservation_id = r.reservation_id
+        WHERE p.payment_id = #{paymentId}
+    </select>
+
+    <update id="markConfirmed">
+        UPDATE fan_meeting_reservations
+        SET status = 'RESERVED',
+        reserved_at = #{confirmedAt},
+        cancelled_at = NULL
+        WHERE reservation_id = #{reservationId}
+        AND status IN ('PENDING')  <!-- 멱등/상태 보호 -->
+    </update>
+
+    <insert id="insertPending"
+            parameterType="org.example.fanzip.meeting.domain.FanMeetingReservationVO"
+            useGeneratedKeys="true"
+            keyProperty="reservationId"
+            keyColumn="reservation_id">
+        INSERT INTO fan_meeting_reservations
+        (meeting_id, influencer_id, user_id, seat_id, reservation_number, status, reserved_at)
+
+        VALUES
+            (#{meetingId}, #{influencerId}, #{userId}, #{seatId}, #{reservationNumber}, #{status}, #{reservedAt})
+    </insert>
+
+    <select id="findIdByReservationNumber" resultType="long">
+        SELECT reservation_id
+        FROM fan_meeting_reservations
+        WHERE reservation_number = #{reservationNumber}
+            LIMIT 1
+    </select>
 </mapper>
