@@ -72,10 +72,11 @@ public class FanMeetingReservationController {
     @PostMapping("/{meetingId}/seats/{seatId}/start-payment")
     public ResponseEntity<PaymentIntentResponseDTO> startPayment(
             @PathVariable Long meetingId,
-            @PathVariable Long seatId) {
-
-        Long userId = ((CustomUserPrincipal) SecurityContextHolder
-                .getContext().getAuthentication().getPrincipal()).getUserId();
+            @PathVariable Long seatId,
+            Authentication authentication
+    ) {
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
 
         return ResponseEntity.ok(reservationService.startPayment(meetingId, seatId, userId));
     }
