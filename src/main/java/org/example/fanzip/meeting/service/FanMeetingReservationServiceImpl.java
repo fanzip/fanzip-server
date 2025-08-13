@@ -150,18 +150,17 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
         return reservationMapper.existsByMeetingIdAndUserId(meetingId, userId);
     }
 
-    // org/example/fanzip/meeting/service/FanMeetingReservationServiceImpl.java
     @Override
     @Transactional
     public PaymentIntentResponseDTO startPayment(Long meetingId, Long seatId, Long userId) {
         log.info("startPayment(meetingId={}, seatId={}, userId={})", meetingId, seatId, userId);
 
-        // 1) 1인 1좌석(이미 확정 예약 여부)
+        // 1인 1좌석(이미 확정 예약 여부)
         if (reservationMapper.existConfirmedByUserAndMeeting(userId, meetingId)) {
             throw new IllegalStateException("이미 예약 완료한 팬미팅입니다.");
         }
 
-        // 2) 좌석 검증
+        // 좌석 검증
         FanMeetingSeatVO seat = seatMapper.findById(seatId);
         if (seat == null || !meetingId.equals(seat.getMeetingId())) {
             throw new IllegalStateException("잘못된 좌석입니다.");
@@ -170,12 +169,12 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
             throw new IllegalStateException("이미 선점된 좌석입니다.");
         }
 
-        // 3) 오픈시간/상태 검증
+        // 오픈시간/상태 검증
         var open = meetingMapper.findOpenInfo(meetingId);
         if (open == null || open.getStatus() != FanMeetingStatus.PLANNED) {
             throw new IllegalStateException("예약 불가한 팬미팅입니다.");
         }
-        UserGrade grade = UserGrade.GENERAL; // TODO: JWT/DB에서 실제 등급
+        UserGrade grade = UserGrade.GENERAL;
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime openTime = switch (grade) {
             case VIP -> open.getVipOpenTime();
@@ -191,14 +190,14 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
         Long influencerId = meetingMapper.findInfluencerIdByMeetingId(meetingId);
         if (influencerId == null) throw new IllegalStateException("팬미팅의 인플루언서를 찾을 수 없습니다.");
 
-        // 4) Redis 홀드(10분)
+        // Redis 홀드(10분)
         var bucket = redissonClient.<SeatHold>getBucket(holdKey(seatId));
         boolean ok = bucket.trySet(new SeatHold(userId, meetingId, seat.getVersion()),
                 10, TimeUnit.MINUTES);
         if (!ok) throw new IllegalStateException("이미 결제 진행 중인 좌석입니다.");
         long ttlSec = bucket.remainTimeToLive() / 1000;
 
-        // 5) available_seats 감소 (PENDING 상태에서 좌석 차감)
+        // available_seats 감소 (PENDING 상태에서 좌석 차감)
         int dec = meetingMapper.decrementAvailableSeats(meetingId);
         if (dec == 0) {
             // 좌석 수 감소 실패 → Redis 홀드 롤백 후 에러
@@ -206,7 +205,7 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
             throw new IllegalStateException("잔여 좌석이 없습니다.");
         }
 
-        // 6) ✅ 예약 PENDING 선행 생성
+        // 예약 PENDING 선행 생성
         FanMeetingReservationVO pending = new FanMeetingReservationVO();
         pending.setMeetingId(meetingId);
         pending.setInfluencerId(influencerId);
@@ -227,7 +226,7 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
             pending.setReservationId(reservationId);
         }
 
-        // 6) ✅ 결제의도 생성 (RESERVATION, orderId=null)
+        // 결제의도 생성 (RESERVATION, orderId=null)
         PaymentRequestDto req = PaymentRequestDto.builder()
                 .userId(userId)
                 .orderId(null)
@@ -241,7 +240,7 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
 
         var pay = paymentService.createPayment(req);
 
-        // 7) 응답
+        // 응답
         return PaymentIntentResponseDTO.builder()
                 .paymentId(pay.getPaymentId())
                 .amount(seat.getPrice())
