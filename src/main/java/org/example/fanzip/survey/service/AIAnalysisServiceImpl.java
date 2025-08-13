@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.fanzip.survey.domain.MeetingSurveyResponseVO;
 import org.example.fanzip.survey.dto.AIReportDTO;
+import org.example.fanzip.survey.dto.AIReportSummaryDTO;
 import org.example.fanzip.survey.dto.OpenAIRequestDTO;
 import org.example.fanzip.survey.dto.OpenAIResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -414,6 +416,214 @@ public class AIAnalysisServiceImpl implements AIAnalysisService {
         public List<AIReportDTO.ActionItem> getActionItems() { return actionItems; }
     }
 
+
+    @Override
+    public AIReportSummaryDTO generateAIReportSummary(Long meetingId, List<MeetingSurveyResponseVO> responses) {
+        try {
+            // 기본 통계 계산
+            double avgRating = responses.stream()
+                .mapToInt(MeetingSurveyResponseVO::getOverallRating)
+                .average()
+                .orElse(0.0);
+
+            // 평점별 분포 계산
+            Map<Integer, Long> ratingDistribution = new HashMap<>();
+            for (int i = 1; i <= 5; i++) {
+                ratingDistribution.put(i, 0L);
+            }
+            
+            responses.stream()
+                .map(MeetingSurveyResponseVO::getOverallRating)
+                .forEach(rating -> ratingDistribution.merge(rating, 1L, Long::sum));
+
+            // 텍스트 피드백 추출
+            List<String> textFeedbacks = extractTextFeedbacks(responses);
+            
+            // OpenAI를 사용한 AI 분석
+            AIReportSummaryDTO reportSummary = callOpenAIForSummary(avgRating, responses.size(), textFeedbacks, ratingDistribution);
+            
+            return reportSummary;
+            
+        } catch (Exception e) {
+            // OpenAI API 호출 실패 시 fallback으로 기본 요약 생성
+            return generateBasicAIReportSummary(responses);
+        }
+    }
+
+    private AIReportSummaryDTO callOpenAIForSummary(double avgRating, int responseCount, List<String> textFeedbacks, Map<Integer, Long> ratingDistribution) {
+        try {
+            String prompt = buildSummaryPrompt(avgRating, responseCount, textFeedbacks, ratingDistribution);
+            
+            List<OpenAIRequestDTO.Message> messages = Arrays.asList(
+                new OpenAIRequestDTO.Message("system", "당신은 팬미팅 설문 결과를 분석하여 구조화된 데이터를 제공하는 AI 분석가입니다. overallSummary는 반드시 친근한 카카오톡 스타일로 이모티콘을 포함하여 매번 다르게 작성하세요. JSON 형태로만 응답하세요."),
+                new OpenAIRequestDTO.Message("user", prompt)
+            );
+            
+            OpenAIRequestDTO request = new OpenAIRequestDTO(openaiModel, messages, 0.9, 1500);
+            
+            OpenAIResponseDTO response = openAIRestTemplate.postForObject(
+                openaiApiUrl, 
+                request, 
+                OpenAIResponseDTO.class
+            );
+            
+            if (response != null && response.getChoices() != null && !response.getChoices().isEmpty()) {
+                String jsonResult = response.getChoices().get(0).getMessage().getContent();
+                return parseAIReportSummary(jsonResult, avgRating, responseCount, ratingDistribution);
+            }
+            
+            throw new RuntimeException("OpenAI API 응답이 비어있습니다.");
+            
+        } catch (Exception e) {
+            System.err.println("OpenAI API 호출 실패: " + e.getMessage());
+            throw new RuntimeException("OpenAI API 호출 실패: " + e.getMessage());
+        }
+    }
+
+    private String buildSummaryPrompt(double avgRating, int responseCount, List<String> textFeedbacks, Map<Integer, Long> ratingDistribution) {
+        StringBuilder prompt = new StringBuilder();
+        
+        prompt.append("팬미팅 설문 결과를 분석하여 다음 JSON 형태로 응답해주세요:\n\n");
+        
+        prompt.append("📊 분석 데이터:\n");
+        prompt.append("- 총 참여자: ").append(responseCount).append("명\n");
+        prompt.append("- 평균 평점: ").append(String.format("%.1f", avgRating)).append("점\n");
+        prompt.append("- 평점 분포: ");
+        for (int i = 1; i <= 5; i++) {
+            prompt.append(i).append("점 ").append(ratingDistribution.get(i)).append("명 ");
+        }
+        prompt.append("\n\n");
+        
+        if (!textFeedbacks.isEmpty()) {
+            prompt.append("💭 팬들의 후기:\n");
+            for (int i = 0; i < Math.min(textFeedbacks.size(), 10); i++) {
+                prompt.append("\"").append(textFeedbacks.get(i)).append("\"\n");
+            }
+            prompt.append("\n");
+        }
+        
+        prompt.append("다음 JSON 형태로만 응답해주세요:\n");
+        prompt.append("{\n");
+        prompt.append("  \"overallSummary\": \"친근한 카톡 스타일의 상세한 종합 설명 (6-8문장, 이모티콘 포함)\",\n");
+        prompt.append("  \"positiveFeedbacks\": [\n");
+        prompt.append("    \"긍정적 피드백 1 (한 주제당 한줄)\",\n");
+        prompt.append("    \"긍정적 피드백 2\",\n");
+        prompt.append("    \"긍정적 피드백 3\"\n");
+        prompt.append("  ],\n");
+        prompt.append("  \"negativeFeedbacks\": [\n");
+        prompt.append("    \"개선점 1 (한 주제당 한줄)\",\n");
+        prompt.append("    \"개선점 2\",\n");
+        prompt.append("    \"개선점 3\"\n");
+        prompt.append("  ]\n");
+        prompt.append("}\n\n");
+        
+        prompt.append("✨ 작성 가이드:\n");
+        prompt.append("- overallSummary: 친근한 카카오톡 스타일로 충분히 길게 작성! '~했어요', '~네요', '~랍니다' 같은 정중하면서 친근한 말투 사용\n");
+        prompt.append("  * 이모티콘을 자연스럽게 섞어서 사용 (🎉, 😊, 👏, ✨, 💖, 🥳, 📊, 💕, 🌟, 🔥 등)\n");
+        prompt.append("  * 6-8문장으로 상세하고 풍성하게 작성! 너무 짧지 말고 충분한 내용 포함\n");
+        prompt.append("  * 기본 통계 언급 → 좋았던 점들 구체적으로 → 아쉬운 점들 → 격려 메시지 순서로 구성\n");
+        prompt.append("  * 딱딱한 보고서 말투가 아닌, 친구에게 자세히 설명하듯 자연스럽게\n");
+        prompt.append("  * 좋았던 점과 아쉬운 점을 구체적으로 언급하되 긍정적 톤 유지\n");
+        prompt.append("  * 실제 피드백 내용을 반영하여 구체적인 예시 포함\n");
+        prompt.append("- positiveFeedbacks: 좋았던 점들을 주제별로 한 줄씩 (3-5개), 문장은 '~음'으로 끝나게 작성\n");
+        prompt.append("- negativeFeedbacks: 아쉬웠던 점이나 개선점을 주제별로 한 줄씩 (2-4개), 문장은 '~음'으로 끝나게 작성\n");
+        prompt.append("- 각 항목은 구체적이고 실용적인 내용으로 작성\n");
+        prompt.append("- 매번 다른 표현과 어조로 작성하여 신선함 유지\n");
+        prompt.append("- 피드백 예시: '행사 진행이 매끄럽고 안정적이었음', '음향 시설 개선이 필요함' 등\n");
+        
+        return prompt.toString();
+    }
+
+    private AIReportSummaryDTO parseAIReportSummary(String jsonResult, double avgRating, int responseCount, Map<Integer, Long> ratingDistribution) {
+        try {
+            JsonNode jsonNode = objectMapper.readTree(jsonResult);
+            
+            String overallSummary = jsonNode.get("overallSummary").asText();
+            
+            List<String> positiveFeedbacks = new ArrayList<>();
+            JsonNode positiveNode = jsonNode.get("positiveFeedbacks");
+            if (positiveNode != null && positiveNode.isArray()) {
+                for (JsonNode feedback : positiveNode) {
+                    positiveFeedbacks.add(feedback.asText());
+                }
+            }
+            
+            List<String> negativeFeedbacks = new ArrayList<>();
+            JsonNode negativeNode = jsonNode.get("negativeFeedbacks");
+            if (negativeNode != null && negativeNode.isArray()) {
+                for (JsonNode feedback : negativeNode) {
+                    negativeFeedbacks.add(feedback.asText());
+                }
+            }
+            
+            return new AIReportSummaryDTO(
+                BigDecimal.valueOf(avgRating),
+                BigDecimal.valueOf(avgRating * 20), // 만족도 (평점 * 20%)
+                (long) responseCount,
+                ratingDistribution,
+                overallSummary,
+                positiveFeedbacks,
+                negativeFeedbacks
+            );
+            
+        } catch (Exception e) {
+            throw new RuntimeException("AI 보고서 요약 JSON 파싱 실패: " + e.getMessage());
+        }
+    }
+
+    private AIReportSummaryDTO generateBasicAIReportSummary(List<MeetingSurveyResponseVO> responses) {
+        double avgRating = responses.stream()
+            .mapToInt(MeetingSurveyResponseVO::getOverallRating)
+            .average()
+            .orElse(0.0);
+
+        // 평점별 분포 계산
+        Map<Integer, Long> ratingDistribution = new HashMap<>();
+        for (int i = 1; i <= 5; i++) {
+            ratingDistribution.put(i, 0L);
+        }
+        
+        responses.stream()
+            .map(MeetingSurveyResponseVO::getOverallRating)
+            .forEach(rating -> ratingDistribution.merge(rating, 1L, Long::sum));
+
+        List<String> textFeedbacks = extractTextFeedbacks(responses);
+        
+        // 친근한 카톡 스타일 요약 생성 (랜덤 변화, 더 길게)
+        String[] summaryTemplates = {
+            "팬미팅 결과 드디어 나왔어요! 🎉 총 %d명의 소중한 팬분들이 참여해주셨고 평균 %.1f점이라는 점수를 받았답니다! 😊 전반적으로 팬들의 반응이 정말 좋았어요. 특히 진행 과정에서 많은 분들이 만족해하시는 모습을 볼 수 있었어요 👏 물론 아쉬운 부분들도 몇 가지 있었지만, 이런 솔직한 피드백이 있어야 다음번에 더 발전할 수 있잖아요! ✨ 팬들의 목소리를 들어보니 정말 유의미한 인사이트들을 많이 얻을 수 있었어요. 다음 행사에서는 이번 경험을 바탕으로 훨씬 더 완벽한 모습을 보여드릴 수 있을 것 같네요! 🚀",
+            
+            "와! 드디어 후기 결과가 나왔어요! 🥳 %d명의 팬분들께서 정성스럽게 %.1f점을 주셨답니다! 정말 감사해요 💕 결과를 보니까 좋았던 점들이 생각보다 많더라고요! 팬들이 행사 진행이나 소통 부분에서 특히 만족해하신 것 같아요 😄 그리고 몇 가지 개선할 점들도 명확하게 나왔는데, 이런 건설적인 의견들이 정말 소중해요 📝 팬들의 솔직한 피드백 덕분에 어떤 부분을 더 신경써야 할지 방향이 보이네요! 👍 이번 경험을 통해 얻은 인사이트들로 다음 행사는 정말 대박날 것 같아요! 벌써부터 기대되네요 🌟",
+            
+            "이번 팬미팅 어땠는지 결과 공개할 시간이에요! 📊 총 %d명이 응답해주셨고 평균 %.1f점이라는 점수가 나왔어요! 🎯 전체적으로 보면 팬들이 정말 많은 부분에서 만족해해주신 것 같아요. 특히 준비한 프로그램들이나 진행 방식에 대해서 긍정적인 반응이 많았어요 😊 물론 완벽하지는 않았죠! 몇 가지 아쉬운 점들도 있었고, 개선했으면 좋겠다는 의견들도 나왔답니다 💡 하지만 이런 다양한 피드백이 있어야 성장할 수 있는 거잖아요? 팬들의 진솔한 의견 덕분에 다음엔 더 멋진 행사를 준비할 수 있을 것 같아요! 정말 기대해주세요! 🔥",
+            
+            "팬들의 소중한 후기가 도착했어요! 💌 총 %d명이 시간 내서 솔직하게 %.1f점을 매겨주셨답니다! 정말 고마워요 🙏 하나하나 살펴보니까 정말 다양한 의견들이 있더라고요. 좋았던 점들은 물론이고, 아쉬웠던 부분까지 세심하게 알려주셔서 너무 감사해요 📋 팬들이 어떤 부분에서 만족했는지, 또 어떤 부분을 개선하면 좋을지 명확하게 파악할 수 있었어요 ✨ 이런 피드백이야말로 진짜 보물이죠! 팬들의 목소리를 바탕으로 다음 행사는 훨씬 더 업그레이드된 모습으로 찾아뵐게요 💪 벌써부터 어떻게 더 좋게 만들지 아이디어가 막 떠올라요! 🌈"
+        };
+        
+        int randomTemplate = (int)(Math.random() * summaryTemplates.length);
+        String overallSummary = String.format(summaryTemplates[randomTemplate], responses.size(), avgRating);
+
+        List<String> positiveFeedbacks = Arrays.asList(
+            "행사 진행이 매끄럽고 안정적이었음",
+            "팬들과의 소통 시간이 충분했음", 
+            "전반적인 참여도와 만족도가 높았음"
+        );
+
+        List<String> negativeFeedbacks = Arrays.asList(
+            "일부 세부 사항에서 개선의 여지가 있음",
+            "다음 행사에서는 더 다양한 프로그램 구성 필요"
+        );
+
+        return new AIReportSummaryDTO(
+            BigDecimal.valueOf(avgRating),
+            BigDecimal.valueOf(avgRating * 20),
+            (long) responses.size(),
+            ratingDistribution,
+            overallSummary,
+            positiveFeedbacks,
+            negativeFeedbacks
+        );
+    }
 
     private List<String> extractTextFeedbacks(List<MeetingSurveyResponseVO> responses) {
         List<String> feedbacks = new ArrayList<>();

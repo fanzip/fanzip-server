@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.fanzip.survey.domain.MeetingSurveyAnalysisVO;
 import org.example.fanzip.survey.domain.MeetingSurveyResponseVO;
 import org.example.fanzip.survey.dto.AIReportDTO;
+import org.example.fanzip.survey.dto.AIReportSummaryDTO;
 import org.example.fanzip.survey.dto.SurveySubmissionRequestDTO;
 import org.example.fanzip.survey.dto.SurveySubmissionResponseDTO;
 import org.example.fanzip.survey.dto.SurveySummaryDTO;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -156,6 +158,59 @@ public class MeetingSurveyServiceImpl implements MeetingSurveyService {
         }
         
         return analysisVO.getSummary(); // summary 필드에서 줄글 조회
+    }
+
+    @Override
+    @Transactional
+    public AIReportSummaryDTO generateAIReportSummary(Long meetingId) {
+        // 해당 팬미팅의 설문 응답들 조회
+        List<MeetingSurveyResponseVO> responses = meetingSurveyRepository.findResponsesByMeetingId(meetingId);
+        
+        if (responses.isEmpty()) {
+            throw new IllegalArgumentException("분석할 설문 응답이 없습니다.");
+        }
+        
+        // AI 보고서 요약 생성
+        AIReportSummaryDTO reportSummary = aiAnalysisService.generateAIReportSummary(meetingId, responses);
+        
+        // DB에 저장 (기존 테이블 활용)
+        try {
+            String summaryJson = objectMapper.writeValueAsString(reportSummary);
+            
+            MeetingSurveyAnalysisVO analysisVO = new MeetingSurveyAnalysisVO(
+                meetingId,
+                "ai-report-summary-v1.0", // model
+                summaryJson,              // summary 필드에 전체 요약 저장
+                "{}",                     // themes 필드 (사용하지 않음)
+                "{}",                     // action_items 필드 (사용하지 않음)  
+                BigDecimal.valueOf(0.5),  // sentiment 기본값
+                reportSummary.getAverageRating()
+            );
+            
+            meetingSurveyRepository.saveSurveyAnalysis(analysisVO);
+            
+        } catch (Exception e) {
+            // DB 저장 실패해도 리포트는 반환
+            System.err.println("AI 요약 리포트 DB 저장 실패: " + e.getMessage());
+        }
+        
+        return reportSummary;
+    }
+
+    @Override
+    public AIReportSummaryDTO getLatestAIReportSummary(Long meetingId) {
+        MeetingSurveyAnalysisVO analysisVO = meetingSurveyRepository.findLatestAnalysisByMeetingId(meetingId);
+        
+        if (analysisVO == null || !analysisVO.getModel().equals("ai-report-summary-v1.0")) {
+            return null;
+        }
+        
+        try {
+            return objectMapper.readValue(analysisVO.getSummary(), AIReportSummaryDTO.class);
+        } catch (Exception e) {
+            System.err.println("AI 요약 리포트 역직렬화 실패: " + e.getMessage());
+            return null;
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@ package org.example.fanzip.survey.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.security.CustomUserPrincipal;
 import org.example.fanzip.survey.dto.AIReportDTO;
+import org.example.fanzip.survey.dto.AIReportSummaryDTO;
 import org.example.fanzip.survey.dto.SurveySubmissionRequestDTO;
 import org.example.fanzip.survey.dto.SurveySubmissionResponseDTO;
 import org.example.fanzip.survey.dto.SurveySummaryDTO;
@@ -69,39 +70,39 @@ public class MeetingSurveyController {
     }
 
     /**
-     * 사용자 만족도 AI 보고서 (친근한 줄글 형태)
+     * 사용자 만족도 AI 보고서 (요약+인사이트)
      * GET /api/influencers/{influencerId}/feedbacks/report/ai
      */
     @GetMapping("/feedbacks/report/ai")
-    public ResponseEntity<String> getAIReport(
+    public ResponseEntity<AIReportSummaryDTO> getAIReport(
             @PathVariable Long influencerId,
             @RequestParam Long meetingId,
             @RequestParam(defaultValue = "true") boolean regenerate,
             @AuthenticationPrincipal CustomUserPrincipal principal) {
         
         try {
-            String narrativeReport;
+            AIReportSummaryDTO reportSummary;
             
             if (regenerate) {
                 // 새로운 분석 생성 (기본값)
-                narrativeReport = meetingSurveyService.generateNarrativeReport(meetingId);
+                reportSummary = meetingSurveyService.generateAIReportSummary(meetingId);
             } else {
                 // 기존 분석 결과 조회 (캐시 사용)
-                narrativeReport = meetingSurveyService.getLatestNarrativeReport(meetingId);
+                reportSummary = meetingSurveyService.getLatestAIReportSummary(meetingId);
                 
-                if (narrativeReport == null) {
+                if (reportSummary == null) {
                     // 기존 분석이 없으면 새로 생성
-                    narrativeReport = meetingSurveyService.generateNarrativeReport(meetingId);
+                    reportSummary = meetingSurveyService.generateAIReportSummary(meetingId);
                 }
             }
             
-            return ResponseEntity.ok(narrativeReport);
+            return ResponseEntity.ok(reportSummary);
             
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("AI 보고서 생성 중 오류가 발생했습니다: " + e.getMessage());
+                .body(null);
         }
     }
 

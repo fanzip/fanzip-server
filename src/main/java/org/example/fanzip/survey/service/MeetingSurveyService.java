@@ -1,6 +1,7 @@
 package org.example.fanzip.survey.service;
 
 import org.example.fanzip.survey.dto.AIReportDTO;
+import org.example.fanzip.survey.dto.AIReportSummaryDTO;
 import org.example.fanzip.survey.dto.SurveySubmissionRequestDTO;
 import org.example.fanzip.survey.dto.SurveySubmissionResponseDTO;
 import org.example.fanzip.survey.dto.SurveySummaryDTO;
@@ -18,6 +19,12 @@ public interface MeetingSurveyService {
     
     // 기존 줄글 보고서 조회
     String getLatestNarrativeReport(Long meetingId);
+    
+    // AI 보고서 요약 생성
+    AIReportSummaryDTO generateAIReportSummary(Long meetingId);
+    
+    // 기존 AI 보고서 요약 조회
+    AIReportSummaryDTO getLatestAIReportSummary(Long meetingId);
     
     // 사용자가 이미 설문에 응답했는지 확인
     boolean hasUserSubmittedSurvey(Long meetingId, Long userId);
