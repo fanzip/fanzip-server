@@ -36,7 +36,4 @@ public class ProductAddRequestDto {
     private LocalDateTime goldOpenTime;
     private LocalDateTime vipOpenTime;
     private LocalDateTime generalOpenTime;
-    
-    // 카테고리 (추후 확장 가능)
-    private String category;
 }
