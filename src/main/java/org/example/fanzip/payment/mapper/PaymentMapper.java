@@ -3,9 +3,9 @@ package org.example.fanzip.payment.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.example.fanzip.payment.domain.Payments;
+import org.example.fanzip.payment.dto.RevenueResponseDto;
 
 import java.util.List;
-import java.util.Map;
 
 @Mapper
 public interface PaymentMapper {
@@ -16,4 +16,7 @@ public interface PaymentMapper {
     boolean existsByTransactionId(String transactionId);
     boolean existsByMembershipId(@Param("userId") Long userId, @Param("membershipId") Long membershipId);
     List<Payments> findAllByReservationId(Long reservationId);
+    List<RevenueResponseDto> selectMonthlyRevenue(@Param("influencerId") Long influencerId);
+    RevenueResponseDto selectTodayRevenue(@Param("influencerId") Long influencerId);
+    RevenueResponseDto selectTotalRevenue(@Param("influencerId") Long influencerId);
 }

@@ -74,4 +74,69 @@
             SELECT 1 FROM payments WHERE transaction_id = #{transactionId}
         )
     </select>
+    
+    <!-- 인플루언서 월별 수익 조회 -->
+    <select id="selectMonthlyRevenue" parameterType="long" resultType="org.example.fanzip.payment.dto.RevenueResponseDto">
+        SELECT
+            CONCAT(year_val, '-', LPAD(month_val, 2, '0')) as date,
+            SUM(amount) as revenue
+        FROM (
+            SELECT 
+                YEAR(paid_at) as year_val,
+                MONTH(paid_at) as month_val,
+                amount
+            FROM payments
+            WHERE influencer_id = #{influencerId}
+              AND status = 'PAID'
+              AND cancelled_at IS NULL
+              AND refunded_at IS NULL
+        ) sub
+        GROUP BY year_val, month_val
+        ORDER BY year_val DESC, month_val DESC
+    </select>
+    
+    <!-- 인플루언서 오늘 수익 조회 -->
+    <select id="selectTodayRevenue" parameterType="long" resultType="org.example.fanzip.payment.dto.RevenueResponseDto">
+        <![CDATA[
+        SELECT
+            DATE_FORMAT(CURDATE(), '%Y-%m-%d') as date,
+            COALESCE(SUM(amount), 0) as revenue
+        FROM payments
+        WHERE influencer_id = #{influencerId}
+          AND status = 'PAID'
+          AND cancelled_at IS NULL
+          AND refunded_at IS NULL
+          AND DATE(paid_at) = CURDATE()
+        ]]>
+    </select>
+    
+    <!-- 인플루언서 누적 수익 조회 (첫 결제일부터 현재까지) -->
+    <select id="selectTotalRevenue" parameterType="long" resultType="org.example.fanzip.payment.dto.RevenueResponseDto">
+        <![CDATA[
+        SELECT
+            CONCAT(
+                DATE_FORMAT((SELECT MIN(paid_at) FROM payments WHERE influencer_id = #{influencerId} AND status = 'PAID'), '%Y-%m-%d'),
+                ' ~ ',
+                DATE_FORMAT(NOW(), '%Y-%m-%d')
+            ) as date,
+            COALESCE(
+                SUM(CASE 
+                    WHEN status = 'PAID' THEN amount 
+                    WHEN status = 'REFUNDED' THEN -amount 
+                    ELSE 0 
+                END), 0
+            ) as revenue
+        FROM payments
+        WHERE influencer_id = #{influencerId}
+          AND status IN ('PAID', 'REFUNDED')
+          AND cancelled_at IS NULL
+        ]]>
+    </select>
+    
+    <!-- 예약별 결제 조회 -->
+    <select id="findAllByReservationId" parameterType="long" resultMap="PaymentResultMap">
+        SELECT *
+        FROM payments
+        WHERE reservation_id = #{reservationId}
+    </select>
 </mapper>
