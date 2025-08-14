@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.fanzip.market.domain.enums.ProductCategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,7 +24,9 @@ public class ProductAddRequestDto {
     private BigDecimal shippingPrice;
     private Integer stock;
     private String thumbnailImage;
-    private String categories;
+
+    // 카테고리 리스트 (JSON으로 저장될 예정)
+    private List<ProductCategory> categories;
 
     // 상세 이미지 리스트 (JSON으로 저장될 예정)
     private List<String> detailImages;
