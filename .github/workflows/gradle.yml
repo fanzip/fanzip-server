@@ -104,6 +104,7 @@ jobs:
                 environment:
                   - REDIS_HOST=redis
                   - REDIS_PORT=6379
+                  - JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
                 restart: unless-stopped
 
             volumes:
