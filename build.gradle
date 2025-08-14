@@ -139,6 +139,11 @@ dependencies {
   implementation 'org.apache.httpcomponents:httpcore:4.4.16'
   // Firebase
   implementation 'com.google.firebase:firebase-admin:9.2.0'
+
+  // Bean Validation (javax - Spring 5 레거시용)
+  implementation 'javax.validation:validation-api:2.0.1.Final'
+  implementation 'org.hibernate.validator:hibernate-validator:6.2.5.Final'
+  implementation 'org.glassfish:javax.el:3.0.1-b12'
 }
 
 test {
