@@ -82,7 +82,7 @@ public class MarketServiceImpl implements MarketService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ProductAddResponseDto addProduct(ProductAddRequestDto requestDto) {
         try {
             log.info("상품 등록 시작 - 요청 데이터: {}", requestDto);
@@ -127,12 +127,12 @@ public class MarketServiceImpl implements MarketService {
 
 
     private MarketVO convertToMarketVO(ProductAddRequestDto requestDto) {
-        ObjectMapper objectMapper = new ObjectMapper();
 
         try {
             // 이미지 리스트를 JSON 문자열로 변환
             String detailImagesJson = null;
             String descriptionImagesJson = null;
+            String categoriesJson = null;
 
             if (requestDto.getDetailImages() != null && !requestDto.getDetailImages().isEmpty()) {
                 detailImagesJson = objectMapper.writeValueAsString(requestDto.getDetailImages());
@@ -140,6 +140,10 @@ public class MarketServiceImpl implements MarketService {
 
             if (requestDto.getDescriptionImages() != null && !requestDto.getDescriptionImages().isEmpty()) {
                 descriptionImagesJson = objectMapper.writeValueAsString(requestDto.getDescriptionImages());
+            }
+
+            if(requestDto.getCategories() != null && !requestDto.getCategories().isEmpty()) {
+                categoriesJson = objectMapper.writeValueAsString(requestDto.getCategories());
             }
 
             return MarketVO.builder()
@@ -158,6 +162,7 @@ public class MarketServiceImpl implements MarketService {
                     .goldOpenTime(requestDto.getGoldOpenTime())
                     .vipOpenTime(requestDto.getVipOpenTime())
                     .generalOpenTime(requestDto.getGeneralOpenTime())
+                    .categories(categoriesJson)
                     .build();
 
         } catch (Exception e) {

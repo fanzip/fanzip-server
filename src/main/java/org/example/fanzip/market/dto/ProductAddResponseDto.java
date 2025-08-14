@@ -25,7 +25,6 @@ public class ProductAddResponseDto {
     private Integer stock;
     private String thumbnailImage;
     private LocalDateTime createdAt;
-    private String categories;
 
     // API 응답 메시지
     private String message;
