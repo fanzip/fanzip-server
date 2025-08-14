@@ -152,7 +152,7 @@ public class ProductValidationUtils {
         
         for (int i = 0; i < times.length - 1; i++) {
             if (times[i] != null && times[i + 1] != null) {
-                if (times[i].isAfter(times[i + 1])) {
+                if (!times[i].isBefore(times[i + 1])) {
                     throw new ProductException(MarketErrorCode.INVALID_SALE_TIME);
                 }
             }
