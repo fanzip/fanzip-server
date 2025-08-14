@@ -29,11 +29,8 @@ import java.util.stream.Collectors;
 public class FanMeetingServiceImpl implements FanMeetingService {
     private final FanMeetingMapper fanMeetingMapper;
     private final FanMeetingSeatMapper fanMeetingSeatMapper;
-<<<<<<< HEAD
     private final MembershipMapper membershipMapper;
-=======
     private final ApplicationEventPublisher publisher;
->>>>>>> 2929ae8 ([feat] 팬미팅 이벤트, 리스너 구현 및 DTO 수정 #107)
 
     @Autowired
     private FanMeetingSeatMapper seatMapper;

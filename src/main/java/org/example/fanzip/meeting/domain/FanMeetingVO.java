@@ -36,4 +36,6 @@ public class FanMeetingVO {
     private LocalDateTime updatedAt;
 
     private String posterImageUrl;
+    private String profileImageUrl;
+    private String influencerName;
 }
