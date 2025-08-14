@@ -7,6 +7,7 @@
     import org.example.fanzip.membership.dto.MembershipGradeDTO;
     import org.example.fanzip.membership.dto.UserMembershipInfoDTO;
 
+    import java.math.BigDecimal;
     import java.util.List;
 
 
@@ -28,4 +29,21 @@
         String findHighestGradeByUserId(@Param("userId") Long userId);
 
         UserMembershipInfoDTO.UserMembershipSubscriptionDTO findUserSubscriptionByInfluencerId(@Param("userId") Long userId, @Param("influencerId") Long influencerId);
+
+        BigDecimal findMonthlyAmountByGradeId(@Param("gradeId") Integer gradeId);
+
+        MembershipVO findByUserIdAndInfluencerIdForUpdate(
+                @Param("userId") long userId,
+                @Param("influencerId") long influencerId
+        );
+
+        int insertPending(@Param("userId") long userId,
+                          @Param("influencerId") long influencerId,
+                          @Param("gradeId") int gradeId,
+                          @Param("amount") BigDecimal amount);
+
+        int updateToPending(@Param("userId") long userId,
+                            @Param("influencerId") long influencerId,
+                            @Param("gradeId") int gradeId,
+                            @Param("amount") BigDecimal amount);
     }

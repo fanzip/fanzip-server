@@ -1,50 +1,111 @@
 package org.example.fanzip.membership.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.fanzip.meeting.domain.UserGrade;
 import org.example.fanzip.membership.domain.MembershipVO;
 import org.example.fanzip.membership.domain.enums.MembershipStatus;
 import org.example.fanzip.membership.dto.MembershipGradeDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeRequestDTO;
 import org.example.fanzip.membership.dto.MembershipSubscribeResponseDTO;
 import org.example.fanzip.membership.dto.UserMembershipInfoDTO;
-import org.example.fanzip.meeting.domain.UserGrade;
 import org.example.fanzip.membership.mapper.MembershipMapper;
+import org.example.fanzip.payment.domain.enums.PaymentMethod;
+import org.example.fanzip.payment.domain.enums.PaymentType;
+import org.example.fanzip.payment.dto.PaymentRequestDto;
+import org.example.fanzip.payment.dto.PaymentResponseDto;
+import org.example.fanzip.payment.service.PaymentService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
-
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class MembershipServiceImpl implements MembershipService{
+public class MembershipServiceImpl implements MembershipService {
 
     private final MembershipMapper membershipMapper;
+    private final PaymentService paymentService;
+
+    @Value("${app.web-base-url:http://localhost:5173}")
+    private String webBaseUrl;
 
     @Override
-    public MembershipSubscribeResponseDTO subscribe(
-            MembershipSubscribeRequestDTO requestDTO, long userId) {
+    public MembershipSubscribeResponseDTO subscribe(MembershipSubscribeRequestDTO requestDTO, long userId) {
 
-        MembershipVO existingMembership = membershipMapper
-                .findByUserIdAndInfluencerId(userId, requestDTO.getInfluencerId());
+        final Long influencerId = requestDTO.getInfluencerId();
+        final Integer gradeId   = requestDTO.getGradeId();
 
-        if (existingMembership != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 구독 중입니다.");
+        // 0) 서버 기준 금액 조회
+        BigDecimal amount = membershipMapper.findMonthlyAmountByGradeId(gradeId);
+        if (amount == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 gradeId");
         }
 
-        MembershipVO membershipVO = requestDTO.toEntity(userId);
+        // 1) (userId, influencerId) 잠금 - 동시요청 대비
+        MembershipVO locked = membershipMapper.findByUserIdAndInfluencerIdForUpdate(userId, influencerId);
 
-        membershipMapper.insertMembership(membershipVO);
+        if (locked != null) {
+            boolean active = locked.getStatus() == MembershipStatus.ACTIVE; // enum 직접 비교
+            boolean notExpired = locked.getSubscriptionEnd() != null
+                    && locked.getSubscriptionEnd().isAfter(LocalDate.now());
+            if (active && notExpired) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 구독 중입니다.");
+            }
+            membershipMapper.updateToPending(userId, influencerId, gradeId, amount);
+        } else {
+            try {
+                membershipMapper.insertPending(userId, influencerId, gradeId, amount);
+            } catch (org.springframework.dao.DuplicateKeyException ignore) {
+                locked = membershipMapper.findByUserIdAndInfluencerIdForUpdate(userId, influencerId);
+                boolean active = locked != null
+                        && locked.getStatus() == MembershipStatus.ACTIVE
+                        && locked.getSubscriptionEnd() != null
+                        && locked.getSubscriptionEnd().isAfter(LocalDate.now());
+                if (active) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 구독 중입니다.");
+                }
+                membershipMapper.updateToPending(userId, influencerId, gradeId, amount);
+            }
+        }
 
-        MembershipVO inserted = membershipMapper.findByUserIdAndInfluencerId(userId, requestDTO.getInfluencerId());
+        // 2) 방금 업데이트된 구독 행 재조회 → membershipId 확보
+        MembershipVO current = membershipMapper.findByUserIdAndInfluencerId(userId, influencerId);
+        if (current == null) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "구독 행 조회 실패");
+        }
+        Long membershipId = current.getMembershipId();
 
-        return MembershipSubscribeResponseDTO.from(inserted);
+        // 3) 결제 세션 생성 (Payment DTO 시그니처에 정확히 맞춤)
+        PaymentRequestDto payReq = PaymentRequestDto.builder()
+                .userId(userId)
+                .membershipId(membershipId)
+                .paymentType(PaymentType.MEMBERSHIP)
+                .paymentMethod(PaymentMethod.TOSSPAY) // ✅ 고정
+                .amount(amount)
+                .build();
+
+        PaymentResponseDto payRes = paymentService.createPayment(payReq);
+
+        String paymentPageUrl = "/payments/request?paymentId=" + payRes.getPaymentId();
+
+
+        // 4) 응답 구성 (현재 상태는 PENDING)
+        return MembershipSubscribeResponseDTO.builder()
+                .membershipId(membershipId)
+                .influencerId(influencerId)
+                .gradeId(gradeId)
+                .status(MembershipStatus.PENDING)
+                .monthlyAmount(amount)
+                .paymentId(payRes.getPaymentId())
+                .paymentPageUrl(paymentPageUrl)
+                .build();
     }
-
     @Override
     public List<MembershipGradeDTO> getMembershipGrades() {
         return membershipMapper.findGradesByInfluencerId(null);
