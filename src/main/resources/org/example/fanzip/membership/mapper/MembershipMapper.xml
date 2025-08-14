@@ -35,7 +35,7 @@
         INSERT INTO memberships (
             user_id, influencer_id, grade_id, status,
             subscription_start, subscription_end,
-            monthly_amount, total_paid_amount, auto_renewal,
+            monthly_amount, total_paid_amount, auto_renewal
         )
         VALUES (
                    #{userId}, #{influencerId}, #{gradeId}, #{status},
@@ -123,5 +123,47 @@
         ORDER BY m.membership_id DESC
         LIMIT 1
     </select>
+
+
+    <!-- 금액 조회: grade_id → monthly_amount -->
+    <select id="findMonthlyAmountByGradeId" parameterType="int" resultType="java.math.BigDecimal">
+        SELECT monthly_amount
+        FROM membership_grades
+        WHERE grade_id = #{gradeId}
+        LIMIT 1
+    </select>
+
+    <!-- 동시성 잠금: 구독 행을 행잠금 -->
+    <select id="findByUserIdAndInfluencerIdForUpdate"
+            resultType="org.example.fanzip.membership.domain.MembershipVO">
+        SELECT *
+        FROM memberships
+        WHERE user_id = #{userId}
+          AND influencer_id = #{influencerId}
+            FOR UPDATE
+    </select>
+
+    <!-- 없으면 PENDING 레코드 생성 -->
+    <insert id="insertPending">
+        INSERT INTO memberships (
+            user_id, influencer_id, grade_id, status,
+            subscription_start, subscription_end,
+            monthly_amount, total_paid_amount, auto_renewal
+        ) VALUES (
+                     #{userId}, #{influencerId}, #{gradeId}, 'PENDING',
+                     NOW(), NULL,
+                     #{amount}, 0, false
+                 )
+    </insert>
+
+    <!-- 있으면 PENDING으로 갱신 -->
+    <update id="updateToPending">
+        UPDATE memberships
+        SET grade_id = #{gradeId},
+            status   = 'PENDING',
+            monthly_amount = #{amount}
+        WHERE user_id = #{userId}
+          AND influencer_id = #{influencerId}
+    </update>
 
 </mapper>
