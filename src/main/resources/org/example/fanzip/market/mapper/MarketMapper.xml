@@ -230,7 +230,8 @@
             silver_open_time,
             gold_open_time,
             vip_open_time,
-            general_open_time
+            general_open_time,
+            categories
         ) values (
             #{influencerId},
             #{name},
@@ -246,7 +247,8 @@
             #{silverOpenTime},
             #{goldOpenTime},
             #{vipOpenTime},
-            #{generalOpenTime}
+            #{generalOpenTime},
+            #{categories}
         )
     </insert>
 

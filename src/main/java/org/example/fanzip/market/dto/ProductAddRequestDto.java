@@ -23,7 +23,8 @@ public class ProductAddRequestDto {
     private BigDecimal shippingPrice;
     private Integer stock;
     private String thumbnailImage;
-    
+    private String categories;
+
     // 상세 이미지 리스트 (JSON으로 저장될 예정)
     private List<String> detailImages;
     
