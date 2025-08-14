@@ -9,10 +9,12 @@ import org.example.fanzip.meeting.dto.FanMeetingDetailResponseDTO;
 import org.example.fanzip.meeting.dto.FanMeetingRequestDTO;
 import org.example.fanzip.meeting.dto.FanMeetingResponseDTO;
 import org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO;
+import org.example.fanzip.meeting.event.FanMeetingCreatedEvent;
 import org.example.fanzip.meeting.mapper.FanMeetingMapper;
 import org.example.fanzip.meeting.mapper.FanMeetingSeatMapper;
 import org.example.fanzip.membership.mapper.MembershipMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +29,11 @@ import java.util.stream.Collectors;
 public class FanMeetingServiceImpl implements FanMeetingService {
     private final FanMeetingMapper fanMeetingMapper;
     private final FanMeetingSeatMapper fanMeetingSeatMapper;
+<<<<<<< HEAD
     private final MembershipMapper membershipMapper;
+=======
+    private final ApplicationEventPublisher publisher;
+>>>>>>> 2929ae8 ([feat] 팬미팅 이벤트, 리스너 구현 및 DTO 수정 #107)
 
     @Autowired
     private FanMeetingSeatMapper seatMapper;
@@ -50,7 +56,7 @@ public class FanMeetingServiceImpl implements FanMeetingService {
             dto.setMeetingDate(meeting.getMeetingDate());
             dto.setAvailableSeats(meeting.getAvailableSeats());
             dto.setStatus(meeting.getStatus());
-            dto.setProfileImageUrl(meeting.getProfileImageUrl());
+//            dto.setProfileImageUrl(meeting.getProfileImageUrl());
             dto.setOpenTime(extractOpenTime(meeting, userGrade));
             return dto;
         }).collect(Collectors.toList());
@@ -143,19 +149,26 @@ public class FanMeetingServiceImpl implements FanMeetingService {
         meeting.setInfluencerId(request.getInfluencerId());
         meeting.setTitle(request.getTitle());
         meeting.setDescription(request.getDescription());
-        meeting.setVenueName(request.getVenueName());
-        meeting.setVenueAddress(request.getVenueAddress());
+//        meeting.setVenueName(request.getVenueName());
+//        meeting.setVenueAddress(request.getVenueAddress());
         meeting.setMeetingDate(request.getMeetingDate());
-        meeting.setVipOpenTime(request.getVipOpenTime());
-        meeting.setGoldOpenTime(request.getGoldOpenTime());
-        meeting.setSilverOpenTime(request.getSilverOpenTime());
-        meeting.setWhiteOpenTime(request.getWhiteOpenTime());
-        meeting.setGeneralOpenTime(request.getGeneralOpenTime());
+
+        // ✅ 오픈시간은 서버에서 계산: general만 입력받고 나머지는 규칙대로 세팅
+        LocalDateTime general = request.getGeneralOpenTime();
+        if (general == null) {
+            throw new IllegalArgumentException("generalOpenTime은 필수입니다.");
+        }
+        meeting.setGeneralOpenTime(general);
+        meeting.setWhiteOpenTime(general);                 // = general
+        meeting.setSilverOpenTime(general.minusHours(1));  // general - 1h
+        meeting.setGoldOpenTime(general.minusHours(2));    // general - 2h
+        meeting.setVipOpenTime(general.minusHours(3));     // general - 3h
+
         meeting.setStatus(FanMeetingStatus.PLANNED);
-        meeting.setProfileImageUrl(request.getProfileImageUrl());
         meeting.setTotalSeats(total);
         meeting.setAvailableSeats(total);
-        fanMeetingMapper.insertFanMeeting(meeting); // Auto-increment ID 채워짐
+
+        fanMeetingMapper.insertFanMeeting(meeting); // useGeneratedKeys로 PK 세팅
 
 
         // 좌석 165개 자동 생성
@@ -174,6 +187,15 @@ public class FanMeetingServiceImpl implements FanMeetingService {
             }
         }
         fanMeetingSeatMapper.insertSeatList(seats);
+
+        // ✅ 이벤트 발행(알림은 "시간 문구 없이" 처리하도록 리스너에서 메시지 구성)
+        publisher.publishEvent(new FanMeetingCreatedEvent(
+                meeting.getMeetingId(),
+                meeting.getInfluencerId(),
+                meeting.getTitle(),
+                meeting.getGeneralOpenTime() // 필요하면 써도 되고, 리스너에서 시간 문구 빼면 됨
+        ));
+
 
         return fanMeetingMapper.findDetailById(meeting.getMeetingId());
     }
