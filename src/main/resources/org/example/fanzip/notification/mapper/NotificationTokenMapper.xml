@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.fanzip.notification.mapper.NotificationTokenMapper">
+    <select id="findTokensByInfluencerId" resultType="string">
+        SELECT upt.push_token
+        FROM memberships m
+        JOIN user_push_token upt ON upt.user_id = m.user_id
+        WHERE m.influencer_id = #{influencerId}
+        AND m.status = 'ACTIVE'
+        /* AND upt.device_type IN ('WEB','ANDROID','IOS') */  <!-- 필요시 -->
+    </select>
+</mapper>
