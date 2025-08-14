@@ -92,7 +92,7 @@
               AND refunded_at IS NULL
         ) sub
         GROUP BY year_val, month_val
-        ORDER BY year_val DESC, month_val DESC
+        ORDER BY year_val ASC, month_val ASC
     </select>
     
     <!-- 인플루언서 오늘 수익 조회 -->
