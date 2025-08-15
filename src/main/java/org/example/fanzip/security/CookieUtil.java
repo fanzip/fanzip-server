@@ -12,7 +12,7 @@ public class CookieUtil {
         log.info("===========Cookie Util============");
         Cookie cookie=new Cookie(name, value);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);// TODO: Prod 환경에서 true로 변경
+        cookie.setSecure(true);// TODO: Prod 환경에서 true로 변경
         cookie.setPath("/");
         cookie.setMaxAge(maxAge);
         response.addCookie(cookie);
