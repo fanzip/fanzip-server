@@ -80,7 +80,37 @@ jobs:
             sudo docker stop fanzip-server || true
             sudo docker rm fanzip-server || true
 
-            # Docker Compose 파일 생성
+            # 기존 컨테이너들 정리
+            sudo docker-compose down || true
+
+            # 최신 이미지 다운로드
+            sudo docker pull ekhanz/fanzip-server
+
+            # Docker Compose로 서비스 시작 (환경변수 직접 전달)
+            sudo docker-compose up -d
+        env:
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
+          KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+          TOSS_PAYMENTS_CLIENT_KEY: ${{ secrets.TOSS_PAYMENTS_CLIENT_KEY }}
+          TOSS_PAYMENTS_SECRET_KEY: ${{ secrets.TOSS_PAYMENTS_SECRET_KEY }}
+          FIREBASE_CREDENTIALS_PATH: ${{ secrets.FIREBASE_CREDENTIALS_PATH }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+
+      # Create docker-compose.yml on server
+      - name: Create Docker Compose file
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          timeout: 60s
+          script: |
             cat > docker-compose.yml << 'EOF'
             version: '3.8'
             services:
@@ -104,34 +134,37 @@ jobs:
                 environment:
                   - REDIS_HOST=redis
                   - REDIS_PORT=6379
-                  - JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
-                  - DB_URL=${{ secrets.DB_URL }}
-                  - DB_USERNAME=${{ secrets.DB_USERNAME }}
-                  - DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-                  - KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
-                  - KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}
-                  - TOSS_PAYMENTS_CLIENT_KEY=${{ secrets.TOSS_PAYMENTS_CLIENT_KEY }}
-                  - TOSS_PAYMENTS_SECRET_KEY=${{ secrets.TOSS_PAYMENTS_SECRET_KEY }}
-                  - FIREBASE_CREDENTIALS_PATH=${{ secrets.FIREBASE_CREDENTIALS_PATH }}
-                  - FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
-                  - FIREBASE_CREDENTIALS_JSON="${{ secrets.FIREBASE_CREDENTIALS_JSON }}"
+                  - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+                  - DB_URL=${DB_URL}
+                  - DB_USERNAME=${DB_USERNAME}
+                  - DB_PASSWORD=${DB_PASSWORD}
+                  - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+                  - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
+                  - TOSS_PAYMENTS_CLIENT_KEY=${TOSS_PAYMENTS_CLIENT_KEY}
+                  - TOSS_PAYMENTS_SECRET_KEY=${TOSS_PAYMENTS_SECRET_KEY}
+                  - FIREBASE_CREDENTIALS_PATH=${FIREBASE_CREDENTIALS_PATH}
+                  - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+                  - FIREBASE_CREDENTIALS_JSON=${FIREBASE_CREDENTIALS_JSON}
                 restart: unless-stopped
 
             volumes:
               redis_data:
             EOF
-
-            # 기존 컨테이너들 정리
-            sudo docker-compose down || true
-
-            # 최신 이미지 다운로드
-            sudo docker pull ekhanz/fanzip-server
-
-            # Docker Compose로 서비스 시작
-            sudo docker-compose up -d
-
+            
             # 컨테이너 상태 확인
             sudo docker ps
+        env:
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
+          KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+          TOSS_PAYMENTS_CLIENT_KEY: ${{ secrets.TOSS_PAYMENTS_CLIENT_KEY }}
+          TOSS_PAYMENTS_SECRET_KEY: ${{ secrets.TOSS_PAYMENTS_SECRET_KEY }}
+          FIREBASE_CREDENTIALS_PATH: ${{ secrets.FIREBASE_CREDENTIALS_PATH }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
 
       # Remove GitHub IP from Security Group
       - name: Remove IP FROM security group
