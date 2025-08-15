@@ -1,29 +1,46 @@
 package org.example.fanzip.payment.service;
 
+import lombok.RequiredArgsConstructor;
 import org.example.fanzip.global.exception.BusinessException;
 import org.example.fanzip.global.exception.payment.PaymentErrorCode;
+import org.example.fanzip.meeting.domain.FanMeetingReservationVO;
+import org.example.fanzip.meeting.domain.FanMeetingSeatVO;
+import org.example.fanzip.meeting.mapper.FanMeetingSeatMapper;
+import org.example.fanzip.meeting.mapper.FanMeetingReservationMapper;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentValidator {
-    protected void validateStockAvailability(Long orderId, Long reservationId, Long membershipId) { // 결제 요청 시 재고 수량 검사 홤수
+    private final FanMeetingReservationMapper reservationMapper;
+    private final FanMeetingSeatMapper seatMapper;
+    protected void validateStockAvailability(Long orderId, Long reservationId, Long membershipId) {
         if (orderId != null) {
-            int mockStock = 10; // 임의 재고 수량, 실제 구현 시 각 Repository Mapper에서 findById() 호출 하기
-            if (mockStock <= 0) {
-                throw new BusinessException(PaymentErrorCode.ORDER_STOCK_UNAVAILABLE);
-            }
+            // TODO: ORDER 실제 재고 검증 구현
         }
-        if (reservationId != null) { // 예매 가능 좌석
-            int mockSeats = 5;
-            if (mockSeats <= 0) {
+        
+        if (reservationId != null) {
+            // RESERVATION 실제 좌석 상태 검증
+            FanMeetingReservationVO reservation = findReservationById(reservationId);
+            if (reservation == null) {
+                throw new BusinessException(PaymentErrorCode.SEATS_UNAVAILABLE);
+            }
+            
+            Long seatId = reservation.getSeatId();
+            FanMeetingSeatVO seat = seatMapper.findById(seatId);
+            if (seat == null || seat.isReserved()) {
                 throw new BusinessException(PaymentErrorCode.SEATS_UNAVAILABLE);
             }
         }
+        
         if (membershipId != null) {
-            boolean isMember = true; // 멤버십 가입된 사람
-            if (!isMember) {
-                throw new BusinessException(PaymentErrorCode.MEMBERSHIP_NOT_FOUND);
-            }
+            // MEMBERSHIP 검증 (임시로 통과 처리)
+            // TODO: MEMBERSHIP 실제 검증 구현
         }
     }
+    
+    private FanMeetingReservationVO findReservationById(Long reservationId) {
+        return reservationMapper.findById(reservationId);
+    }
+
 }

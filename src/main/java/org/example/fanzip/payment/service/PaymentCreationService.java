@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaymentCreationService {
     private final PaymentRepository paymentRepository;
+    private final PaymentValidator paymentValidator;
     @Transactional
     public PaymentResponseDto createPayment(PaymentRequestDto requestDto) {
         if(paymentRepository.existsByTransactionId(requestDto.getTransactionId())){
@@ -54,24 +55,8 @@ public class PaymentCreationService {
             throw new BusinessException(PaymentErrorCode.INVALID_TARGET_COUNT);
         }
     }
-    protected void validateStockAvailability(Long orderId, Long reservationId, Long membershipId){ // 결제 요청 시 재고 수량 검사 홤수
-        if(orderId != null){
-            int mockStock = 10; // 임의 재고 수량, 실제 구현 시 각 Repository Mapper에서 findById() 호출 하기
-            if(mockStock <= 0){
-                throw new BusinessException(PaymentErrorCode.ORDER_STOCK_UNAVAILABLE);
-            }
-        }
-        if(reservationId!= null){ // 예매 가능 좌석
-            int mockSeats = 5;
-            if(mockSeats <= 0){
-                throw new BusinessException(PaymentErrorCode.SEATS_UNAVAILABLE);
-            }
-        }
-        if(membershipId != null){
-            boolean isMember = true; // 멤버십 가입된 사람
-            if(!isMember){
-                throw new BusinessException(PaymentErrorCode.MEMBERSHIP_NOT_FOUND);
-            }
-        }
+    protected void validateStockAvailability(Long orderId, Long reservationId, Long membershipId) {
+        // PaymentValidator의 실제 검증 로직 사용
+        paymentValidator.validateStockAvailability(orderId, reservationId, membershipId);
     }
 }
