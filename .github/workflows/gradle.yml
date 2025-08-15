@@ -114,6 +114,7 @@ jobs:
                   - TOSS_PAYMENTS_SECRET_KEY=${{ secrets.TOSS_PAYMENTS_SECRET_KEY }}
                   - FIREBASE_CREDENTIALS_PATH=${{ secrets.FIREBASE_CREDENTIALS_PATH }}
                   - FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+                  - FIREBASE_CREDENTIALS_JSON=${{ secrets.FIREBASE_CREDENTIALS_JSON }}
                 restart: unless-stopped
 
             volumes:
