@@ -30,11 +30,18 @@ public class FcmConfig {
         // Firebase credentials JSON이 환경변수로 제공된 경우 우선 사용
         String credentialsJson = System.getenv("FIREBASE_CREDENTIALS_JSON");
         if (credentialsJson != null && !credentialsJson.trim().isEmpty()) {
+            // GitHub secrets에서 따옴표로 감싸져 있을 수 있으므로 제거
+            String cleanedJson = credentialsJson.trim();
+            if (cleanedJson.startsWith("\"") && cleanedJson.endsWith("\"")) {
+                cleanedJson = cleanedJson.substring(1, cleanedJson.length() - 1);
+            }
+            
             // JSON 유효성 검증
-            if (!credentialsJson.trim().startsWith("{") || !credentialsJson.trim().endsWith("}")) {
+            if (!cleanedJson.startsWith("{") || !cleanedJson.endsWith("}")) {
                 throw new IllegalArgumentException("FIREBASE_CREDENTIALS_JSON must be valid JSON format");
             }
-            is = new java.io.ByteArrayInputStream(credentialsJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            
+            is = new java.io.ByteArrayInputStream(cleanedJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         } else {
             // 파일 경로 방식 (기존 방식 유지)
             if (credentialsPath == null || credentialsPath.trim().isEmpty()) {
