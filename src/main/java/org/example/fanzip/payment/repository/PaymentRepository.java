@@ -17,13 +17,16 @@ import java.util.Map;
 public class PaymentRepository {
     private final PaymentMapper paymentMapper;
 
-
     public void save(Payments payments){
         paymentMapper.insertPayment(payments);
     }
 
     public Payments findById(Long paymentId) {
-        return paymentMapper.selectPayment(paymentId);
+        return paymentMapper.selectPaymentById(paymentId);
+    }
+
+    public Payments findByIdForUpdate(Long paymentId) {
+        return paymentMapper.selectPaymentForUpdate(paymentId);
     }
 
     public List<Payments> findByUserId(Long userId){
@@ -40,9 +43,6 @@ public class PaymentRepository {
 
     public boolean existsMembershipPayment(Long userId, Long membershipId) {
         return paymentMapper.existsByMembershipId(userId, membershipId);
-    }
-    public List<Payments> findAllByReservationId(Long reservationId) {
-        return paymentMapper.findAllByReservationId(reservationId);
     }
     
     public List<RevenueResponseDto> findMonthlyRevenue(Long influencerId) {

@@ -34,8 +34,14 @@
                    #{paidAt}, #{cancelledAt}, #{refundedAt}, #{createdAt}
                )
     </insert>
+    <select id="selectPaymentForUpdate" parameterType="long" resultMap="PaymentResultMap">
+        SELECT *
+        FROM payments
+        WHERE payment_id = #{paymentId}
+            FOR UPDATE
+    </select>
     <!--결제 조회-->
-    <select id="selectPayment" parameterType="long" resultMap="PaymentResultMap">
+    <select id="selectPaymentById" parameterType="long" resultMap="PaymentResultMap">
         SELECT *
         FROM payments
         WHERE payment_id = #{paymentId}

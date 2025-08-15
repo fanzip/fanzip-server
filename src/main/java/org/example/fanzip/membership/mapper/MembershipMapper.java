@@ -9,6 +9,7 @@
 
     import java.math.BigDecimal;
     import java.util.List;
+    import java.util.Map;
 
 
     @Mapper
@@ -47,11 +48,17 @@
                             @Param("gradeId") int gradeId,
                             @Param("amount") BigDecimal amount);
 
+        // 결제를 위한 멤버십 정보 조회
+        Map<String, Object> selectMembershipForPayment(@Param("membershipId") Long membershipId);
+
+        // 멤버십 상태 업데이트
+        int updateMembershipStatus(@Param("membershipId") Long membershipId, @Param("status") String status);
+
         int updateToActive(@Param("membershipId") long membershipId);
-        
+
         MembershipVO findByMembershipId(@Param("membershipId") long membershipId);
-        
+
         int updateTotalPaidAmount(@Param("membershipId") long membershipId, @Param("amount") BigDecimal amount);
-        
+
         int cancelMembership(@Param("membershipId") long membershipId, @Param("userId") long userId);
     }
