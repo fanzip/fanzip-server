@@ -153,6 +153,18 @@ jobs:
 
             # 컨테이너 상태 확인
             sudo docker ps
+        env:
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
+          KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+          TOSS_PAYMENTS_CLIENT_KEY: ${{ secrets.TOSS_PAYMENTS_CLIENT_KEY }}
+          TOSS_PAYMENTS_SECRET_KEY: ${{ secrets.TOSS_PAYMENTS_SECRET_KEY }}
+          FIREBASE_CREDENTIALS_PATH: ${{ secrets.FIREBASE_CREDENTIALS_PATH }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
 
       # Remove GitHub IP from Security Group
       - name: Remove IP FROM security group
