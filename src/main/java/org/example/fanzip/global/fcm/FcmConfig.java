@@ -25,12 +25,20 @@ public class FcmConfig {
         // 이미 초기화돼 있으면 패스
         if (!FirebaseApp.getApps().isEmpty()) return;
 
-        InputStream is;
-        if (credentialsPath.startsWith("classpath:")) {
-            String path = credentialsPath.replace("classpath:", "");
-            is = FcmConfig.class.getClassLoader().getResourceAsStream(path);
+        InputStream is = null;
+        
+        // Firebase credentials JSON이 환경변수로 제공된 경우 우선 사용
+        String credentialsJson = System.getenv("FIREBASE_CREDENTIALS_JSON");
+        if (credentialsJson != null && !credentialsJson.isEmpty()) {
+            is = new java.io.ByteArrayInputStream(credentialsJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         } else {
-            is = new java.io.FileInputStream(credentialsPath);
+            // 파일 경로 방식 (기존 방식 유지)
+            if (credentialsPath.startsWith("classpath:")) {
+                String path = credentialsPath.replace("classpath:", "");
+                is = FcmConfig.class.getClassLoader().getResourceAsStream(path);
+            } else {
+                is = new java.io.FileInputStream(credentialsPath);
+            }
         }
 
         FirebaseOptions options = FirebaseOptions.builder()
