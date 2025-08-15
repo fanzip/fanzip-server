@@ -72,7 +72,13 @@ jobs:
           port: ${{ secrets.EC2_SSH_PORT }}
           timeout: 120s
           script: |
+            # 현재 위치 확인
+            echo "=== 현재 디렉토리 ==="
+            pwd
+            ls -la
+            
             # 환경변수 파일 생성
+            echo "=== .env 파일 생성 ==="
             cat > .env << 'EOF'
             JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
             DB_URL=${{ secrets.DB_URL }}
@@ -86,8 +92,14 @@ jobs:
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             FIREBASE_CREDENTIALS_JSON=${{ secrets.FIREBASE_CREDENTIALS_JSON }}
             EOF
+            
+            # .env 파일 생성 확인
+            echo "=== .env 파일 확인 ==="
+            ls -la .env
+            head -3 .env
 
             # Docker Compose 파일 생성
+            echo "=== docker-compose.yml 파일 생성 ==="
             cat > docker-compose.yml << 'EOF'
             version: '3.8'
             services:
@@ -118,6 +130,12 @@ jobs:
             volumes:
               redis_data:
             EOF
+            
+            # docker-compose.yml 파일 생성 확인
+            echo "=== docker-compose.yml 파일 확인 ==="
+            ls -la docker-compose.yml
+            echo "=== docker-compose.yml 내용 확인 ==="
+            cat docker-compose.yml
 
             # 기존 컨테이너들 정리
             sudo docker stop fanzip-redis fanzip-server || true
