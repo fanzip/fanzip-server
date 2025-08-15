@@ -62,45 +62,6 @@ jobs:
           aws ec2 describe-security-groups --query 'SecurityGroups[*].[GroupId,GroupName]' --output table
           aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
 
-      # AWS EC2 Server Connect & Docker Deploy
-      - name: AWS EC2 Connection
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          port: ${{ secrets.EC2_SSH_PORT }}
-          timeout: 60s
-          script: |
-            # 기존 단독 redis 컨테이너 정리
-            sudo docker stop fanzip-redis || true
-            sudo docker rm fanzip-redis ||true
-            
-            # 기존 단일 컨테이너 정리 (Docker Compose 실행 전)
-            sudo docker stop fanzip-server || true
-            sudo docker rm fanzip-server || true
-
-            # 기존 컨테이너들 정리
-            sudo docker-compose down || true
-
-            # 최신 이미지 다운로드
-            sudo docker pull ekhanz/fanzip-server
-
-            # Docker Compose로 서비스 시작 (환경변수 직접 전달)
-            sudo docker-compose up -d
-        env:
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
-          KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
-          TOSS_PAYMENTS_CLIENT_KEY: ${{ secrets.TOSS_PAYMENTS_CLIENT_KEY }}
-          TOSS_PAYMENTS_SECRET_KEY: ${{ secrets.TOSS_PAYMENTS_SECRET_KEY }}
-          FIREBASE_CREDENTIALS_PATH: ${{ secrets.FIREBASE_CREDENTIALS_PATH }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-          FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
-
       # Create docker-compose.yml on server
       - name: Create Docker Compose file
         uses: appleboy/ssh-action@v0.1.7
@@ -150,9 +111,6 @@ jobs:
             volumes:
               redis_data:
             EOF
-            
-            # 컨테이너 상태 확인
-            sudo docker ps
         env:
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
@@ -165,6 +123,36 @@ jobs:
           FIREBASE_CREDENTIALS_PATH: ${{ secrets.FIREBASE_CREDENTIALS_PATH }}
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+
+      # AWS EC2 Server Connect & Docker Deploy
+      - name: Deploy with Docker Compose
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          timeout: 60s
+          script: |
+            # 기존 단독 redis 컨테이너 정리
+            sudo docker stop fanzip-redis || true
+            sudo docker rm fanzip-redis ||true
+            
+            # 기존 단일 컨테이너 정리 (Docker Compose 실행 전)
+            sudo docker stop fanzip-server || true
+            sudo docker rm fanzip-server || true
+
+            # 기존 컨테이너들 정리
+            sudo docker-compose down || true
+
+            # 최신 이미지 다운로드
+            sudo docker pull ekhanz/fanzip-server
+
+            # Docker Compose로 서비스 시작
+            sudo docker-compose up -d
+
+            # 컨테이너 상태 확인
+            sudo docker ps
 
       # Remove GitHub IP from Security Group
       - name: Remove IP FROM security group
