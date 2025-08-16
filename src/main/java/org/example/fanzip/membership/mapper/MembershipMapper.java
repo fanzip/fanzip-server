@@ -1,64 +1,64 @@
-package org.example.fanzip.membership.mapper;
+    package org.example.fanzip.membership.mapper;
 
 
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.example.fanzip.membership.domain.MembershipVO;
-import org.example.fanzip.membership.dto.MembershipGradeDTO;
-import org.example.fanzip.membership.dto.UserMembershipInfoDTO;
+    import org.apache.ibatis.annotations.Mapper;
+    import org.apache.ibatis.annotations.Param;
+    import org.example.fanzip.membership.domain.MembershipVO;
+    import org.example.fanzip.membership.dto.MembershipGradeDTO;
+    import org.example.fanzip.membership.dto.UserMembershipInfoDTO;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-
-
-@Mapper
-public interface MembershipMapper {
-
-    void insertMembership(MembershipVO membershipVO);
-
-    void deleteByUserIdAndInfluencerId(@Param("userId") long userId, @Param("influencerId") long influencerId);
+    import java.math.BigDecimal;
+    import java.util.List;
+    import java.util.Map;
 
 
-    MembershipVO findByUserIdAndInfluencerId(@Param("userId") long userId, @Param("influencerId") long influencerId);
+    @Mapper
+    public interface MembershipMapper {
 
-    // 매퍼 수정하기
-    List<MembershipGradeDTO> findGradesByInfluencerId(Long influencerId);
+        void insertMembership(MembershipVO membershipVO);
 
-    List<Long> findSubscribedInfluencerIdsByUserId(@Param("userId") Long userId);
-    
-    String findHighestGradeByUserId(@Param("userId") Long userId);
+        void deleteByUserIdAndInfluencerId(@Param("userId") long userId, @Param("influencerId") long influencerId);
 
-    UserMembershipInfoDTO.UserMembershipSubscriptionDTO findUserSubscriptionByInfluencerId(@Param("userId") Long userId, @Param("influencerId") Long influencerId);
 
-    BigDecimal findMonthlyAmountByGradeId(@Param("gradeId") Integer gradeId);
+        MembershipVO findByUserIdAndInfluencerId(@Param("userId") long userId, @Param("influencerId") long influencerId);
 
-    MembershipVO findByUserIdAndInfluencerIdForUpdate(
-            @Param("userId") long userId,
-            @Param("influencerId") long influencerId
-    );
+        // 매퍼 수정하기
+        List<MembershipGradeDTO> findGradesByInfluencerId(Long influencerId);
 
-    int insertPending(@Param("userId") long userId,
-                      @Param("influencerId") long influencerId,
-                      @Param("gradeId") int gradeId,
-                      @Param("amount") BigDecimal amount);
+        List<Long> findSubscribedInfluencerIdsByUserId(@Param("userId") Long userId);
 
-    int updateToPending(@Param("userId") long userId,
-                        @Param("influencerId") long influencerId,
-                        @Param("gradeId") int gradeId,
-                        @Param("amount") BigDecimal amount);
+        String findHighestGradeByUserId(@Param("userId") Long userId);
 
-    // 결제를 위한 멤버십 정보 조회
-    Map<String, Object> selectMembershipForPayment(@Param("membershipId") Long membershipId);
+        UserMembershipInfoDTO.UserMembershipSubscriptionDTO findUserSubscriptionByInfluencerId(@Param("userId") Long userId, @Param("influencerId") Long influencerId);
 
-    // 멤버십 상태 업데이트
-    int updateMembershipStatus(@Param("membershipId") Long membershipId, @Param("status") String status);
+        BigDecimal findMonthlyAmountByGradeId(@Param("gradeId") Integer gradeId);
 
-    int updateToActive(@Param("membershipId") long membershipId);
+        MembershipVO findByUserIdAndInfluencerIdForUpdate(
+                @Param("userId") long userId,
+                @Param("influencerId") long influencerId
+        );
 
-    MembershipVO findByMembershipId(@Param("membershipId") long membershipId);
+        int insertPending(@Param("userId") long userId,
+                          @Param("influencerId") long influencerId,
+                          @Param("gradeId") int gradeId,
+                          @Param("amount") BigDecimal amount);
 
-    int updateTotalPaidAmount(@Param("membershipId") long membershipId, @Param("amount") BigDecimal amount);
+        int updateToPending(@Param("userId") long userId,
+                            @Param("influencerId") long influencerId,
+                            @Param("gradeId") int gradeId,
+                            @Param("amount") BigDecimal amount);
 
-    int cancelMembership(@Param("membershipId") long membershipId, @Param("userId") long userId);
-}
+        // 결제를 위한 멤버십 정보 조회
+        Map<String, Object> selectMembershipForPayment(@Param("membershipId") Long membershipId);
+
+        // 멤버십 상태 업데이트
+        int updateMembershipStatus(@Param("membershipId") Long membershipId, @Param("status") String status);
+
+        int updateToActive(@Param("membershipId") long membershipId);
+
+        MembershipVO findByMembershipId(@Param("membershipId") long membershipId);
+
+        int updateTotalPaidAmount(@Param("membershipId") long membershipId, @Param("amount") BigDecimal amount);
+
+        int cancelMembership(@Param("membershipId") long membershipId, @Param("userId") long userId);
+    }
