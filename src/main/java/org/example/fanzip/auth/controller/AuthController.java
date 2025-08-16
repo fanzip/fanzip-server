@@ -1,10 +1,12 @@
 package org.example.fanzip.auth.controller;
 
 
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.auth.dto.KakaoUserDTO;
 import org.example.fanzip.auth.service.KakaoOAuthService;
+import org.example.fanzip.global.metric.BusinessMetricsService;
 import org.example.fanzip.security.CookieUtil;
 import org.example.fanzip.security.JwtProcessor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,7 @@ import java.util.Map;
 public class AuthController {
     private final KakaoOAuthService kakaoOAuthService;
     private final JwtProcessor jwtProcessor;
+    private final BusinessMetricsService businessMetricsService;
 
     @Value("${kakao.client-id}")
     private String clientId;
@@ -29,7 +32,7 @@ public class AuthController {
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
-//  카카오 로그인 URL 생성
+    //  카카오 로그인 URL 생성
     @GetMapping("/oauth/kakao-url")
     public ResponseEntity<String> getKakaoLoginUrl(){
         String url = "https://kauth.kakao.com/oauth/authorize"
@@ -42,33 +45,48 @@ public class AuthController {
     // 카카오 로그인(기존 유저면 로그인 처리, 신규 유저면 회원가입 유도)
     @GetMapping("/oauth/kakao-login")
     public ResponseEntity<?> kakaoCallback(@RequestParam String code, HttpServletResponse response) throws Exception{
-        log.info("kakaoCallback 함수 진입");
-        log.info("카카오 인가코드: {}", code);
 
-        KakaoUserDTO kakaoUser= kakaoOAuthService.login(code);
+        Timer.Sample loginTimer= businessMetricsService.startLoginTimer();
+        businessMetricsService.recordLoginAttempt();
 
-        if(kakaoUser.isRegistered()){//가입한 유저
-            log.info("기존회원입니다.");
+        try{
+            KakaoUserDTO kakaoUser= kakaoOAuthService.login(code);
 
-            String accessToken=jwtProcessor.generateAccessToken(kakaoUser.getUserId(), String.valueOf(kakaoUser.getRole()));
-            String refreshToken=jwtProcessor.generateRefreshToken(kakaoUser.getUserId(),  String.valueOf(kakaoUser.getRole()));
+            if(kakaoUser.isRegistered()){//가입한 유저
+                log.info("기존회원입니다.");
 
-            int cookieAge=jwtProcessor.getRefreshTokenExpiryInSeconds();
-            CookieUtil.addHttpOnlyCookie(response, "refresh-token", refreshToken, cookieAge);
+                String accessToken=jwtProcessor.generateAccessToken(kakaoUser.getUserId(), String.valueOf(kakaoUser.getRole()));
+                String refreshToken=jwtProcessor.generateRefreshToken(kakaoUser.getUserId(),  String.valueOf(kakaoUser.getRole()));
 
-            return ResponseEntity.ok()
-                    .header("Authorization", "Bearer "+accessToken)
-                    .body(Map.of("message","login success"));
-        }else{//가입하지 않은 사용자
-            log.info("가입하지 않은 사용자입니다");
+                int cookieAge=jwtProcessor.getRefreshTokenExpiryInSeconds();
+                CookieUtil.addHttpOnlyCookie(response, "refresh-token", refreshToken, cookieAge);
 
-            return ResponseEntity.status(202)
-                    .body(kakaoUser);
+                businessMetricsService.recordLoginDuration(loginTimer);
+
+                return ResponseEntity.ok()
+                        .header("Authorization", "Bearer "+accessToken)
+                        .body(Map.of("message","login success"));
+            }else{//가입하지 않은 사용자
+                log.info("가입하지 않은 사용자입니다");
+
+                businessMetricsService.recordLoginFailure("user_not_registered");
+                businessMetricsService.recordLoginDuration(loginTimer);
+
+                return ResponseEntity.status(202)
+                        .body(kakaoUser);
+            }
+        }catch (Exception e){
+            log.error("카카오 로그인 중 오류 발생", e);
+            businessMetricsService.recordLoginFailure("oauth_error");
+            businessMetricsService.recordLoginDuration(loginTimer);
+
+            throw e;
         }
+
 
     }
 
-//    Access Token 재발급
+    //    Access Token 재발급
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(@CookieValue("refresh-token") String refreshToken, HttpServletResponse response) throws Exception{
         log.info("=========reissue 진입=======");
@@ -91,7 +109,7 @@ public class AuthController {
                 .body(Map.of("message", "Access token reissued"));
     }
 
-//    로그아웃: refresh-token 제거
+    //    로그아웃: refresh-token 제거
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response){
         CookieUtil.removeCookie(response, "refresh-token");

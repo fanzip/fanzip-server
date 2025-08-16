@@ -3,6 +3,7 @@ package org.example.fanzip.user.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.fanzip.global.metric.BusinessMetricsService;
 import org.example.fanzip.security.CookieUtil;
 import org.example.fanzip.security.CustomUserPrincipal;
 import org.example.fanzip.security.JwtProcessor;
@@ -25,21 +26,32 @@ public class UserController {
 
     private final UserService userService;
     private final JwtProcessor jwtProcessor;
-
+    private final BusinessMetricsService businessMetricsService;
     //회원가입
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDTO registerDTO, HttpServletResponse response) throws Exception{
-        UserDTO userDTO=userService.register(registerDTO);
+        try{
+            UserDTO userDTO=userService.register(registerDTO);
 
-        String accessToken=jwtProcessor.generateAccessToken(userDTO.getUserId(), String.valueOf(userDTO.getRole()));
-        String refreshToken=jwtProcessor.generateRefreshToken(userDTO.getUserId(), String.valueOf(userDTO.getRole()));
+            String accessToken=jwtProcessor.generateAccessToken(userDTO.getUserId(), String.valueOf(userDTO.getRole()));
+            String refreshToken=jwtProcessor.generateRefreshToken(userDTO.getUserId(), String.valueOf(userDTO.getRole()));
 
-        int cookieAge=jwtProcessor.getRefreshTokenExpiryInSeconds();
-        CookieUtil.addHttpOnlyCookie(response, "refresh-token", refreshToken, cookieAge);
 
-        return ResponseEntity.ok()
-                .header("Authorization", "Bearer "+accessToken)
-                .body(Map.of("message","register success"));
+            int cookieAge=jwtProcessor.getRefreshTokenExpiryInSeconds();
+            CookieUtil.addHttpOnlyCookie(response, "refresh-token", refreshToken, cookieAge);
+
+            businessMetricsService.recordUserRegistration();
+            log.info("새 사용자 등록 완료: userId={}", userDTO.getUserId());
+
+            return ResponseEntity.ok()
+                    .header("Authorization", "Bearer "+accessToken)
+                    .body(Map.of("message","register success"));
+        }catch (Exception e){
+            businessMetricsService.recordRegistrationFailure(e.getClass().getSimpleName());
+            log.error("회원가입 실패", e);
+            throw e;
+        }
+
 
     }
 
