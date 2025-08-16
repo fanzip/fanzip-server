@@ -15,7 +15,7 @@ public class PaymentRollbackService {
     private final PaymentRepository paymentRepository;
     @Transactional
     public PaymentResponseDto refundedPaymentById(Long paymentId){
-        Payments payments = paymentRepository.findById(paymentId);
+        Payments payments = paymentRepository.findByIdForUpdate(paymentId);
         if (payments == null) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
         }

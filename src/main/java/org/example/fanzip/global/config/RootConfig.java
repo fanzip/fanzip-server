@@ -1,6 +1,5 @@
 package org.example.fanzip.global.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -45,7 +44,8 @@ import javax.sql.DataSource;
         "org.example.fanzip.membership.service",
         "org.example.fanzip.influencer.service",
         "org.example.fanzip.meeting.service",
-        "org.example.fanzip.notification.service"
+        "org.example.fanzip.notification.service",
+        "org.example.fanzip.fancard.service"
 }, excludeFilters = @ComponentScan.Filter(org.springframework.stereotype.Controller.class))
 public class RootConfig {
     @Value("${spring.datasource.driver-class-name}") String driver;

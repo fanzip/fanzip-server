@@ -10,7 +10,13 @@ import java.util.List;
 @Mapper
 public interface PaymentMapper {
     void insertPayment(Payments payments);
-    Payments selectPayment(Long paymentId);
+
+    // 결제 조회
+    Payments selectPaymentById(@Param("paymentId") Long paymentId);
+
+    // ★ 추가: 결제 행 잠금 조회
+    Payments selectPaymentForUpdate(@Param("paymentId") Long paymentId);
+
     List<Payments> selectPaymentsByUserId(Long userId);
     void updatePayment(Payments payments);
     boolean existsByTransactionId(String transactionId);
