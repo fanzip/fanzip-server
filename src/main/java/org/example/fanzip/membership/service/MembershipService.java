@@ -27,4 +27,6 @@ public interface MembershipService{
     UserMembershipInfoDTO getUserMembershipInfo(Long userId);
 
     UserMembershipInfoDTO.UserMembershipSubscriptionDTO getUserSubscriptionByInfluencer(Long userId, Long influencerId);
+    
+    boolean cancelMembership(Long membershipId, Long userId);
 }
