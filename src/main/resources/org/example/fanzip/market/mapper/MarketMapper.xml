@@ -103,6 +103,7 @@
             p.detail_images         as detailImages,
             p.description_images    as descriptionImages,
             p.categories            as categories,
+            IFNULL(m.grade_id, 0)   as gradeId,
             case m.grade_id
                 when 1 then p.white_open_time
                 when 2 then p.silver_open_time
@@ -123,6 +124,7 @@
         from products p left join memberships m
             on m.user_id = #{userId}
             and m.influencer_id = p.influencer_id
+            and m.status='ACTIVE'
         where p.product_id = #{productId}
     </select>
 
