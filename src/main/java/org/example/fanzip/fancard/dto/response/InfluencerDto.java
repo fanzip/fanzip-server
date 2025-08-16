@@ -15,5 +15,6 @@ public class InfluencerDto {
     private String influencerName;
     private String category;
     private String profileImage;
+    private String fancardImage;
     private Boolean isVerified;
 }

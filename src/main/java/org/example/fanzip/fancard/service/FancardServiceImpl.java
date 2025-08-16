@@ -413,13 +413,20 @@ public class FancardServiceImpl implements FancardService {
                 System.out.println("Error finding influencer name: " + e.getMessage());
             }
             
-            // 카드 디자인 URL 처리 - /images/ 경로를 /src/assets/로 변경
+            // 카드 디자인 URL 처리 - S3 URL은 그대로 사용, 로컬 경로만 변환
             String cardDesignUrl = fancard.getCardDesignUrl();
             System.out.println("Original URL from DB: " + cardDesignUrl);
-            if (cardDesignUrl != null && cardDesignUrl.startsWith("/images/fancard/")) {
+            
+            // S3 URL (https://)은 그대로 사용
+            if (cardDesignUrl != null && cardDesignUrl.startsWith("https://")) {
+                System.out.println("Using S3 URL as-is: " + cardDesignUrl);
+            } 
+            // 레거시 로컬 경로는 assets로 변환 (호환성 유지)
+            else if (cardDesignUrl != null && cardDesignUrl.startsWith("/images/fancard/")) {
                 cardDesignUrl = cardDesignUrl.replace("/images/fancard/", "/src/assets/fancard/");
-                System.out.println("Converted URL: " + cardDesignUrl);
+                System.out.println("Converted local URL: " + cardDesignUrl);
             }
+            
             System.out.println("Final cardDesignUrl: " + cardDesignUrl);
             
             FancardListResponse response = FancardListResponse.builder()
@@ -449,6 +456,9 @@ public class FancardServiceImpl implements FancardService {
         InfluencerDto influencer = fancardMapper.findInfluencerByMembershipId(fancard.getMembershipId());
         MembershipDto membership = fancardMapper.findMembershipById(fancard.getMembershipId());
         
+        // 결제 히스토리 조회
+        List<PaymentHistoryDto> paymentHistory = getPaymentHistory(fancard.getMembershipId());
+        
         return FancardDetailResponse.builder()
                 .cardId(fancard.getCardId())
                 .cardNumber(fancard.getCardNumber())
@@ -456,6 +466,7 @@ public class FancardServiceImpl implements FancardService {
                 .influencer(influencer != null ? influencer : createDefaultInfluencer())
                 .membership(membership != null ? membership : createDefaultMembership(fancard))
                 .benefits(FancardConstants.TestData.TEST_BENEFITS) // TODO: 실제 혜택 정보 조회 구현 필요
+                .paymentHistory(paymentHistory) // 결제 히스토리 추가
                 .build();
     }
 
@@ -487,5 +498,55 @@ public class FancardServiceImpl implements FancardService {
                 .autoRenewal(true)
                 .grade(createDefaultGrade())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void createFancardForMembership(Long membershipId, Long influencerId) {
+        try {
+            // 이미 팬카드가 있는지 확인
+            Fancard existingCard = fancardMapper.findActiveCardByMembershipId(membershipId);
+            if (existingCard != null) {
+                System.out.println("이미 팬카드가 존재합니다. membershipId: " + membershipId);
+                return;
+            }
+
+            // 인플루언서 정보 조회
+            InfluencerDto influencer = fancardMapper.findInfluencerByMembershipId(membershipId);
+            String influencerName = influencer != null ? influencer.getInfluencerName() : "Unknown";
+
+            // 카드 번호 생성 (예: FC + membershipId + 타임스탬프 기반 4자리) - 중복 방지
+            long timestamp = System.currentTimeMillis() % 10000;
+            String cardNumber = String.format("FC%06d%04d", membershipId, timestamp);
+
+            // 실제 인플루언서의 팬카드 이미지 URL 사용 (S3)
+            String defaultCardDesignUrl = influencer != null && influencer.getFancardImage() != null
+                    ? influencer.getFancardImage()
+                    : "/images/fancard/default.svg"; // 기본값
+
+            // 팬카드 생성
+            Fancard fancard = new Fancard(membershipId, cardNumber, defaultCardDesignUrl);
+
+            fancardMapper.insert(fancard);
+            System.out.println("팬카드 생성 완료. membershipId: " + membershipId + ", cardId: " + fancard.getCardId());
+            
+        } catch (Exception e) {
+            System.err.println("팬카드 생성 실패: membershipId=" + membershipId + ", error=" + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("팬카드 생성 중 오류가 발생했습니다", e);
+        }
+    }
+    
+    @Override
+    public List<PaymentHistoryDto> getPaymentHistory(Long membershipId) {
+        try {
+            List<PaymentHistoryDto> history = fancardMapper.findPaymentHistoryByMembershipId(membershipId);
+            System.out.println("결제 히스토리 조회 완료: membershipId=" + membershipId + ", count=" + history.size());
+            return history;
+        } catch (Exception e) {
+            System.err.println("결제 히스토리 조회 실패: membershipId=" + membershipId + ", error=" + e.getMessage());
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
     }
 }
