@@ -4,14 +4,13 @@ import lombok.RequiredArgsConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.slf4j.Slf4j;
+import org.example.fanzip.global.metric.MetricsInterceptor;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 import java.util.List;
@@ -19,18 +18,25 @@ import java.util.List;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = {
-        "org.example.fanzip.global.controller",
+        "org.example.fanzip.global",
         "org.example.fanzip.auth.controller",
         "org.example.fanzip.user.controller",
-        "org.example.fanzip",
         "org.example.fanzip.cart.controller",
+        "org.example.fanzip.influencer.controller",
+        "org.example.fanzip.membership.controller",
+        "org.example.fanzip.notification.controller",
+        "org.example.fanzip.payment.controller",
+        "org.example.fanzip.survey.controller",
         "org.example.fanzip.market.controller",
         "org.example.fanzip.fancard.controller",
         "org.example.fanzip.meeting.controller",
         "org.example.fanzip.survey.controller"
 })
 @RequiredArgsConstructor
+@Slf4j
 public class ServletConfig implements WebMvcConfigurer {
+
+    private final MetricsInterceptor metricsInterceptor;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -69,6 +75,22 @@ public class ServletConfig implements WebMvcConfigurer {
                 new MappingJackson2HttpMessageConverter(mapper);
 
         converters.add(converter);
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        log.info("------------addInterceptors--------------");
+        registry.addInterceptor(metricsInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/metrics",                            // Prometheus 메트릭 엔드포인트 제외
+                        "/health",                             // 헬스체크 엔드포인트 제외
+                        "/static/**",                          // 정적 리소스 제외
+                        "/css/**",                             // CSS 파일 제외
+                        "/js/**",                              // JS 파일 제외
+                        "/images/**",                          // 이미지 파일 제외
+                        "/favicon.ico"
+                );
     }
 }
 
