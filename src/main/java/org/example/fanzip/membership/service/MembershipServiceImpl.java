@@ -128,4 +128,25 @@ public class MembershipServiceImpl implements MembershipService {
     public UserMembershipInfoDTO.UserMembershipSubscriptionDTO getUserSubscriptionByInfluencer(Long userId, Long influencerId) {
         return membershipMapper.findUserSubscriptionByInfluencerId(userId, influencerId);
     }
+    
+    @Override
+    @Transactional
+    public boolean cancelMembership(Long membershipId, Long userId) {
+        try {
+            // 구독 취소 실행
+            int result = membershipMapper.cancelMembership(membershipId, userId);
+            
+            if (result > 0) {
+                System.out.println("구독 취소 성공: membershipId=" + membershipId + ", userId=" + userId);
+                return true;
+            } else {
+                System.err.println("구독 취소 실패: membershipId=" + membershipId + ", userId=" + userId + " (해당 가능한 멤버십이 없음)");
+                return false;
+            }
+        } catch (Exception e) {
+            System.err.println("구독 취소 중 오류 발생: membershipId=" + membershipId + ", userId=" + userId + ", error=" + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

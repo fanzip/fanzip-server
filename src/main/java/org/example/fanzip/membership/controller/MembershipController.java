@@ -64,5 +64,22 @@ public class MembershipController {
                 membershipService.getUserSubscriptionByInfluencer(userId, influencerId);
         return ResponseEntity.ok(subscription);
     }
+    
+    @DeleteMapping("/{membershipId}/cancel")
+    public ResponseEntity<String> cancelMembership(
+            @PathVariable Long membershipId,
+            Authentication authentication
+    ) {
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+        
+        boolean success = membershipService.cancelMembership(membershipId, userId);
+        
+        if (success) {
+            return ResponseEntity.ok("구독이 취소되었습니다.");
+        } else {
+            return ResponseEntity.badRequest().body("구독 취소에 실패했습니다.");
+        }
+    }
 
 }
