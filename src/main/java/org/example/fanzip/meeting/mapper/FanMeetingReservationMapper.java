@@ -45,5 +45,7 @@ public interface FanMeetingReservationMapper {
     // paymentId로 예약 찾기 (payments.reservation_id JOIN)
     FanMeetingReservationVO findByPaymentId(@Param("paymentId") Long paymentId);
     Long findIdByReservationNumber(@Param("reservationNumber") String reservationNumber);
-
+    
+    // reservationId로 예약 정보 조회
+    FanMeetingReservationVO findById(@Param("reservationId") Long reservationId);
 }

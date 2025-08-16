@@ -127,4 +127,10 @@
         WHERE reservation_number = #{reservationNumber}
             LIMIT 1
     </select>
+    
+    <select id="findById" resultType="org.example.fanzip.meeting.domain.FanMeetingReservationVO">
+        SELECT * 
+        FROM fan_meeting_reservations
+        WHERE reservation_id = #{reservationId}
+    </select>
 </mapper>
