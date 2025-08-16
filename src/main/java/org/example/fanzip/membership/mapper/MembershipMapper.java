@@ -61,4 +61,29 @@
         int updateTotalPaidAmount(@Param("membershipId") long membershipId, @Param("amount") BigDecimal amount);
 
         int cancelMembership(@Param("membershipId") long membershipId, @Param("userId") long userId);
+
+        BigDecimal findMonthlyAmountByGradeId(@Param("gradeId") Integer gradeId);
+
+        MembershipVO findByUserIdAndInfluencerIdForUpdate(
+                @Param("userId") long userId,
+                @Param("influencerId") long influencerId
+        );
+
+        int insertPending(@Param("userId") long userId,
+                          @Param("influencerId") long influencerId,
+                          @Param("gradeId") int gradeId,
+                          @Param("amount") BigDecimal amount);
+
+        int updateToPending(@Param("userId") long userId,
+                            @Param("influencerId") long influencerId,
+                            @Param("gradeId") int gradeId,
+                            @Param("amount") BigDecimal amount);
+
+        int updateToActive(@Param("membershipId") long membershipId);
+
+        MembershipVO findByMembershipId(@Param("membershipId") long membershipId);
+
+        int updateTotalPaidAmount(@Param("membershipId") long membershipId, @Param("amount") BigDecimal amount);
+
+        int cancelMembership(@Param("membershipId") long membershipId, @Param("userId") long userId);
     }

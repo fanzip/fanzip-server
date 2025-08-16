@@ -3,6 +3,10 @@ package org.example.fanzip.payment.service;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.global.exception.BusinessException;
 import org.example.fanzip.global.exception.payment.PaymentErrorCode;
+import org.example.fanzip.market.mapper.MarketOrderMapper;
+import org.example.fanzip.membership.mapper.MembershipMapper;
+import org.example.fanzip.membership.domain.MembershipVO;
+import org.example.fanzip.fancard.service.FancardService;
 import org.example.fanzip.meeting.domain.FanMeetingReservationVO;
 import org.example.fanzip.meeting.domain.FanMeetingSeatVO;
 import org.example.fanzip.meeting.mapper.FanMeetingReservationMapper;
@@ -20,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -39,23 +44,28 @@ public class PaymentApproveService {
         if (payments == null) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
         }
-        if (payments.getStatus() != PaymentStatus.PENDING) {
-            throw new BusinessException(PaymentErrorCode.INVALID_STATUS);
-        }
-        paymentValidator.validateStockAvailability(payments.getOrderId(), payments.getReservationId(), payments.getMembershipId());
-
-        // 실제 금액 검증
-        BigDecimal expectedAmount = getExpectedAmount(payments);
-        if (payments.getAmount().compareTo(expectedAmount) != 0) {
+        paymentValidator.validateStockAvailability(payments.getOrderId(), payments.getReservationId(), payments.getMembershipId()); // 결제 승인 시 재고 수량 검사 홤수
+        // TODO : 주문 금액과 결제 요청 금액이 맞는지 로직 변경 필요
+        BigDecimal expectedAmount = getExpectedAmountMock(payments);
+        if (payments.getAmount().compareTo(expectedAmount) != 0)  {
             throw new BusinessException(PaymentErrorCode.AMOUNT_MISMATCH);
         }
 
-        // 예약 좌석인 경우 먼저 좌석 예약 처리
-        if (payments.getPaymentType() == PaymentType.RESERVATION && payments.getReservationId() != null) {
-            reserveSeat(payments.getReservationId());
-        }
+        // 주문 금액으로 검증 (ORDERS)
+//        BigDecimal expectedAmount;
+//        if (payments.getOrderId() != null) {
+//            Map<String, Object> row = marketOrderMapper.selectOrderForPayment(payments.getOrderId());
+//            if (row == null) throw new BusinessException(PaymentErrorCode.ORDER_NOT_FOUND);
+//            expectedAmount = (BigDecimal) row.get("finalAmount");
+//        } else {
+//            throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_TYPE);
+//        }
+//
+//        // 금액 검증
+//        if (payments.getAmount().compareTo(expectedAmount) != 0)
+//            throw new BusinessException(PaymentErrorCode.AMOUNT_MISMATCH);
 
-        // 좌석 예약이 성공한 후 결제 승인 처리
+
         payments.approve();
         paymentRepository.updateStatus(payments);
 
@@ -248,7 +258,7 @@ public class PaymentApproveService {
         // TODO: 실제 주문 테이블에서 influencer_id 조회 로직 구현 필요
         Long influencerId = getInfluencerIdForPayment(payments, null);
         System.out.println("주문 결제 완료: orderId=" + payments.getOrderId() + ", influencerId=" + influencerId);
-        
+
         // 주문 결제에서는 팬카드 생성하지 않음 (다른 팀원 구현 영역)
     }
 
@@ -257,14 +267,30 @@ public class PaymentApproveService {
         if (payments.getInfluencerId() != null) {
             return payments.getInfluencerId();
         }
-        
+
         // 없으면 관련 테이블에서 조회한 값 사용
         if (fallbackInfluencerId != null) {
             return fallbackInfluencerId;
         }
-        
+
         // 그것도 없으면 기본값 사용 (임시)
         System.out.println("⚠️ influencer_id를 찾을 수 없어 기본값(1L) 사용: paymentId=" + payments.getPaymentId());
         return 1L;
+        if (payments.getReservationId() != null) {
+            return new BigDecimal("12000"); // 예매 금액 mock
+        }
+        if (payments.getMembershipId() != null) {
+            try {
+                // 실제 멤버십 금액 조회
+                BigDecimal actualAmount = membershipMapper.findMonthlyAmountByGradeId(
+                    membershipMapper.findByMembershipId(payments.getMembershipId()).getGradeId()
+                );
+                return actualAmount != null ? actualAmount : new BigDecimal("10000"); // fallback
+            } catch (Exception e) {
+                System.err.println("멤버십 금액 조회 실패, 기본값 사용: " + e.getMessage());
+                return new BigDecimal("10000"); // fallback
+            }
+        }
+        throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_TYPE);
     }
 }
