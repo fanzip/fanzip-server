@@ -48,7 +48,6 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public PaymentResponseDto getPayment(Long paymentId) {
         Payments payments = paymentRepository.findByIdForUpdate(paymentId);
         if (payments == null) {

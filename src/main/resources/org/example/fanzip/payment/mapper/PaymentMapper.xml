@@ -11,6 +11,7 @@
         <result property="orderId" column="order_id"/>
         <result property="reservationId" column="reservation_id"/>
         <result property="membershipId" column="membership_id"/>
+        <result property="influencerId" column="influencer_id"/>
         <result property="paymentType" column="payment_type"/>
         <result property="paymentMethod" column="payment_method"/>
         <result property="amount" column="amount"/>
@@ -24,12 +25,12 @@
     <insert id="insertPayment" parameterType="org.example.fanzip.payment.domain.Payments"
             useGeneratedKeys="true" keyProperty="paymentId">
         INSERT INTO payments(
-            user_id, order_id, reservation_id, membership_id, payment_type,
+            user_id, order_id, reservation_id, membership_id, influencer_id, payment_type,
             payment_method, amount, status, transaction_id,
             paid_at, cancelled_at, refunded_at, created_at
         )
         VALUES (
-                   #{userId}, #{orderId}, #{reservationId}, #{membershipId}, #{paymentType},
+                   #{userId}, #{orderId}, #{reservationId}, #{membershipId}, #{influencerId}, #{paymentType},
                    #{paymentMethod}, #{amount}, #{status}, #{transactionId},
                    #{paidAt}, #{cancelledAt}, #{refundedAt}, #{createdAt}
                )

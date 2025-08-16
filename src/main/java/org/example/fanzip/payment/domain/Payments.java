@@ -21,6 +21,7 @@ public class Payments {
     private Long orderId;
     private Long reservationId;
     private Long membershipId;
+    private Long influencerId;
     private PaymentType paymentType;
     private PaymentMethod paymentMethod;
     private BigDecimal amount;
@@ -31,7 +32,7 @@ public class Payments {
     private LocalDateTime refundedAt;
     private LocalDateTime createdAt;
     private Long userId;
-    public Payments(Long paymentId, Long orderId, Long reservationId, Long membershipId,
+    public Payments(Long paymentId, Long orderId, Long reservationId, Long membershipId, Long influencerId,
                     String paymentType, String paymentMethod, BigDecimal amount,
                     String status, String transactionId,
                     LocalDateTime paidAt, LocalDateTime cancelledAt,
@@ -41,6 +42,7 @@ public class Payments {
         this.orderId = orderId;
         this.reservationId = reservationId;
         this.membershipId = membershipId;
+        this.influencerId = influencerId;
         this.paymentType = PaymentType.valueOf(paymentType); // String -> enum
         this.paymentMethod = PaymentMethod.valueOf(paymentMethod);
         this.status = PaymentStatus.valueOf(status);

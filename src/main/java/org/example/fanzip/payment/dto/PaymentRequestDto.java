@@ -21,6 +21,7 @@ public class PaymentRequestDto {
     private Long orderId;
     private Long reservationId;
     private Long membershipId;
+    private Long influencerId;
     private String transactionId;
     private PaymentType paymentType;
     private PaymentMethod paymentMethod;
@@ -31,6 +32,7 @@ public class PaymentRequestDto {
                 .orderId(orderId)
                 .reservationId(reservationId)
                 .membershipId(membershipId)
+                .influencerId(influencerId)
                 .transactionId(transactionId)
                 .paymentType(paymentType)
                 .paymentMethod(paymentMethod)
