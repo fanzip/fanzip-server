@@ -57,7 +57,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                             "/webjars/**",
                             "/api/auth/oauth/**",
                             "/api/auth/reissue/**",
-                            "/api/user/register/**"
+                            "/api/user/register/**",
+                            "/metrics/**"
                     ).permitAll()//jwt 인증 필요x
 //                    .antMatchers("/api/influencers/{influencerId}/**").hasRole("INFLUENCER")
                     .anyRequest().authenticated()//jwt 인증 필요
