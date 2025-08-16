@@ -6,6 +6,9 @@ import org.example.fanzip.fancard.dto.response.FancardDetailResponse;
 import org.example.fanzip.fancard.dto.response.FancardListWrapper;
 import org.example.fanzip.fancard.dto.response.QrCodeResponse;
 import org.example.fanzip.fancard.dto.response.QrCodeValidationResponse;
+import org.example.fanzip.fancard.dto.response.PaymentHistoryDto;
+
+import java.util.List;
 
 public interface FancardService {
     
@@ -18,4 +21,8 @@ public interface FancardService {
     QrCodeValidationResponse validateQrCode(QrCodeValidationRequest request);
     
     QrCodeResponse getMobileTicketData(Long userId, Long reservationId, Long seatId, Long meetingId);
+    
+    void createFancardForMembership(Long membershipId, Long influencerId);
+    
+    List<PaymentHistoryDto> getPaymentHistory(Long membershipId);
 }

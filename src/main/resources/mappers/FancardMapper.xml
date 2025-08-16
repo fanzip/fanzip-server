@@ -104,12 +104,13 @@
         <result property="influencerName" column="influencer_name"/>
         <result property="category" column="category"/>
         <result property="profileImage" column="profile_image"/>
+        <result property="fancardImage" column="fancard_image"/>
         <result property="isVerified" column="is_verified"/>
     </resultMap>
 
     <!-- 멤버십 ID로 인플루언서 정보 조회 -->
     <select id="findInfluencerByMembershipId" parameterType="long" resultMap="influencerDtoResultMap">
-        SELECT i.influencer_id, i.influencer_name, i.category, i.profile_image, i.is_verified
+        SELECT i.influencer_id, i.influencer_name, i.category, i.profile_image, i.fancard_image, i.is_verified
         FROM influencers i
         JOIN memberships m ON i.influencer_id = m.influencer_id
         WHERE m.membership_id = #{membershipId}
@@ -157,6 +158,48 @@
         FROM influencers i
         JOIN memberships m ON i.influencer_id = m.influencer_id
         WHERE m.membership_id = #{membershipId}
+    </select>
+    
+    <!-- PaymentHistoryDto ResultMap -->
+    <resultMap id="paymentHistoryDtoResultMap" type="org.example.fanzip.fancard.dto.response.PaymentHistoryDto">
+        <id property="paymentId" column="payment_id"/>
+        <result property="title" column="title"/>
+        <result property="amount" column="amount"/>
+        <result property="paidAt" column="paid_at"/>
+        <result property="status" column="status"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="description" column="description"/>
+        <result property="bold" column="bold"/>
+    </resultMap>
+
+    <!-- 멤버십 ID로 결제 히스토리 조회 -->
+    <select id="findPaymentHistoryByMembershipId" parameterType="long" resultMap="paymentHistoryDtoResultMap">
+        SELECT 
+            p.payment_id,
+            CASE 
+                WHEN p.payment_type = 'MEMBERSHIP' THEN CONCAT(i.influencer_name, ' 멤버십 구독')
+                ELSE '기타 결제'
+            END as title,
+            p.amount,
+            p.paid_at,
+            p.status,
+            p.payment_method,
+            CASE 
+                WHEN p.payment_type = 'MEMBERSHIP' THEN CONCAT('등급: ', mg.grade_name)
+                ELSE ''
+            END as description,
+            CASE 
+                WHEN p.status IN ('APPROVED', 'PAID') THEN true
+                ELSE false
+            END as bold
+        FROM payments p
+        JOIN memberships m ON p.membership_id = m.membership_id
+        JOIN influencers i ON m.influencer_id = i.influencer_id
+        LEFT JOIN membership_grades mg ON m.grade_id = mg.grade_id
+        WHERE p.membership_id = #{membershipId}
+        AND p.status IN ('APPROVED', 'PAID')
+        ORDER BY p.paid_at DESC
+        LIMIT 20
     </select>
 
 </mapper>
