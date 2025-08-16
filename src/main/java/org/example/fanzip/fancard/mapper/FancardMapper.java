@@ -6,6 +6,7 @@ import org.example.fanzip.fancard.domain.Fancard;
 import org.example.fanzip.fancard.dto.response.InfluencerDto;
 import org.example.fanzip.fancard.dto.response.MembershipDto;
 import org.example.fanzip.fancard.dto.response.MembershipGradeDto;
+import org.example.fanzip.fancard.dto.response.PaymentHistoryDto;
 
 import java.util.List;
 
@@ -43,4 +44,7 @@ public interface FancardMapper {
     MembershipGradeDto findMembershipGradeById(@Param("gradeId") Long gradeId);
     
     String findInfluencerNameByMembershipId(@Param("membershipId") Long membershipId);
+    
+    // 결제 히스토리 조회
+    List<PaymentHistoryDto> findPaymentHistoryByMembershipId(@Param("membershipId") Long membershipId);
 }
