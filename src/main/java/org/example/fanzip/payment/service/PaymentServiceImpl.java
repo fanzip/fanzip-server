@@ -50,7 +50,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional(readOnly = true)
     public PaymentResponseDto getPayment(Long paymentId) {
-        Payments payments = paymentRepository.findById(paymentId);
+        Payments payments = paymentRepository.findByIdForUpdate(paymentId);
         if (payments == null) {
             throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
         }
