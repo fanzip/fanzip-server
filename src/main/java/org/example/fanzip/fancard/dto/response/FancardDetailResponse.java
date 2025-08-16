@@ -19,4 +19,5 @@ public class FancardDetailResponse {
     private InfluencerDto influencer;
     private MembershipDto membership;
     private List<BenefitDto> benefits;
+    private List<PaymentHistoryDto> paymentHistory;
 }
