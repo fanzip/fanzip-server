@@ -37,6 +37,8 @@
             SELECT influencer_id
             FROM memberships
             WHERE user_id = #{userId}
+            AND status = 'ACTIVE'
+            AND subscription_end >= CURDATE()
             )
 
             <if test="category != null">
