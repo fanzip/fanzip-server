@@ -60,42 +60,13 @@ public class PaymentApproveService {
         paymentRepository.updateStatus(payments);
 
 
-        // 멤버십 결제 승인 시 추가 처리
+        // 결제 타입별 후처리
         if (payments.getPaymentType() == PaymentType.MEMBERSHIP && payments.getMembershipId() != null) {
-            // 1. 멤버십을 ACTIVE 상태로 변경
-            int updateResult = membershipMapper.updateToActive(payments.getMembershipId());
-            if (updateResult == 0) {
-                throw new BusinessException(PaymentErrorCode.MEMBERSHIP_ACTIVATION_FAILED);
-            }
-            System.out.println("멤버십 상태를 ACTIVE로 변경: membershipId=" + payments.getMembershipId());
-
-            // 2. 멤버십 정보 조회하여 인플루언서 ID 확인
-            MembershipVO membership = membershipMapper.findByMembershipId(payments.getMembershipId());
-            if (membership == null) {
-                throw new BusinessException(PaymentErrorCode.MEMBERSHIP_NOT_FOUND);
-            }
-
-            // 3. 총 납입 금액 업데이트
-            int updateAmountResult = membershipMapper.updateTotalPaidAmount(payments.getMembershipId(), payments.getAmount());
-            if (updateAmountResult == 0) {
-                System.err.println("총 납입 금액 업데이트 실패: membershipId=" + payments.getMembershipId());
-            } else {
-                System.out.println("총 납입 금액 업데이트 완료: membershipId=" + payments.getMembershipId() + ", amount=" + payments.getAmount());
-            }
-
-            // 4. 팬카드 자동 생성 (실패 시 예외 전파로 전체 트랜잭션 롤백)
-            try {
-                // 결제 요청에서 온 influencer_id를 우선 사용, 없으면 멤버십에서 조회
-                Long influencerId = payments.getInfluencerId() != null 
-                    ? payments.getInfluencerId() 
-                    : membership.getInfluencerId();
-                    
-                fancardService.createFancardForMembership(payments.getMembershipId(), influencerId);
-                System.out.println("팬카드 생성 완료: membershipId=" + payments.getMembershipId() + ", influencerId=" + influencerId);
-            } catch (RuntimeException e) {
-                System.err.println("팬카드 생성 실패: membershipId=" + payments.getMembershipId() + ", error=" + e.getMessage());
-                throw new BusinessException(PaymentErrorCode.FANCARD_CREATION_FAILED);
-            }
+            handleMembershipPaymentApproval(payments);
+        } else if (payments.getPaymentType() == PaymentType.RESERVATION && payments.getReservationId() != null) {
+            handleReservationPaymentApproval(payments);
+        } else if (payments.getPaymentType() == PaymentType.ORDER && payments.getOrderId() != null) {
+            handleOrderPaymentApproval(payments);
         }
 
         return PaymentResponseDto.from(payments);
@@ -220,5 +191,80 @@ public class PaymentApproveService {
         } else {
             System.out.println("🔓 좌석 해제 완료 - seatId: " + seatId + ", reservationId: " + reservationId);
         }
+    }
+
+    private void handleMembershipPaymentApproval(Payments payments) {
+        // 1. 멤버십을 ACTIVE 상태로 변경
+        int updateResult = membershipMapper.updateToActive(payments.getMembershipId());
+        if (updateResult == 0) {
+            throw new BusinessException(PaymentErrorCode.MEMBERSHIP_ACTIVATION_FAILED);
+        }
+        System.out.println("멤버십 상태를 ACTIVE로 변경: membershipId=" + payments.getMembershipId());
+
+        // 2. 멤버십 정보 조회하여 인플루언서 ID 확인
+        MembershipVO membership = membershipMapper.findByMembershipId(payments.getMembershipId());
+        if (membership == null) {
+            throw new BusinessException(PaymentErrorCode.MEMBERSHIP_NOT_FOUND);
+        }
+
+        // 3. 총 납입 금액 업데이트
+        int updateAmountResult = membershipMapper.updateTotalPaidAmount(payments.getMembershipId(), payments.getAmount());
+        if (updateAmountResult == 0) {
+            System.err.println("총 납입 금액 업데이트 실패: membershipId=" + payments.getMembershipId());
+        } else {
+            System.out.println("총 납입 금액 업데이트 완료: membershipId=" + payments.getMembershipId() + ", amount=" + payments.getAmount());
+        }
+
+        // 4. 팬카드 자동 생성 (실패 시 예외 전파로 전체 트랜잭션 롤백)
+        try {
+            // 결제 요청에서 온 influencer_id를 우선 사용, 없으면 멤버십에서 조회
+            Long influencerId = getInfluencerIdForPayment(payments, membership.getInfluencerId());
+            fancardService.createFancardForMembership(payments.getMembershipId(), influencerId);
+            System.out.println("팬카드 생성 완료: membershipId=" + payments.getMembershipId() + ", influencerId=" + influencerId);
+        } catch (RuntimeException e) {
+            System.err.println("팬카드 생성 실패: membershipId=" + payments.getMembershipId() + ", error=" + e.getMessage());
+            throw new BusinessException(PaymentErrorCode.FANCARD_CREATION_FAILED);
+        }
+    }
+
+    private void handleReservationPaymentApproval(Payments payments) {
+        // 1. 예약 정보 조회
+        FanMeetingReservationVO reservation = reservationMapper.findById(payments.getReservationId());
+        if (reservation == null) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+        }
+
+        // 2. 예약 상태를 RESERVED로 변경
+        reservationMapper.markConfirmed(payments.getReservationId(), java.time.LocalDateTime.now());
+        System.out.println("예약 상태를 RESERVED로 변경: reservationId=" + payments.getReservationId());
+
+        // 3. 로깅용으로만 influencer_id 확인
+        Long influencerId = getInfluencerIdForPayment(payments, reservation.getInfluencerId());
+        System.out.println("예약 결제 완료: reservationId=" + payments.getReservationId() + ", influencerId=" + influencerId);
+    }
+
+    private void handleOrderPaymentApproval(Payments payments) {
+        // 현재는 주문 테이블이 구현되지 않아 간단히 처리
+        // TODO: 실제 주문 테이블에서 influencer_id 조회 로직 구현 필요
+        Long influencerId = getInfluencerIdForPayment(payments, null);
+        System.out.println("주문 결제 완료: orderId=" + payments.getOrderId() + ", influencerId=" + influencerId);
+        
+        // 주문 결제에서는 팬카드 생성하지 않음 (다른 팀원 구현 영역)
+    }
+
+    private Long getInfluencerIdForPayment(Payments payments, Long fallbackInfluencerId) {
+        // 결제 요청에서 온 influencer_id를 우선 사용
+        if (payments.getInfluencerId() != null) {
+            return payments.getInfluencerId();
+        }
+        
+        // 없으면 관련 테이블에서 조회한 값 사용
+        if (fallbackInfluencerId != null) {
+            return fallbackInfluencerId;
+        }
+        
+        // 그것도 없으면 기본값 사용 (임시)
+        System.out.println("⚠️ influencer_id를 찾을 수 없어 기본값(1L) 사용: paymentId=" + payments.getPaymentId());
+        return 1L;
     }
 }
