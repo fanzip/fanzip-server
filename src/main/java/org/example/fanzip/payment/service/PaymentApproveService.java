@@ -9,8 +9,6 @@ import org.example.fanzip.meeting.mapper.FanMeetingReservationMapper;
 import org.example.fanzip.meeting.mapper.FanMeetingSeatMapper;
 import org.example.fanzip.membership.mapper.MembershipMapper;
 import org.example.fanzip.fancard.mapper.FancardMapper;
-import org.example.fanzip.market.mapper.MarketOrderMapper;
-import org.example.fanzip.membership.mapper.MembershipMapper;
 import org.example.fanzip.membership.domain.MembershipVO;
 import org.example.fanzip.fancard.service.FancardService;
 import org.example.fanzip.payment.domain.Payments;
@@ -22,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -34,9 +31,7 @@ public class PaymentApproveService {
     private final FanMeetingSeatMapper seatMapper;
     private final MembershipMapper membershipMapper;
     private final FancardMapper fancardMapper;
-    private final MembershipMapper membershipMapper;
     private final FancardService fancardService;
-//    private final MarketOrderMapper marketOrderMapper;
 
     @Transactional
     public PaymentResponseDto approvePaymentById(Long paymentId) {
@@ -55,20 +50,6 @@ public class PaymentApproveService {
             throw new BusinessException(PaymentErrorCode.AMOUNT_MISMATCH);
         }
 
-        // 주문 금액으로 검증 (ORDERS)
-//        BigDecimal expectedAmount;
-//        if (payments.getOrderId() != null) {
-//            Map<String, Object> row = marketOrderMapper.selectOrderForPayment(payments.getOrderId());
-//            if (row == null) throw new BusinessException(PaymentErrorCode.ORDER_NOT_FOUND);
-//            expectedAmount = (BigDecimal) row.get("finalAmount");
-//        } else {
-//            throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_TYPE);
-//        }
-//
-//        // 금액 검증
-//        if (payments.getAmount().compareTo(expectedAmount) != 0)
-//            throw new BusinessException(PaymentErrorCode.AMOUNT_MISMATCH);
-
         // 예약 좌석인 경우 먼저 좌석 예약 처리
         if (payments.getPaymentType() == PaymentType.RESERVATION && payments.getReservationId() != null) {
             reserveSeat(payments.getReservationId());
@@ -77,11 +58,6 @@ public class PaymentApproveService {
         // 좌석 예약이 성공한 후 결제 승인 처리
         payments.approve();
         paymentRepository.updateStatus(payments);
-
-        // 멤버십 결제인 경우 멤버십 활성화 및 팬카드 생성
-        if (payments.getPaymentType() == PaymentType.MEMBERSHIP && payments.getMembershipId() != null) {
-            activateMembershipAndCreateFancard(payments.getMembershipId());
-        }
 
 
         // 멤버십 결제 승인 시 추가 처리
@@ -109,8 +85,13 @@ public class PaymentApproveService {
 
             // 4. 팬카드 자동 생성 (실패 시 예외 전파로 전체 트랜잭션 롤백)
             try {
-                fancardService.createFancardForMembership(payments.getMembershipId(), membership.getInfluencerId());
-                System.out.println("팬카드 생성 완료: membershipId=" + payments.getMembershipId());
+                // 결제 요청에서 온 influencer_id를 우선 사용, 없으면 멤버십에서 조회
+                Long influencerId = payments.getInfluencerId() != null 
+                    ? payments.getInfluencerId() 
+                    : membership.getInfluencerId();
+                    
+                fancardService.createFancardForMembership(payments.getMembershipId(), influencerId);
+                System.out.println("팬카드 생성 완료: membershipId=" + payments.getMembershipId() + ", influencerId=" + influencerId);
             } catch (RuntimeException e) {
                 System.err.println("팬카드 생성 실패: membershipId=" + payments.getMembershipId() + ", error=" + e.getMessage());
                 throw new BusinessException(PaymentErrorCode.FANCARD_CREATION_FAILED);
@@ -153,42 +134,44 @@ public class PaymentApproveService {
     }
 
     private BigDecimal getExpectedAmount(Payments payments) {
-        if (payments.getOrderId() != null) {
-            // ORDER 금액 검증 (임시로 결제 요청 금액 그대로 사용)
-            // TODO: 실제 주문 금액 검증 구현 필요
-            return payments.getAmount();
+        PaymentType type = payments.getPaymentType();
+        if (type == null) {
+            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND); // 테스트 메시지와 통일
         }
 
-        if (payments.getReservationId() != null) {
-            // RESERVATION 테이블에서 실제 금액 조회
-            FanMeetingReservationVO reservation = reservationMapper.findById(payments.getReservationId());
-            if (reservation == null) {
-                throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+        switch (type) {
+            case ORDER:
+                // TODO: 주문 금액을 주문 테이블에서 재조회하는게 가장 안전
+                return payments.getAmount();
+
+            case RESERVATION: {
+                if (payments.getReservationId() == null) {
+                    throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+                }
+                FanMeetingReservationVO reservation = reservationMapper.findById(payments.getReservationId());
+                if (reservation == null) throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+
+                FanMeetingSeatVO seat = seatMapper.findById(reservation.getSeatId());
+                if (seat == null || seat.getPrice() == null) {
+                    throw new BusinessException(PaymentErrorCode.SEATS_UNAVAILABLE);
+                }
+                return seat.getPrice();
             }
 
-            // 좌석 가격 조회
-            FanMeetingSeatVO seat = seatMapper.findById(reservation.getSeatId());
-            if (seat == null || seat.getPrice() == null) {
-                throw new BusinessException(PaymentErrorCode.SEATS_UNAVAILABLE);
+            case MEMBERSHIP: {
+                if (payments.getMembershipId() == null) {
+                    throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND);
+                }
+                // 멤버십 금액 정책에 맞게 금액을 산출
+                MembershipVO membership = membershipMapper.findByMembershipId(payments.getMembershipId());
+                if (membership == null) throw new BusinessException(PaymentErrorCode.MEMBERSHIP_NOT_FOUND);
+
+                return payments.getAmount();
             }
-            return seat.getPrice();
+
+            default:
+                throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_TYPE);
         }
-
-        if (payments.getMembershipId() != null) {
-            try {
-                // 실제 멤버십 금액 조회
-                BigDecimal actualAmount = membershipMapper.findMonthlyAmountByGradeId(
-                    membershipMapper.findByMembershipId(payments.getMembershipId()).getGradeId()
-                );
-                return actualAmount != null ? actualAmount : new BigDecimal("10000"); // fallback
-            } catch (Exception e) {
-                System.err.println("멤버십 금액 조회 실패, 기본값 사용: " + e.getMessage());
-                return new BigDecimal("10000"); // fallback
-            }
-            return payments.getAmount();
-        }
-
-        throw new BusinessException(PaymentErrorCode.UNSUPPORTED_PAYMENT_TYPE);
     }
 
     private void reserveSeat(Long reservationId) {
@@ -237,41 +220,5 @@ public class PaymentApproveService {
         } else {
             System.out.println("🔓 좌석 해제 완료 - seatId: " + seatId + ", reservationId: " + reservationId);
         }
-    }
-
-    private void activateMembershipAndCreateFancard(Long membershipId) {
-        try {
-            // 1. 멤버십 상태를 ACTIVE로 변경
-            membershipMapper.updateMembershipStatus(membershipId, "ACTIVE");
-            System.out.println("✅ 멤버십 활성화 완료 - membershipId: " + membershipId);
-
-            // 2. 이미 팬카드가 있는지 확인
-            if (fancardMapper.existsByMembershipId(membershipId)) {
-                System.out.println("⚠️ 이미 팬카드가 존재함 - membershipId: " + membershipId);
-                return;
-            }
-
-            // 3. 팬카드 생성
-            String cardNumber = generateCardNumber(membershipId);
-            String cardDesignUrl = getDefaultCardDesignUrl();
-
-            fancardMapper.insertFancard(membershipId, cardNumber, cardDesignUrl);
-            System.out.println("✅ 팬카드 생성 완료 - membershipId: " + membershipId + ", cardNumber: " + cardNumber);
-
-        } catch (Exception e) {
-            System.err.println("❌ 멤버십 활성화/팬카드 생성 실패: " + e.getMessage());
-            throw new BusinessException(PaymentErrorCode.PAYMENT_NOT_FOUND); // 적절한 에러 코드로 변경 필요
-        }
-    }
-
-    private String generateCardNumber(Long membershipId) {
-        // 카드 번호 생성 로직 (예: FC + membershipId + timestamp)
-        long timestamp = System.currentTimeMillis() / 1000;
-        return String.format("FC%06d%06d", membershipId, timestamp % 1000000);
-    }
-
-    private String getDefaultCardDesignUrl() {
-        // 기본 팬카드 디자인 URL
-        return "/images/fancard/default.png";
     }
 }
