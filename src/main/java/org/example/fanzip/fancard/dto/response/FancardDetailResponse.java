@@ -16,6 +16,7 @@ public class FancardDetailResponse {
     private Long cardId;
     private String cardNumber;
     private String cardDesignUrl;
+    private Boolean isActive;
     private InfluencerDto influencer;
     private MembershipDto membership;
     private List<BenefitDto> benefits;
