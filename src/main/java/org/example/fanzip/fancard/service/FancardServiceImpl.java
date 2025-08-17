@@ -299,11 +299,29 @@ public class FancardServiceImpl implements FancardService {
     @Override
     public QrCodeResponse getMobileTicketData(Long userId, Long reservationId, Long seatId, Long meetingId) {
         try {
-            // 예약 정보 검증 (데이터가 없으면 테스트 데이터로 대체)
+            System.out.println("🎫 모바일 티켓 데이터 조회 시작: userId=" + userId + ", meetingId=" + meetingId);
+            
+            // 예약 정보 검증
             FanMeetingReservationVO reservation = reservationMapper.findByUserAndMeeting(userId, meetingId);
             
-            // 팬미팅 정보 조회 (데이터가 없으면 테스트 데이터로 대체)
+            // 팬미팅 정보 조회
             FanMeetingVO meeting = fanMeetingMapper.findById(meetingId);
+            
+            // 인플루언서 정보 조회 (팬미팅에서 influencer_id로 조회)
+            InfluencerDto influencer = null;
+            String fancardImageUrl = null;
+            
+            if (meeting != null && meeting.getInfluencerId() != null) {
+                // 팬미팅의 인플루언서 ID로 인플루언서 정보 조회
+                influencer = fancardMapper.findInfluencerById(meeting.getInfluencerId());
+                System.out.println("📸 인플루언서 정보: " + (influencer != null ? influencer.getInfluencerName() : "null"));
+                
+                if (influencer != null) {
+                    // 인플루언서의 팬카드 이미지 URL 가져오기
+                    fancardImageUrl = influencer.getFancardImage();
+                    System.out.println("🖼️ 팬카드 이미지 URL: " + fancardImageUrl);
+                }
+            }
             
             // 좌석 정보는 현재 간단히 처리
             String seatNumber = "A-" + (seatId % 100); // 임시 좌석 번호 생성
@@ -316,16 +334,20 @@ public class FancardServiceImpl implements FancardService {
                         .reservationId(reservation.getReservationId())
                         .reservationNumber("FM" + reservation.getReservationId().toString())
                         .meetingTitle(meeting.getTitle())
+                        .meetingDescription(meeting.getDescription())
                         .meetingDate(meeting.getMeetingDate())
                         .venueName(meeting.getVenueName())
                         .seatNumber(seatNumber)
                         .build();
+                        
+                System.out.println("✅ 실제 데이터 사용: " + meeting.getTitle() + " @ " + meeting.getVenueName());
             } else {
                 // 테스트 데이터 사용
                 reservationDto = ReservationDto.builder()
                         .reservationId(reservationId)
                         .reservationNumber("FM" + reservationId.toString())
                         .meetingTitle(FancardConstants.TestData.TEST_MEETING_TITLE)
+                        .meetingDescription("특별한 시간을 함께하는 팬미팅")
                         .meetingDate(LocalDateTime.now().plusDays(30))
                         .venueName(FancardConstants.TestData.TEST_VENUE_NAME)
                         .seatNumber(seatNumber)
@@ -349,6 +371,8 @@ public class FancardServiceImpl implements FancardService {
                     .expiresAt(null)
                     .reservation(reservationDto)
                     .fcmToken(fcmToken) // FCM 토큰 포함
+                    .influencer(influencer) // 인플루언서 정보 추가
+                    .fancardImageUrl(fancardImageUrl) // 팬카드 이미지 URL 추가
                     .build();
                     
         } catch (Exception e) {
@@ -505,13 +529,22 @@ public class FancardServiceImpl implements FancardService {
     @Transactional
     public void createFancardForMembership(Long membershipId, Long influencerId) {
         try {
-            // 이미 팬카드가 있는지 확인
-            Fancard existingCard = fancardMapper.findActiveCardByMembershipId(membershipId);
+            // 기존 팬카드 확인 (활성/비활성 모두)
+            Fancard existingCard = fancardMapper.findCardByMembershipId(membershipId);
+            
             if (existingCard != null) {
-                System.out.println("이미 팬카드가 존재합니다. membershipId: " + membershipId);
-                return;
+                if (existingCard.getIsActive()) {
+                    System.out.println("이미 활성 팬카드가 존재합니다. membershipId: " + membershipId);
+                    return;
+                } else {
+                    // 비활성 팬카드를 재활성화
+                    fancardMapper.activateCard(existingCard.getCardId());
+                    System.out.println("기존 팬카드를 재활성화했습니다. membershipId: " + membershipId + ", cardId: " + existingCard.getCardId());
+                    return;
+                }
             }
 
+            // 기존 팬카드가 없으면 새로 생성
             // 인플루언서 정보 조회
             InfluencerDto influencer = fancardMapper.findInfluencerByMembershipId(membershipId);
             String influencerName = influencer != null ? influencer.getInfluencerName() : "Unknown";
@@ -529,7 +562,7 @@ public class FancardServiceImpl implements FancardService {
             Fancard fancard = new Fancard(membershipId, cardNumber, defaultCardDesignUrl);
 
             fancardMapper.insert(fancard);
-            System.out.println("팬카드 생성 완료. membershipId: " + membershipId + ", cardId: " + fancard.getCardId());
+            System.out.println("새 팬카드 생성 완료. membershipId: " + membershipId + ", cardId: " + fancard.getCardId());
             
         } catch (Exception e) {
             System.err.println("팬카드 생성 실패: membershipId=" + membershipId + ", error=" + e.getMessage());

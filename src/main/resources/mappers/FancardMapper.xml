@@ -58,6 +58,37 @@
         LIMIT 1
     </select>
 
+    <!-- 멤버십 ID의 팬카드 조회 (활성/비활성 모두) -->
+    <select id="findCardByMembershipId" parameterType="long" resultMap="fancardResultMap">
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
+        FROM fan_cards
+        WHERE membership_id = #{membershipId}
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 팬카드 활성화 -->
+    <update id="activateCard" parameterType="long">
+        UPDATE fan_cards
+        SET is_active = true
+        WHERE card_id = #{cardId}
+    </update>
+
+    <!-- 팬카드 비활성화 -->
+    <update id="deactivateCard" parameterType="long">
+        UPDATE fan_cards
+        SET is_active = false
+        WHERE card_id = #{cardId}
+    </update>
+
+    <!-- 멤버십 ID로 팬카드 비활성화 -->
+    <update id="deactivateCardByMembershipId" parameterType="long">
+        UPDATE fan_cards
+        SET is_active = false
+        WHERE membership_id = #{membershipId}
+    </update>
+
     <!-- ID로 팬카드 조회 -->
     <select id="findById" parameterType="long" resultMap="fancardResultMap">
         SELECT card_id, membership_id, card_number, 
@@ -288,6 +319,13 @@
         )
         ORDER BY paid_at DESC
         LIMIT 20
+    </select>
+    
+    <!-- 인플루언서 ID로 인플루언서 정보 조회 -->
+    <select id="findInfluencerById" parameterType="long" resultMap="influencerDtoResultMap">
+        SELECT influencer_id, influencer_name, category, profile_image, fancard_image, is_verified
+        FROM influencers
+        WHERE influencer_id = #{influencerId}
     </select>
 
 </mapper>

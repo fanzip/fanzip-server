@@ -17,6 +17,7 @@ public class ReservationDto {
     private Long reservationId;
     private String reservationNumber;
     private String meetingTitle;
+    private String meetingDescription;
     
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime meetingDate;
