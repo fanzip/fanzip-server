@@ -14,6 +14,7 @@ import org.example.fanzip.payment.domain.enums.PaymentType;
 import org.example.fanzip.payment.dto.PaymentRequestDto;
 import org.example.fanzip.payment.dto.PaymentResponseDto;
 import org.example.fanzip.payment.service.PaymentService;
+import org.example.fanzip.fancard.mapper.FancardMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class MembershipServiceImpl implements MembershipService {
 
     private final MembershipMapper membershipMapper;
     private final PaymentService paymentService;
+    private final FancardMapper fancardMapper;
 
     @Value("${app.web-base-url:http://localhost:5173}")
     private String webBaseUrl;
@@ -145,6 +147,15 @@ public class MembershipServiceImpl implements MembershipService {
             int result = membershipMapper.cancelMembership(membershipId, userId);
             
             if (result > 0) {
+                // 해당 멤버십의 팬카드도 비활성화
+                try {
+                    fancardMapper.deactivateCardByMembershipId(membershipId);
+                    System.out.println("멤버십 해지에 따른 팬카드 비활성화 완료: membershipId=" + membershipId);
+                } catch (Exception e) {
+                    System.err.println("팬카드 비활성화 실패 (멤버십 해지는 성공): " + e.getMessage());
+                    // 팬카드 비활성화 실패해도 멤버십 해지는 성공으로 처리
+                }
+                
                 // 해지 이벤트를 payments 테이블에도 기록 (추억 탭에서 시간순 표시를 위해)
                 try {
                     PaymentRequestDto cancellationRecord = PaymentRequestDto.builder()
