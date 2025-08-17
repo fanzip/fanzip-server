@@ -22,4 +22,6 @@ public interface MarketService {
     // 상품 추가
     ProductAddResponseDto addProduct(ProductAddRequestDto requestDto);
 
+    /** 추천: 본인(로그인 사용자) 기준 상품 추가 */
+    ProductAddResponseDto addProductByMe(Long userId, ProductAddRequestDto requestDto);
 }
