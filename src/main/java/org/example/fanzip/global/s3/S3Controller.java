@@ -9,10 +9,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.http.MediaType;
+
+import java.util.List;
+import java.util.Map;
+
 
 @Api(
         value = "S3 이미지 업로드",
-        description = "AWS S3에 프로필 이미지, 팬카드 이미지를 업로드/삭제하는 API 집합입니다."
+        description = "AWS S3에 프로필/팬카드/팬미팅 포스터/마켓 이미지를 업로드/삭제하는 API 집합입니다."
 )
 @RestController
 @RequestMapping("/api/influencers")
@@ -189,6 +194,109 @@ public class S3Controller {
         s3Service.updateFanCardImageUrl(influencerId, null);
 
         return ResponseEntity.noContent().build();
+    }
+
+    /* =======================================================
+     * ✅ 추가: 5) 팬미팅 포스터 업로드
+     *    POST /api/influencers/{influencerId}/fanmeeting/poster
+     * ======================================================= */
+    @ApiOperation(
+            value = "팬미팅 포스터 업로드",
+            notes = """
+                    팬미팅 포스터 이미지를 업로드합니다.
+                    
+                    [요청 예시]
+                    POST /api/influencers/5/fanmeeting/poster
+                    Content-Type: multipart/form-data
+                    (file: <이미지 파일>)
+                    
+                    [응답 예시]
+                    200 OK, body: "https://.../fanmeeting_poster/5/xxx.jpg"
+                    """
+    )
+    @PostMapping(value = "/{influencerId}/fanmeeting/poster", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadFanmeetingPoster(
+            @PathVariable Long influencerId,
+            @RequestParam("file") MultipartFile file
+    ) {
+        String url = s3Service.uploadFanMeetingPoster(file, influencerId);
+        return ResponseEntity.ok(url);
+    }
+
+    /* =======================================================
+     * ✅ 추가: 6) 마켓 이미지 업로드(썸네일/슬라이드/상세)
+     *    - 썸네일: POST /api/influencers/{influencerId}/market/images/thumbnail (file 1장)
+     *    - 슬라이드: POST /api/influencers/{influencerId}/market/images/slide     (files 여러 장)
+     *    - 상세:   POST /api/influencers/{influencerId}/market/images/detail    (files 여러 장)
+     * ======================================================= */
+
+    @ApiOperation(
+            value = "마켓 썸네일 업로드",
+            notes = """
+                    공구 마켓 썸네일 이미지를 업로드합니다.
+                    
+                    [요청 예시]
+                    POST /api/influencers/5/market/images/thumbnail
+                    Content-Type: multipart/form-data
+                    (file: <이미지 파일>)
+                    
+                    [응답 예시]
+                    200 OK, body: {"url":"https://.../market/5/thumbnail/xxx.jpg"}
+                    """
+    )
+    @PostMapping(value = "/{influencerId}/market/images/thumbnail", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> uploadMarketThumbnail(
+            @PathVariable Long influencerId,
+            @RequestParam("file") MultipartFile file
+    ) {
+        String url = s3Service.uploadMarketThumbnail(file, influencerId);
+        return ResponseEntity.ok(Map.of("url", url));
+    }
+
+    @ApiOperation(
+            value = "마켓 슬라이드 이미지 업로드(여러 장)",
+            notes = """
+                    공구 마켓 슬라이드 이미지를 여러 장 업로드합니다.
+                    
+                    [요청 예시]
+                    POST /api/influencers/5/market/images/slide
+                    Content-Type: multipart/form-data
+                    (files: <이미지 파일들>)
+                    
+                    [응답 예시]
+                    200 OK, body: {"urls":["https://.../market/5/slide/a.jpg","..."]}
+                    """
+    )
+    @PostMapping(value = "/{influencerId}/market/images/slide", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, List<String>>> uploadMarketSlide(
+            @PathVariable Long influencerId,
+            @RequestParam("files") List<MultipartFile> files
+    ) {
+        List<String> urls = s3Service.uploadMarketSlideImages(files, influencerId);
+        return ResponseEntity.ok(Map.of("urls", urls));
+    }
+
+    @ApiOperation(
+            value = "마켓 상세 이미지 업로드(여러 장)",
+            notes = """
+                    공구 마켓 상세 이미지를 여러 장 업로드합니다.
+                    
+                    [요청 예시]
+                    POST /api/influencers/5/market/images/detail
+                    Content-Type: multipart/form-data
+                    (files: <이미지 파일들>)
+                    
+                    [응답 예시]
+                    200 OK, body: {"urls":["https://.../market/5/detail/a.jpg","..."]}
+                    """
+    )
+    @PostMapping(value = "/{influencerId}/market/images/detail", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, List<String>>> uploadMarketDetail(
+            @PathVariable Long influencerId,
+            @RequestParam("files") List<MultipartFile> files
+    ) {
+        List<String> urls = s3Service.uploadMarketDetailImages(files, influencerId);
+        return ResponseEntity.ok(Map.of("urls", urls));
     }
 
 }
