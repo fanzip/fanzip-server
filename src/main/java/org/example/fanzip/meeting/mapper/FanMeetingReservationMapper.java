@@ -48,4 +48,16 @@ public interface FanMeetingReservationMapper {
     
     // reservationId로 예약 정보 조회
     FanMeetingReservationVO findById(@Param("reservationId") Long reservationId);
+    
+    // 사용자가 특정 인플루언서의 진행 예정 팬미팅에 예약했는지 확인
+    boolean hasUpcomingMeetingWithInfluencer(@Param("userId") Long userId, @Param("influencerId") Long influencerId);
+    
+    // 사용자가 특정 인플루언서의 진행 예정 팬미팅 ID 조회
+    Long findUpcomingMeetingIdWithInfluencer(@Param("userId") Long userId, @Param("influencerId") Long influencerId);
+    
+    // 사용자가 특정 인플루언서의 진행 예정 팬미팅 예약 ID 조회
+    Long findUpcomingReservationIdWithInfluencer(@Param("userId") Long userId, @Param("influencerId") Long influencerId);
+    
+    // 사용자가 특정 인플루언서의 진행 예정 팬미팅 좌석 ID 조회
+    Long findUpcomingSeatIdWithInfluencer(@Param("userId") Long userId, @Param("influencerId") Long influencerId);
 }

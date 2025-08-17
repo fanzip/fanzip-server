@@ -317,6 +317,59 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
         return pendingSeats;
     }
 
+    @Override
+    public boolean hasUpcomingMeetingWithInfluencer(Long userId, Long influencerId) {
+        try {
+            // 해당 인플루언서의 진행 예정 팬미팅에 사용자가 예약했는지 확인
+            return reservationMapper.hasUpcomingMeetingWithInfluencer(userId, influencerId);
+        } catch (Exception e) {
+            log.error("진행 예정 팬미팅 확인 중 오류 발생: userId={}, influencerId={}, error={}", 
+                     userId, influencerId, e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public java.util.Map<String, Object> getUpcomingMeetingWithInfluencer(Long userId, Long influencerId) {
+        try {
+            log.info("📡 getUpcomingMeetingWithInfluencer 호출: userId={}, influencerId={}", userId, influencerId);
+            
+            // 해당 인플루언서의 진행 예정 팬미팅에 사용자가 예약했는지 확인
+            boolean hasUpcomingMeeting = reservationMapper.hasUpcomingMeetingWithInfluencer(userId, influencerId);
+            log.info("✅ hasUpcomingMeeting 결과: {}", hasUpcomingMeeting);
+            
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("hasUpcomingMeeting", hasUpcomingMeeting);
+            
+            if (hasUpcomingMeeting) {
+                // 예약이 있으면 미팅 ID, 예약 ID, 좌석 ID도 조회
+                Long meetingId = reservationMapper.findUpcomingMeetingIdWithInfluencer(userId, influencerId);
+                Long reservationId = reservationMapper.findUpcomingReservationIdWithInfluencer(userId, influencerId);
+                Long seatId = reservationMapper.findUpcomingSeatIdWithInfluencer(userId, influencerId);
+                log.info("✅ 찾은 meetingId: {}, reservationId: {}, seatId: {}", meetingId, reservationId, seatId);
+                result.put("meetingId", meetingId);
+                result.put("reservationId", reservationId);
+                result.put("seatId", seatId);
+            } else {
+                result.put("meetingId", null);
+                result.put("reservationId", null);
+                result.put("seatId", null);
+            }
+            
+            log.info("📡 최종 응답: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("❌ 진행 예정 팬미팅 정보 조회 중 오류 발생: userId={}, influencerId={}, error={}", 
+                     userId, influencerId, e.getMessage());
+            
+            // 오류 발생 시 기본값 반환
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("hasUpcomingMeeting", false);
+            result.put("meetingId", null);
+            return result;
+        }
+    }
+
     private String holdKey(Long seatId) {
         return "hold:seat:" + seatId;
     }

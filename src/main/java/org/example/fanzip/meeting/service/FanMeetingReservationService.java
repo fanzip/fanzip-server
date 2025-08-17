@@ -14,4 +14,6 @@ public interface FanMeetingReservationService {
     void confirmByPaymentId(Long paymentId);  // 결제 승인 콜백에서 호출
     void cancelByPaymentId(Long paymentId);
     List<FanMeetingSeatResponseDTO> getPendingSeats(Long meetingId, Long userId);
+    boolean hasUpcomingMeetingWithInfluencer(Long userId, Long influencerId);
+    java.util.Map<String, Object> getUpcomingMeetingWithInfluencer(Long userId, Long influencerId);
 }
