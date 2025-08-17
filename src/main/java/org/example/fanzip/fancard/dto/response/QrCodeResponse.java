@@ -26,4 +26,8 @@ public class QrCodeResponse {
     private ReservationDto reservation;
     
     private String fcmToken;
+    
+    // 모바일 티켓에서 필요한 추가 정보
+    private InfluencerDto influencer;
+    private String fancardImageUrl;
 }

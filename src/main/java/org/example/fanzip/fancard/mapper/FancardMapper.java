@@ -22,6 +22,9 @@ public interface FancardMapper {
     
     Fancard findActiveCardByMembershipId(@Param("membershipId") Long membershipId);
     
+    // 멤버십 ID로 팬카드 조회 (활성/비활성 모두)
+    Fancard findCardByMembershipId(@Param("membershipId") Long membershipId);
+    
     Fancard findById(@Param("cardId") Long cardId);
     
     void insert(Fancard fancard);
@@ -34,10 +37,17 @@ public interface FancardMapper {
     
     void delete(@Param("cardId") Long cardId);
     
+    // 팬카드 상태 변경 메소드들
+    void activateCard(@Param("cardId") Long cardId);
+    void deactivateCard(@Param("cardId") Long cardId);
+    void deactivateCardByMembershipId(@Param("membershipId") Long membershipId);
+    
     // 추가된 메서드들 - 관련 정보 조회
     List<Long> findMembershipIdsByUserId(@Param("userId") Long userId);
     
     InfluencerDto findInfluencerByMembershipId(@Param("membershipId") Long membershipId);
+    
+    InfluencerDto findInfluencerById(@Param("influencerId") Long influencerId);
     
     MembershipDto findMembershipById(@Param("membershipId") Long membershipId);
     
