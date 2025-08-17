@@ -20,7 +20,8 @@
             fm.white_open_time   AS whiteOpenTime,
             fm.general_open_time AS generalOpenTime,
             i.profile_image      AS profileImageUrl,
-            i.influencer_name    AS influencerName
+            i.influencer_name    AS influencerName,
+            fm.poster_image_url  AS posterImageUrl
         FROM fan_meetings fm
                  JOIN influencers i ON i.influencer_id = fm.influencer_id
         WHERE fm.status = 'PLANNED'
@@ -38,12 +39,12 @@
         INSERT INTO fan_meetings (
         influencer_id, title, description, venue_name, venue_address,
         meeting_date, vip_open_time, gold_open_time,
-        silver_open_time, white_open_time, general_open_time,
+        silver_open_time, white_open_time, general_open_time,   poster_image_url,
         status, total_seats, available_seats
         ) VALUES (
         #{influencerId}, #{title}, #{description}, #{venueName}, #{venueAddress},
         #{meetingDate}, #{vipOpenTime}, #{goldOpenTime},
-        #{silverOpenTime}, #{whiteOpenTime}, #{generalOpenTime},
+        #{silverOpenTime}, #{whiteOpenTime}, #{generalOpenTime},      #{posterImageUrl},
         #{status}, #{totalSeats}, #{availableSeats}
                          )
     </insert>
@@ -66,7 +67,8 @@
             fm.general_open_time AS generalOpenTime,
             i.profile_image AS profileImageUrl,
             i.influencer_name AS influencerName,
-            i.influencer_id AS influencerId
+            i.influencer_id AS influencerId,
+            fm.poster_image_url AS posterImageUrl
         FROM fan_meetings fm
                  JOIN influencers i ON i.influencer_id = fm.influencer_id
         WHERE fm.meeting_id = #{meetingId}
