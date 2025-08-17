@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.meeting.domain.*;
 import org.example.fanzip.meeting.dto.FanMeetingReservationResponseDTO;
+import org.example.fanzip.meeting.dto.FanMeetingSeatResponseDTO;
 import org.example.fanzip.meeting.dto.PaymentIntentResponseDTO;
 import org.example.fanzip.meeting.dto.SeatHold;
 import org.example.fanzip.meeting.mapper.FanMeetingMapper;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -290,6 +293,29 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
         
         // startPayment에서 차감된 좌석 수 복구
         meetingMapper.incrementAvailableSeats(r.getMeetingId());
+    }
+
+    @Override
+    public List<FanMeetingSeatResponseDTO> getPendingSeats(Long meetingId, Long userId) {
+        // 현재 사용자의 PENDING 상태 예약 조회
+        var reservation = reservationMapper.findByUserAndMeeting(userId, meetingId);
+        
+        List<FanMeetingSeatResponseDTO> pendingSeats = new ArrayList<>();
+        
+        if (reservation != null && reservation.getStatus() == ReservationStatus.PENDING) {
+            var seat = seatMapper.findById(reservation.getSeatId());
+            if (seat != null) {
+                FanMeetingSeatResponseDTO dto = new FanMeetingSeatResponseDTO();
+                dto.setSeatId(seat.getSeatId());
+                dto.setSeatNumber(seat.getSeatNumber());
+                dto.setPrice(seat.getPrice());
+                dto.setReserved(true); // PENDING 상태도 예약된 것으로 표시
+                dto.setGrade(seat.getGrade());
+                pendingSeats.add(dto);
+            }
+        }
+        
+        return pendingSeats;
     }
 
     private String holdKey(Long seatId) {

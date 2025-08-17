@@ -32,8 +32,6 @@ public class FanMeetingServiceImpl implements FanMeetingService {
     private final MembershipMapper membershipMapper;
     private final ApplicationEventPublisher publisher;
 
-    @Autowired
-    private FanMeetingSeatMapper seatMapper;
 
     @Override
     public List<FanMeetingResponseDTO> getOpenMeetings(String userGradeStr) {
@@ -106,7 +104,7 @@ public class FanMeetingServiceImpl implements FanMeetingService {
 
         // 좌석 자동 생성
         List<FanMeetingSeatVO> seats = generateSeats(meeting.getMeetingId());
-        seatMapper.insertSeatList(seats);
+        fanMeetingSeatMapper.insertSeatList(seats);
     }
 
     private List<FanMeetingSeatVO> generateSeats(Long meetingId) {
