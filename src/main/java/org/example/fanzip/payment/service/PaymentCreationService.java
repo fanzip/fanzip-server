@@ -136,8 +136,18 @@ public class PaymentCreationService {
                     break;
 
                 case ORDER:
-                    System.out.println("ORDER 타입: influencer_id 조회 로직 미구현 - 기본값 1L 사용");
-                    return 1L; // 임시로 기본값 사용
+                    System.out.println("ORDER 타입 처리, orderId: " + requestDto.getOrderId());
+                    if (requestDto.getOrderId() != null) {
+                        // 주문에서 첫 번째 상품의 influencer_id 조회
+                        Long influencerIdFromOrder = getInfluencerIdFromOrder(requestDto.getOrderId());
+                        System.out.println("주문에서 influencer_id 조회 결과: " + influencerIdFromOrder);
+                        if (influencerIdFromOrder != null) {
+                            System.out.println("✅ 주문에서 influencer_id 조회: " + influencerIdFromOrder);
+                            return influencerIdFromOrder;
+                        }
+                    }
+                    System.out.println("❌ ORDER 타입: influencer_id 조회 실패");
+                    break;
 
                 default:
                     System.out.println("알 수 없는 결제 타입: " + requestDto.getPaymentType());
@@ -150,5 +160,24 @@ public class PaymentCreationService {
 
         System.out.println("❌ influencer_id 조회 실패 - null 반환");
         return null; // 조회 실패 시 null 반환
+    }
+    
+    private Long getInfluencerIdFromOrder(Long orderId) {
+        try {
+            System.out.println("🔍 주문 ID로 influencer_id 조회: " + orderId);
+            
+            // 주문의 첫 번째 상품 아이템에서 influencer_id 조회
+            // order_items 테이블에서 해당 주문의 influencer_id를 가져옴
+            // 간단하게 데이터베이스 직접 조회 (추후 OrderService로 분리 가능)
+            // 지금은 PaymentRepository를 통해 조회
+            Long influencerId = paymentRepository.findInfluencerIdByOrderId(orderId);
+            System.out.println("데이터베이스에서 조회된 influencer_id: " + influencerId);
+            
+            return influencerId;
+        } catch (Exception e) {
+            System.err.println("❌ 주문에서 influencer_id 조회 중 오류: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 }

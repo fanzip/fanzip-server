@@ -56,4 +56,12 @@ public class PaymentRepository {
     public RevenueResponseDto findTotalRevenue(Long influencerId) {
         return paymentMapper.selectTotalRevenue(influencerId);
     }
+    
+    public List<Long> findExpiredPendingPaymentIds(int expiredMinutes) {
+        return paymentMapper.selectExpiredPendingPaymentIds(expiredMinutes);
+    }
+    
+    public Long findInfluencerIdByOrderId(Long orderId) {
+        return paymentMapper.selectInfluencerIdByOrderId(orderId);
+    }
 }

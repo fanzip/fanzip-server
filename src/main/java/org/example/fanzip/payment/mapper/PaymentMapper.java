@@ -25,4 +25,6 @@ public interface PaymentMapper {
     List<RevenueResponseDto> selectMonthlyRevenue(@Param("influencerId") Long influencerId);
     RevenueResponseDto selectTodayRevenue(@Param("influencerId") Long influencerId);
     RevenueResponseDto selectTotalRevenue(@Param("influencerId") Long influencerId);
+    List<Long> selectExpiredPendingPaymentIds(@Param("expiredMinutes") int expiredMinutes);
+    Long selectInfluencerIdByOrderId(@Param("orderId") Long orderId);
 }
