@@ -9,5 +9,14 @@
         WHERE influencer_id = #{influencerId}
         LIMIT 1
     </select>
+    <select id="findActiveSubscriberTokens" resultType="java.lang.String">
+
+        SELECT DISTINCT upt.push_token
+        FROM memberships m
+                 JOIN user_push_token upt ON upt.user_id = m.user_id
+        WHERE m.influencer_id = #{influencerId}
+          AND m.status = 'ACTIVE'
+          AND upt.push_token IS NOT NULL
+    </select>
 
 </mapper>
