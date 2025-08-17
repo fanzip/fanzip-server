@@ -463,6 +463,7 @@ public class FancardServiceImpl implements FancardService {
                 .cardId(fancard.getCardId())
                 .cardNumber(fancard.getCardNumber())
                 .cardDesignUrl(fancard.getCardDesignUrl())
+                .isActive(fancard.getIsActive()) // 팬카드 활성 상태 추가
                 .influencer(influencer != null ? influencer : createDefaultInfluencer())
                 .membership(membership != null ? membership : createDefaultMembership(fancard))
                 .benefits(FancardConstants.TestData.TEST_BENEFITS) // TODO: 실제 혜택 정보 조회 구현 필요
@@ -542,6 +543,12 @@ public class FancardServiceImpl implements FancardService {
         try {
             List<PaymentHistoryDto> history = fancardMapper.findPaymentHistoryByMembershipId(membershipId);
             System.out.println("결제 히스토리 조회 완료: membershipId=" + membershipId + ", count=" + history.size());
+            
+            // 결제 히스토리 상세 로그
+            for (PaymentHistoryDto payment : history) {
+                System.out.println("- " + payment.getTitle() + " | " + payment.getAmount() + "원 | " + payment.getPaidAt());
+            }
+            
             return history;
         } catch (Exception e) {
             System.err.println("결제 히스토리 조회 실패: membershipId=" + membershipId + ", error=" + e.getMessage());
