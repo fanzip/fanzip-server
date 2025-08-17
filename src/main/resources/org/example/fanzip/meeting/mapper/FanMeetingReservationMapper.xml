@@ -133,4 +133,52 @@
         FROM fan_meeting_reservations
         WHERE reservation_id = #{reservationId}
     </select>
+    
+    <select id="hasUpcomingMeetingWithInfluencer" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM fan_meeting_reservations fmr
+            JOIN fan_meetings fm ON fmr.meeting_id = fm.meeting_id
+            WHERE fmr.user_id = #{userId}
+              AND fm.influencer_id = #{influencerId}
+              AND fmr.status IN ('RESERVED', 'PENDING')
+              AND fm.meeting_date > NOW()
+        )
+    </select>
+    
+    <select id="findUpcomingMeetingIdWithInfluencer" resultType="long">
+        SELECT fm.meeting_id
+        FROM fan_meeting_reservations fmr
+        JOIN fan_meetings fm ON fmr.meeting_id = fm.meeting_id
+        WHERE fmr.user_id = #{userId}
+          AND fm.influencer_id = #{influencerId}
+          AND fmr.status IN ('RESERVED', 'PENDING')
+          AND fm.meeting_date > NOW()
+        ORDER BY fm.meeting_date ASC
+        LIMIT 1
+    </select>
+    
+    <select id="findUpcomingReservationIdWithInfluencer" resultType="long">
+        SELECT fmr.reservation_id
+        FROM fan_meeting_reservations fmr
+        JOIN fan_meetings fm ON fmr.meeting_id = fm.meeting_id
+        WHERE fmr.user_id = #{userId}
+          AND fm.influencer_id = #{influencerId}
+          AND fmr.status IN ('RESERVED', 'PENDING')
+          AND fm.meeting_date > NOW()
+        ORDER BY fm.meeting_date ASC
+        LIMIT 1
+    </select>
+    
+    <select id="findUpcomingSeatIdWithInfluencer" resultType="long">
+        SELECT fmr.seat_id
+        FROM fan_meeting_reservations fmr
+        JOIN fan_meetings fm ON fmr.meeting_id = fm.meeting_id
+        WHERE fmr.user_id = #{userId}
+          AND fm.influencer_id = #{influencerId}
+          AND fmr.status IN ('RESERVED', 'PENDING')
+          AND fm.meeting_date > NOW()
+        ORDER BY fm.meeting_date ASC
+        LIMIT 1
+    </select>
 </mapper>

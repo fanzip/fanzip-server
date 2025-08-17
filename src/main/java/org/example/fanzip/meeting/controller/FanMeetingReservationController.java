@@ -90,4 +90,15 @@ public class FanMeetingReservationController {
 
         return reservationService.getPendingSeats(meetingId, userId);
     }
+    
+    @GetMapping("/user/{influencerId}/upcoming")
+    public ResponseEntity<Map<String, Object>> getUserUpcomingMeetings(
+            @PathVariable Long influencerId,
+            Authentication authentication) {
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+        
+        Map<String, Object> meetingInfo = reservationService.getUpcomingMeetingWithInfluencer(userId, influencerId);
+        return ResponseEntity.ok(meetingInfo);
+    }
 }
