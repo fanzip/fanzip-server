@@ -310,7 +310,6 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
                 dto.setSeatNumber(seat.getSeatNumber());
                 dto.setPrice(seat.getPrice());
                 dto.setReserved(true); // PENDING 상태도 예약된 것으로 표시
-                dto.setGrade(seat.getGrade());
                 pendingSeats.add(dto);
             }
         }
