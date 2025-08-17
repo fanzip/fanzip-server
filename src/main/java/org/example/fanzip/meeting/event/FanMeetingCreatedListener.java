@@ -30,12 +30,10 @@ public class FanMeetingCreatedListener {
 
         // 3) 푸시 메시지 (⛔ 시간 문구 제거)
         String title = influencerName + "님의 새 팬미팅이 등록됐어요 🎉";
-        String body  = "‘" + e.title() + "’"; // 시간 표기 X
+        String body  = "‘" + e.title() + "’";
 
         // 4) 이동 경로 (프로젝트 규칙에 맞춰 선택)
-        //    - FcmService에 toFullUrl 보정 로직이 있다면 상대경로만 넘겨도 됨
         String targetUrl = "/reservation/" + e.meetingId();
-        // String targetUrl = "/fanmeetings/" + e.meetingId(); // 이 경로가 맞다면 위 대신 이걸 사용
 
         try {
             fcmService.sendToTokens(tokens, title, body, targetUrl);

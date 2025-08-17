@@ -149,6 +149,8 @@ public class FanMeetingServiceImpl implements FanMeetingService {
 //        meeting.setVenueName(request.getVenueName());
 //        meeting.setVenueAddress(request.getVenueAddress());
         meeting.setMeetingDate(request.getMeetingDate());
+        meeting.setPosterImageUrl(request.getPosterImageUrl());
+
 
         // ✅ 오픈시간은 서버에서 계산: general만 입력받고 나머지는 규칙대로 세팅
         LocalDateTime general = request.getGeneralOpenTime();
