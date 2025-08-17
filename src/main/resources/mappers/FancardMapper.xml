@@ -262,7 +262,7 @@
             JOIN fan_meetings fm ON fmr.meeting_id = fm.meeting_id
             JOIN influencers i ON fm.influencer_id = i.influencer_id
             JOIN memberships target_m ON target_m.membership_id = #{membershipId}
-            WHERE p.payment_type IN ('ORDER', 'MEETING')
+            WHERE p.payment_type IN ('ORDER', 'MEETING', 'RESERVATION')
             AND p.reservation_id IS NOT NULL
             AND p.status IN ('APPROVED', 'PAID')
             AND i.influencer_id = target_m.influencer_id
