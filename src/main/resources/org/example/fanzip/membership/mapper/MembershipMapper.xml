@@ -210,13 +210,15 @@
 
     <!-- 구독 취소 -->
     <update id="cancelMembership">
-        UPDATE memberships
-        SET status = 'CANCELLED',
-            subscription_end = NOW(),
-            auto_renewal = false
-        WHERE membership_id = #{membershipId}
-        AND user_id = #{userId}
-        AND status = 'ACTIVE'
+        UPDATE memberships m
+        LEFT JOIN fan_cards fc ON m.membership_id = fc.membership_id
+        SET m.status = 'CANCELLED',
+            m.subscription_end = NOW(),
+            m.auto_renewal = false,
+            fc.is_active = false
+        WHERE m.membership_id = #{membershipId}
+        AND m.user_id = #{userId}
+        AND m.status = 'ACTIVE'
     </update>
 
 </mapper>

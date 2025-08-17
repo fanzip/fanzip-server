@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -133,10 +134,39 @@ public class MembershipServiceImpl implements MembershipService {
     @Transactional
     public boolean cancelMembership(Long membershipId, Long userId) {
         try {
-            // 구독 취소 실행
+            // 멤버십 정보 조회 (해지 전에 정보 필요)
+            MembershipVO membership = membershipMapper.findByMembershipId(membershipId);
+            if (membership == null || !membership.getUserId().equals(userId)) {
+                System.err.println("구독 취소 실패: 유효하지 않은 멤버십 - membershipId=" + membershipId + ", userId=" + userId);
+                return false;
+            }
+            
+            // 구독 취소 실행 (memberships 테이블 상태 변경)
             int result = membershipMapper.cancelMembership(membershipId, userId);
             
             if (result > 0) {
+                // 해지 이벤트를 payments 테이블에도 기록 (추억 탭에서 시간순 표시를 위해)
+                try {
+                    PaymentRequestDto cancellationRecord = PaymentRequestDto.builder()
+                            .userId(userId)
+                            .membershipId(membershipId)
+                            .paymentType(PaymentType.MEMBERSHIP)
+                            .paymentMethod(PaymentMethod.TOSSPAY)  // 해지 이벤트 기록용
+                            .amount(BigDecimal.ZERO)  // 환불이 아닌 단순 해지
+                            .transactionId("CANCEL_" + membershipId + "_" + System.currentTimeMillis())
+                            .build();
+                    
+                    PaymentResponseDto cancellationPayment = paymentService.createPayment(cancellationRecord);
+                    System.out.println("해지 이벤트 payments 테이블 기록 완료: paymentId=" + cancellationPayment.getPaymentId());
+                    
+                    // 해지 결제 상태를 CANCELLED로 즉시 변경
+                    paymentService.cancelledPaymentById(cancellationPayment.getPaymentId());
+                    
+                } catch (Exception e) {
+                    System.err.println("해지 이벤트 payments 기록 실패 (멤버십 해지는 성공): " + e.getMessage());
+                    // payments 기록 실패해도 멤버십 해지는 성공으로 처리
+                }
+                
                 System.out.println("구독 취소 성공: membershipId=" + membershipId + ", userId=" + userId);
                 return true;
             } else {
