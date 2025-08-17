@@ -11,6 +11,7 @@ import org.example.fanzip.membership.mapper.MembershipMapper;
 import org.example.fanzip.fancard.mapper.FancardMapper;
 import org.example.fanzip.membership.domain.MembershipVO;
 import org.example.fanzip.fancard.service.FancardService;
+import org.example.fanzip.market.service.MarketOrderService;
 import org.example.fanzip.payment.domain.Payments;
 import org.example.fanzip.payment.domain.enums.PaymentStatus;
 import org.example.fanzip.payment.domain.enums.PaymentType;
@@ -32,6 +33,7 @@ public class PaymentApproveService {
     private final MembershipMapper membershipMapper;
     private final FancardMapper fancardMapper;
     private final FancardService fancardService;
+    private final MarketOrderService marketOrderService;
 
     @Transactional
     public PaymentResponseDto approvePaymentById(Long paymentId) {
@@ -84,6 +86,13 @@ public class PaymentApproveService {
             releaseSeat(payments.getReservationId());
         }
 
+        // 결제 타입별 실패 처리
+        if (payments.getPaymentType() == PaymentType.MEMBERSHIP && payments.getMembershipId() != null) {
+            handleMembershipPaymentFailure(payments);
+        } else if (payments.getPaymentType() == PaymentType.ORDER && payments.getOrderId() != null) {
+            handleOrderPaymentFailure(payments);
+        }
+
         payments.failed();
         paymentRepository.updateStatus(payments);
         paymentRollbackService.rollbackStock(payments);
@@ -97,6 +106,13 @@ public class PaymentApproveService {
         // 예약 좌석인 경우 좌석 해제 처리
         if (payments.getPaymentType() == PaymentType.RESERVATION && payments.getReservationId() != null) {
             releaseSeat(payments.getReservationId());
+        }
+
+        // 결제 타입별 취소 처리
+        if (payments.getPaymentType() == PaymentType.MEMBERSHIP && payments.getMembershipId() != null) {
+            handleMembershipPaymentFailure(payments);
+        } else if (payments.getPaymentType() == PaymentType.ORDER && payments.getOrderId() != null) {
+            handleOrderPaymentFailure(payments);
         }
 
         payments.cancel();
@@ -244,12 +260,23 @@ public class PaymentApproveService {
     }
 
     private void handleOrderPaymentApproval(Payments payments) {
-        // 현재는 주문 테이블이 구현되지 않아 간단히 처리
-        // TODO: 실제 주문 테이블에서 influencer_id 조회 로직 구현 필요
-        Long influencerId = getInfluencerIdForPayment(payments, null);
-        System.out.println("주문 결제 완료: orderId=" + payments.getOrderId() + ", influencerId=" + influencerId);
+        Long orderId = payments.getOrderId();
+        if (orderId == null) {
+            throw new BusinessException(PaymentErrorCode.ORDER_NOT_FOUND);
+        }
 
-        // 주문 결제에서는 팬카드 생성하지 않음 (다른 팀원 구현 영역)
+        try {
+            // ✅ 핵심 수정: 주문 완료 처리 (재고 차감, 카트 삭제, 상태 업데이트)
+            marketOrderService.finalizeAfterPaymentApproved(orderId);
+            System.out.println("✅ 주문 완료 처리 성공: orderId=" + orderId);
+        } catch (Exception e) {
+            System.err.println("❌ 주문 완료 처리 실패: orderId=" + orderId + ", error=" + e.getMessage());
+            // 주문 완료 처리 실패 시 결제도 실패로 처리해야 함
+            throw new BusinessException(PaymentErrorCode.ORDER_FINALIZATION_FAILED);
+        }
+
+        Long influencerId = getInfluencerIdForPayment(payments, null);
+        System.out.println("주문 결제 완료: orderId=" + orderId + ", influencerId=" + influencerId);
     }
 
     private Long getInfluencerIdForPayment(Payments payments, Long fallbackInfluencerId) {
@@ -266,5 +293,29 @@ public class PaymentApproveService {
         // 그것도 없으면 기본값 사용 (임시)
         System.out.println("⚠️ influencer_id를 찾을 수 없어 기본값(1L) 사용: paymentId=" + payments.getPaymentId());
         return 1L;
+    }
+
+    private void handleMembershipPaymentFailure(Payments payments) {
+        try {
+            // PENDING 상태의 멤버십을 CANCELLED로 변경
+            int updateResult = membershipMapper.updateMembershipStatus(payments.getMembershipId(), "CANCELLED");
+            if (updateResult > 0) {
+                System.out.println("✅ 결제 실패로 인한 멤버십 상태 정리 완료: membershipId=" + payments.getMembershipId() + " PENDING → CANCELLED");
+            } else {
+                System.err.println("⚠️ 멤버십 상태 정리 실패: membershipId=" + payments.getMembershipId());
+            }
+        } catch (Exception e) {
+            System.err.println("❌ 멤버십 상태 정리 중 오류 발생: membershipId=" + payments.getMembershipId() + ", error=" + e.getMessage());
+        }
+    }
+
+    private void handleOrderPaymentFailure(Payments payments) {
+        try {
+            // PENDING 상태의 주문을 정리 (주문 및 주문 아이템 삭제)
+            marketOrderService.cleanupAfterPaymentFailed(payments.getOrderId());
+            System.out.println("✅ 결제 실패로 인한 주문 정리 완료: orderId=" + payments.getOrderId());
+        } catch (Exception e) {
+            System.err.println("❌ 주문 정리 중 오류 발생: orderId=" + payments.getOrderId() + ", error=" + e.getMessage());
+        }
     }
 }
