@@ -80,4 +80,14 @@ public class FanMeetingReservationController {
 
         return ResponseEntity.ok(reservationService.startPayment(meetingId, seatId, userId));
     }
+
+    @GetMapping("/{meetingId}/pending-seats")
+    public List<FanMeetingSeatResponseDTO> getPendingSeats(
+            @PathVariable Long meetingId,
+            Authentication authentication) {
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        Long userId = principal.getUserId();
+
+        return reservationService.getPendingSeats(meetingId, userId);
+    }
 }
