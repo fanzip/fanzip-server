@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.UUID;
 import java.net.URL;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,10 @@ public class S3Service {
     private static final String PROFILE_IMAGE_PATH = "influencer_profile";  // S3 버킷에 프로필 이미지가 저장될 경로
     private static final String FANCARD_IMAGE_PATH = "fancard_image"; // S3 버킷에 팬카드 이미지가 저장될 경로
 
+
+    private static final String FANMEETING_POSTER_PATH = "fanmeeting_poster";
+    private static final String MARKET_BASE_PATH       = "market";
+    private static final long   MAX_FILE_SIZE          = 10L * 1024 * 1024;
 
     /**
      * 1. 인플루언서 프로필 이미지 업로드
@@ -115,6 +122,59 @@ public class S3Service {
         }
     }
 
+    /* ============================================================
+     * ✅ 추가: 3) 팬미팅 포스터 업로드 (fanmeeting_poster/{influencerId}/...)
+     * ============================================================ */
+    @Transactional
+    public String uploadFanMeetingPoster(MultipartFile file, Long influencerId) {
+        System.out.println("🔥 uploadFanMeetingPoster() 진입");
+        validateFile(file);
+        String dir = FANMEETING_POSTER_PATH + "/" + influencerId;
+        return uploadImage(file, dir);
+    }
+
+    /* =================================================================================
+     * ✅ 추가: 4) 마켓 이미지 업로드
+     *  - 썸네일: market/{influencerId}/thumbnail/...
+     *  - 슬라이드: market/{influencerId}/slide/...
+     *  - 상세:   market/{influencerId}/detail/...
+     * ================================================================================= */
+
+    @Transactional
+    public String uploadMarketThumbnail(MultipartFile file, Long influencerId) {
+        return uploadMarketImage(file, influencerId, "thumbnail");
+    }
+
+    @Transactional
+    public List<String> uploadMarketSlideImages(List<MultipartFile> files, Long influencerId) {
+        return uploadMarketImages(files, influencerId, "slide");
+    }
+
+    @Transactional
+    public List<String> uploadMarketDetailImages(List<MultipartFile> files, Long influencerId) {
+        return uploadMarketImages(files, influencerId, "detail");
+    }
+
+    /** ✅ 공통: 단일 마켓 이미지 업로드 */
+    @Transactional
+    public String uploadMarketImage(MultipartFile file, Long influencerId, String kind) {
+        System.out.println("🔥 uploadMarketImage() kind=" + kind + ", influencerId=" + influencerId);
+        validateFile(file);
+        String safeKind = (kind == null || kind.isBlank()) ? "common" : kind.trim().toLowerCase();
+        String dir = MARKET_BASE_PATH + "/" + influencerId + "/" + safeKind;
+        return uploadImage(file, dir);
+    }
+
+    /** ✅ 공통: 복수 마켓 이미지 업로드 */
+    @Transactional
+    public List<String> uploadMarketImages(List<MultipartFile> files, Long influencerId, String kind) {
+        if (files == null || files.isEmpty()) return Collections.emptyList();
+        return files.stream()
+                .filter(Objects::nonNull)
+                .map(f -> uploadMarketImage(f, influencerId, kind))
+                .collect(Collectors.toList());
+    }
+
     /**
      * 4. 랜덤 파일명 생성
      */
@@ -141,6 +201,24 @@ public class S3Service {
 
         return extension;
     }
+
+    // ✅ 추가: 파일 크기/컨텐트 타입 간단 검사
+    private void validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("업로드할 파일이 없습니다.");
+        }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("파일 크기는 최대 " + (MAX_FILE_SIZE / (1024 * 1024)) + "MB 까지 허용됩니다.");
+        }
+        // content-type이 null인 경우도 있으므로 확장자 검증으로 보완
+        String ct = file.getContentType();
+        if (ct != null && !ct.toLowerCase().startsWith("image/")) {
+            throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다.");
+        }
+        // 확장자 검증
+        getFileExtension(file.getOriginalFilename());
+    }
+
 
     /**
      * 6) 현재 인플루언서의 프로필 이미지 URL 조회 (DB에서)
