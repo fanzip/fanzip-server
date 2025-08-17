@@ -24,6 +24,8 @@ public class MarketVO {
     private String thumbnailImage;
     private String categories;
 
+    private BigDecimal groupBuyPrice;
+
     private Integer stock;
     private Boolean isSoldOut;
 
