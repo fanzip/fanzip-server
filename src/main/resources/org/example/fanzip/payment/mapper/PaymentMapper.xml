@@ -54,15 +54,18 @@
         WHERE user_id = #{userId}
         ORDER BY created_at DESC
     </select>
-    <!--멤버십 결제 유무 확인-->
+    <!--멤버십 결제 유무 확인 - ACTIVE 멤버십만 확인-->
     <select id="existsByMembershipId" resultType="boolean" parameterType="map">
         SELECT EXISTS (
             SELECT 1
-            FROM payments
-            WHERE user_id = #{userId}
-              AND membership_id = #{membershipId}
-              AND payment_type = 'MEMBERSHIP'
-              AND status IN ('PENDING', 'PAID')
+            FROM payments p
+            JOIN memberships m ON p.membership_id = m.membership_id
+            WHERE p.user_id = #{userId}
+              AND p.membership_id = #{membershipId}
+              AND p.payment_type = 'MEMBERSHIP'
+              AND p.status IN ('PENDING', 'PAID')
+              AND m.status = 'ACTIVE'
+              AND m.subscription_end >= CURDATE()
         )
     </select>
     <!--결제 상태 변경-->
@@ -145,5 +148,25 @@
         SELECT *
         FROM payments
         WHERE reservation_id = #{reservationId}
+    </select>
+    
+    <!-- 만료된 PENDING 결제 ID 목록 조회 (cleanup용) -->
+    <select id="selectExpiredPendingPaymentIds" parameterType="int" resultType="long">
+        <![CDATA[
+        SELECT payment_id
+        FROM payments
+        WHERE status = 'PENDING'
+          AND created_at < DATE_SUB(NOW(), INTERVAL #{expiredMinutes} MINUTE)
+        ORDER BY created_at ASC
+        LIMIT 100
+        ]]>
+    </select>
+    
+    <!-- 주문 ID로 인플루언서 ID 조회 -->
+    <select id="selectInfluencerIdByOrderId" parameterType="long" resultType="long">
+        SELECT oi.influencer_id
+        FROM order_items oi
+        WHERE oi.order_id = #{orderId}
+        LIMIT 1
     </select>
 </mapper>

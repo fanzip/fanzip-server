@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.payment.dto.PaymentRequestDto;
 import org.example.fanzip.payment.dto.PaymentResponseDto;
 import org.example.fanzip.payment.service.PaymentService;
+import org.example.fanzip.security.CustomUserPrincipal;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +20,29 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/request")
-    public ResponseEntity<PaymentResponseDto> createPayment(@RequestBody PaymentRequestDto requestDto){
-        PaymentResponseDto responseDto = paymentService.createPayment(requestDto);
+    public ResponseEntity<PaymentResponseDto> createPayment(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @RequestBody PaymentRequestDto requestDto){
+        
+        // JWT 토큰에서 실제 user_id 추출하여 덮어쓰기 (보안상 중요!)
+        Long authenticatedUserId = principal.getUserId();
+        log.info("결제 요청 - 인증된 사용자 ID: {}, 요청 DTO의 user_id: {}", 
+                authenticatedUserId, requestDto.getUserId());
+        
+        // 보안을 위해 인증된 user_id로 강제 덮어쓰기
+        PaymentRequestDto secureRequestDto = PaymentRequestDto.builder()
+                .userId(authenticatedUserId)  // 인증된 사용자 ID 사용
+                .orderId(requestDto.getOrderId())
+                .reservationId(requestDto.getReservationId())
+                .membershipId(requestDto.getMembershipId())
+                .influencerId(requestDto.getInfluencerId())
+                .transactionId(requestDto.getTransactionId())
+                .paymentType(requestDto.getPaymentType())
+                .paymentMethod(requestDto.getPaymentMethod())
+                .amount(requestDto.getAmount())
+                .build();
+        
+        PaymentResponseDto responseDto = paymentService.createPayment(secureRequestDto);
         return ResponseEntity.ok(responseDto);
     }
     @PatchMapping("/{paymentId}/approve")
