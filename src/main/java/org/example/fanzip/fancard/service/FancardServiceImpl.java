@@ -146,6 +146,7 @@ public class FancardServiceImpl implements FancardService {
     }
     
     @Override
+    @Transactional // 예약 상태 업데이트를 위해 쓰기 트랜잭션 필요
     public QrCodeValidationResponse validateQrCode(QrCodeValidationRequest request) {
         LocalDateTime validatedAt = LocalDateTime.now();
         System.out.println("🔍 QR 검증 요청 시작: " + request.getQrData() + " at " + validatedAt);
@@ -159,12 +160,13 @@ public class FancardServiceImpl implements FancardService {
                         validatedAt, "QR_FORMAT_001", "QR 데이터가 FANZIP_ 형식이 아닙니다.");
             }
             
-            // 2. QR 데이터 파싱 (4부분 또는 5부분 지원)
-            String[] parts = qrData.substring(FancardConstants.QrCode.FANZIP_PREFIX.length()).split("_");
-            if (parts.length < 4 || parts.length > 5) {
+            // 2. QR 데이터 파싱 (FCM 토큰에 콜론이 포함될 수 있어 첫 4개 파트만 분리)
+            String dataWithoutPrefix = qrData.substring(FancardConstants.QrCode.FANZIP_PREFIX.length());
+            String[] parts = dataWithoutPrefix.split("_", 5); // 최대 5개로 분리 (마지막은 FCM 토큰)
+            if (parts.length < 4) {
                 return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_FORMAT,
                         FancardConstants.QrCode.INVALID_FORMAT_MESSAGE, null, null, null, null, null,
-                        validatedAt, "QR_FORMAT_002", "QR 데이터 파트 수가 올바르지 않습니다. (4-5개 파트 필요)");
+                        validatedAt, "QR_FORMAT_002", "QR 데이터 파트 수가 올바르지 않습니다. (최소 4개 파트 필요)");
             }
             
             Long userId, fanMeetingId, reservationId;
@@ -174,7 +176,7 @@ public class FancardServiceImpl implements FancardService {
                 fanMeetingId = Long.parseLong(parts[1]);
                 reservationId = Long.parseLong(parts[2]);
                 timestamp = parts[3];
-                fcmToken = parts.length > 4 ? parts[4] : "NO_TOKEN"; // 호환성을 위해 옵셔널 처리
+                fcmToken = parts.length > 4 ? parts[4] : "NO_TOKEN"; // FCM 토큰 (콜론 포함 가능)
             } catch (NumberFormatException e) {
                 return buildValidationResponse(false, FancardConstants.QrCode.VALIDATION_INVALID_FORMAT,
                         FancardConstants.QrCode.INVALID_FORMAT_MESSAGE, null, null, null, null, null,
