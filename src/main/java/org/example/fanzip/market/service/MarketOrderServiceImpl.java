@@ -1,7 +1,9 @@
 package org.example.fanzip.market.service;
 
 import org.example.fanzip.cart.mapper.CartMapper;
+import org.example.fanzip.market.dto.MarketOrderDetailDto;
 import org.example.fanzip.market.dto.MarketOrderItemDto;
+import org.example.fanzip.market.dto.MarketOrderItemResponseDto;
 import org.example.fanzip.market.dto.MarketOrderPaymentDto;
 import org.example.fanzip.market.dto.MarketOrderRequestDto;
 import org.example.fanzip.market.dto.MarketOrderResponseDto;
@@ -142,6 +144,54 @@ public class MarketOrderServiceImpl implements MarketOrderService {
         }
         marketOrderMapper.deleteOrderItemsByOrderId(orderId);
         marketOrderMapper.deleteOrderById(orderId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MarketOrderItemResponseDto> getOrderItems(Long requestUserId, Long orderId) {
+        // 주문 존재 여부 및 소유자 확인
+        Map<String, Object> orderInfo = marketOrderMapper.selectOrderForPayment(orderId);
+        if(orderInfo == null || orderInfo.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "can't find order. orderId: " + orderId);
+        }
+        Long ownerId = ((Number) orderInfo.get("userId")).longValue();
+        if(!ownerId.equals(requestUserId)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "주문 접근 권한이 없습니다");
+        }
+
+        // 주문 상태 확인 (결제 완료된 주문만 조회 가능)
+        String orderStatus = marketOrderMapper.selectOrderStatus(orderId);
+        if(!"PAID".equals(orderStatus)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "결제 완료된 주문만 조회할 수 있습니다");
+        }
+
+        return marketOrderMapper.selectOrderItemsWithProductDetails(orderId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MarketOrderDetailDto getOrderDetail(Long requestUserId, Long orderId) {
+        // 주문 존재 여부 및 소유자 확인
+        Map<String, Object> orderInfo = marketOrderMapper.selectOrderForDetail(orderId);
+        if(orderInfo == null || orderInfo.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "can't find order. orderId: " + orderId);
+        }
+        Long ownerId = ((Number) orderInfo.get("userId")).longValue();
+        if(!ownerId.equals(requestUserId)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "주문 접근 권한이 없습니다");
+        }
+
+        return MarketOrderDetailDto.builder()
+                .orderId(orderId)
+                .finalAmount((java.math.BigDecimal) orderInfo.get("finalAmount"))
+                .status((String) orderInfo.get("status"))
+                .recipientName((String) orderInfo.get("recipientName"))
+                .recipientPhone((String) orderInfo.get("recipientPhone"))
+                .shippingAddress1((String) orderInfo.get("shippingAddress1"))
+                .shippingAddress2((String) orderInfo.get("shippingAddress2"))
+                .zipcode((String) orderInfo.get("zipcode"))
+                .orderedAt(((java.sql.Timestamp) orderInfo.get("orderedAt")).toLocalDateTime())
+                .build();
     }
 
 }
