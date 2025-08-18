@@ -78,7 +78,7 @@
           AND status = #{currentStatus}
     </update>
 
-    <select id="selectOrderStatus" parameterType="java.lang.String">
+    <select id="selectOrderStatus" parameterType="long" resultType="string">
         SELECT status FROM orders WHERE order_id = #{orderId}
     </select>
 
@@ -95,6 +95,40 @@
             order_id AS orderId,
             user_id AS userId,
             final_amount as finalAmount
+        FROM orders
+        WHERE order_id=#{orderId}
+    </select>
+
+    <!-- 주문 완료 페이지용 주문 상품 조회 (상품 정보 포함) -->
+    <select id="selectOrderItemsWithProductDetails" parameterType="long" resultType="org.example.fanzip.market.dto.MarketOrderItemResponseDto">
+        SELECT
+            oi.product_id as productId,
+            oi.influencer_id as influencerId,
+            p.name as productName,
+            p.thumbnail_image as thumbnailImage,
+            oi.quantity,
+            oi.unit_price as unitPrice,
+            oi.shipping_price as shippingPrice,
+            oi.final_price as finalPrice,
+            p.price as originalPrice
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE oi.order_id = #{orderId}
+    </select>
+
+    <!-- 주문 완료 페이지용 주문 상세 정보 조회 -->
+    <select id="selectOrderForDetail" parameterType="long" resultType="map">
+        SELECT
+            order_id AS orderId,
+            user_id AS userId,
+            final_amount as finalAmount,
+            status,
+            recipient_name as recipientName,
+            recipient_phone as recipientPhone,
+            shipping_address1 as shippingAddress1,
+            shipping_address2 as shippingAddress2,
+            zipcode,
+            ordered_at as orderedAt
         FROM orders
         WHERE order_id=#{orderId}
     </select>
