@@ -16,4 +16,5 @@ public interface FanMeetingReservationService {
     List<FanMeetingSeatResponseDTO> getPendingSeats(Long meetingId, Long userId);
     boolean hasUpcomingMeetingWithInfluencer(Long userId, Long influencerId);
     java.util.Map<String, Object> getUpcomingMeetingWithInfluencer(Long userId, Long influencerId);
+    java.util.Map<String, Object> getAnyUpcomingMeeting(Long userId);
 }

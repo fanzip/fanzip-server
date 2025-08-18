@@ -60,4 +60,19 @@ public interface FanMeetingReservationMapper {
     
     // 사용자가 특정 인플루언서의 진행 예정 팬미팅 좌석 ID 조회
     Long findUpcomingSeatIdWithInfluencer(@Param("userId") Long userId, @Param("influencerId") Long influencerId);
+    
+    // 사용자의 모든 진행 예정 팬미팅 예약 확인 (인플루언서 상관없이)
+    boolean hasAnyUpcomingMeeting(@Param("userId") Long userId);
+    
+    // 사용자의 가장 가까운 진행 예정 팬미팅 ID 조회
+    Long findAnyUpcomingMeetingId(@Param("userId") Long userId);
+    
+    // 사용자의 가장 가까운 진행 예정 팬미팅 예약 ID 조회
+    Long findAnyUpcomingReservationId(@Param("userId") Long userId);
+    
+    // 사용자의 가장 가까운 진행 예정 팬미팅 좌석 ID 조회
+    Long findAnyUpcomingSeatId(@Param("userId") Long userId);
+    
+    // 사용자의 가장 가까운 진행 예정 팬미팅 인플루언서 ID 조회
+    Long findAnyUpcomingInfluencerId(@Param("userId") Long userId);
 }
