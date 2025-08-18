@@ -370,6 +370,54 @@ public class FanMeetingReservationServiceImpl implements FanMeetingReservationSe
         }
     }
 
+    @Override
+    public java.util.Map<String, Object> getAnyUpcomingMeeting(Long userId) {
+        try {
+            log.info("📡 getAnyUpcomingMeeting 호출: userId={}", userId);
+            
+            // 사용자의 모든 진행 예정 팬미팅 예약 확인 (influencer 상관없이)
+            boolean hasUpcomingMeeting = reservationMapper.hasAnyUpcomingMeeting(userId);
+            log.info("✅ hasAnyUpcomingMeeting 결과: {}", hasUpcomingMeeting);
+            
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("hasUpcomingMeeting", hasUpcomingMeeting);
+            
+            if (hasUpcomingMeeting) {
+                // 예약이 있으면 미팅 ID, 예약 ID, 좌석 ID, 인플루언서 ID도 조회
+                Long meetingId = reservationMapper.findAnyUpcomingMeetingId(userId);
+                Long reservationId = reservationMapper.findAnyUpcomingReservationId(userId);
+                Long seatId = reservationMapper.findAnyUpcomingSeatId(userId);
+                Long influencerId = reservationMapper.findAnyUpcomingInfluencerId(userId);
+                log.info("✅ 찾은 meetingId: {}, reservationId: {}, seatId: {}, influencerId: {}", 
+                        meetingId, reservationId, seatId, influencerId);
+                result.put("meetingId", meetingId);
+                result.put("reservationId", reservationId);
+                result.put("seatId", seatId);
+                result.put("influencerId", influencerId);
+            } else {
+                result.put("meetingId", null);
+                result.put("reservationId", null);
+                result.put("seatId", null);
+                result.put("influencerId", null);
+            }
+            
+            log.info("📡 최종 응답: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("❌ 진행 예정 팬미팅 정보 조회 중 오류 발생: userId={}, error={}", 
+                     userId, e.getMessage());
+            
+            // 오류 발생 시 기본값 반환
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("hasUpcomingMeeting", false);
+            result.put("meetingId", null);
+            result.put("reservationId", null);
+            result.put("seatId", null);
+            result.put("influencerId", null);
+            return result;
+        }
+    }
+
     private String holdKey(Long seatId) {
         return "hold:seat:" + seatId;
     }

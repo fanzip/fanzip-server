@@ -11,8 +11,10 @@ import org.example.fanzip.user.service.UserService;
 import org.example.fanzip.user.dto.UserDTO;
 import org.example.fanzip.meeting.mapper.FanMeetingMapper;
 import org.example.fanzip.meeting.mapper.FanMeetingReservationMapper;
+import org.example.fanzip.meeting.mapper.FanMeetingSeatMapper;
 import org.example.fanzip.meeting.domain.FanMeetingVO;
 import org.example.fanzip.meeting.domain.FanMeetingReservationVO;
+import org.example.fanzip.meeting.domain.FanMeetingSeatVO;
 import org.example.fanzip.notification.mapper.PushTokenMapper;
 import org.example.fanzip.global.fcm.FcmService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,19 +38,21 @@ public class FancardServiceImpl implements FancardService {
     private final UserService userService;
     private final FanMeetingMapper fanMeetingMapper;
     private final FanMeetingReservationMapper reservationMapper;
+    private final FanMeetingSeatMapper seatMapper;
     private final PushTokenMapper pushTokenMapper;
     private final FcmService fcmService;
 
     public FancardServiceImpl(FancardMapper fancardMapper, LocationService locationService, 
                              QrCodeGeneratorService qrCodeGeneratorService, UserService userService,
                              FanMeetingMapper fanMeetingMapper, FanMeetingReservationMapper reservationMapper,
-                             PushTokenMapper pushTokenMapper, FcmService fcmService) {
+                             FanMeetingSeatMapper seatMapper, PushTokenMapper pushTokenMapper, FcmService fcmService) {
         this.fancardMapper = fancardMapper;
         this.locationService = locationService;
         this.qrCodeGeneratorService = qrCodeGeneratorService;
         this.userService = userService;
         this.fanMeetingMapper = fanMeetingMapper;
         this.reservationMapper = reservationMapper;
+        this.seatMapper = seatMapper;
         this.pushTokenMapper = pushTokenMapper;
         this.fcmService = fcmService;
     }
@@ -323,8 +327,27 @@ public class FancardServiceImpl implements FancardService {
                 }
             }
             
-            // 좌석 정보는 현재 간단히 처리
-            String seatNumber = "A-" + (seatId % 100); // 임시 좌석 번호 생성
+            // 실제 좌석 정보 조회
+            String seatNumber = FancardConstants.TestData.TEST_SEAT_NUMBER; // 기본값
+            try {
+                FanMeetingSeatVO seat = seatMapper.findById(seatId);
+                if (seat != null && seat.getSeatNumber() != null) {
+                    String originalSeatNumber = seat.getSeatNumber();
+                    // D5 형식을 D-5 형식으로 변환
+                    if (originalSeatNumber.matches("^[A-Z]\\d+$")) {
+                        char seatRow = originalSeatNumber.charAt(0);
+                        String seatCol = originalSeatNumber.substring(1);
+                        seatNumber = seatRow + "-" + seatCol;
+                    } else {
+                        seatNumber = originalSeatNumber; // 이미 올바른 형식이거나 예상과 다른 형식
+                    }
+                    System.out.println("🪑 실제 좌석 번호 사용: " + originalSeatNumber + " → " + seatNumber);
+                } else {
+                    System.out.println("⚠️ 좌석 정보를 찾을 수 없어 기본값 사용: " + seatNumber);
+                }
+            } catch (Exception e) {
+                System.err.println("좌석 정보 조회 중 오류: " + e.getMessage());
+            }
             
             // 예약 정보 구성 (실제 데이터가 없으면 테스트 데이터 사용)
             ReservationDto reservationDto;
