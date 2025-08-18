@@ -247,7 +247,7 @@
             -- 해당 인플루언서의 팬미팅 예약 결제 이력만
             SELECT 
                 p.payment_id,
-                CONCAT(i.influencer_name, ' 팬미팅 예약') as title,
+                CONCAT(i.influencer_name, ' 팬미팅 예매') as title,
                 p.amount,
                 COALESCE(p.paid_at, p.cancelled_at, p.created_at) as paid_at,
                 p.status,
