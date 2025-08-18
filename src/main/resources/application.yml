@@ -28,6 +28,12 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
 
+logging:
+  level:
+    org.mybatis.spring: WARN
+    org.mybatis.spring.SqlSessionUtils: WARN
+    org.mybatis.spring.transaction.SpringManagedTransaction: WARN
+
 jwt:
   secret: ${JWT_SECRET_KEY}
 
