@@ -3,6 +3,7 @@ package org.example.fanzip.market.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.example.fanzip.market.dto.MarketOrderItemDto;
+import org.example.fanzip.market.dto.MarketOrderItemResponseDto;
 import org.example.fanzip.market.dto.MarketOrderPaymentDto;
 import org.springframework.security.core.parameters.P;
 
@@ -39,4 +40,10 @@ public interface MarketOrderMapper {
 
     // payment 연동
     Map<String, Object> selectOrderForPayment(@Param("orderId") Long orderId);
+
+    // 주문 완료 페이지용 주문 상품 조회 (상품 정보 포함)
+    List<MarketOrderItemResponseDto> selectOrderItemsWithProductDetails(@Param("orderId") Long orderId);
+
+    // 주문 완료 페이지용 주문 상세 정보 조회
+    Map<String, Object> selectOrderForDetail(@Param("orderId") Long orderId);
 }
