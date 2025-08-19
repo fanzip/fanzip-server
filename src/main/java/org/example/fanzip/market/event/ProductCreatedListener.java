@@ -22,7 +22,7 @@ public class ProductCreatedListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(ProductCreatedEvent e) {
         // ACTIVE 구독자 토큰 조회
-        List<String> tokens = pushTokenMapper.findTokensByInfluencer(e.getInfluencerId(), "ACTIVE");
+        List<String> tokens = pushTokenMapper.findTokensByInfluencer(e.getInfluencerId(), "ACTIVE",  "WEB");
         if (tokens == null || tokens.isEmpty()) {
             log.info("[Market][Notify] no tokens: influencerId={}, productId={}", e.getInfluencerId(), e.getProductId());
             return;
@@ -31,7 +31,7 @@ public class ProductCreatedListener {
         // 알림 내용 + 딥링크
         String title = "새 공구가 올라왔어요";
         String body  = "「" + e.getProductName() + "」 지금 확인해보세요!";
-        String clickPath = "/market/" + e.getProductId();;
+        String clickPath = "/market/" + e.getProductId();
 
         // NotificationService에서 요구하는 DTO로 위임
         NotificationRequestDTO req = new NotificationRequestDTO();

@@ -18,6 +18,7 @@ import java.util.List;
 public class NotificationService {
 
     private static final String MEMBERSHIP_ACTIVE = "ACTIVE";
+    private static final String DEVICE_TYPE_WEB = "WEB";
 
     private final PushTokenMapper pushTokenMapper;
     private final NotificationMapper notificationMapper;
@@ -25,21 +26,46 @@ public class NotificationService {
 
     @Transactional
     public void upsertToken(Long userId, String token, String deviceType) {
+        log.info("🔍 [TOKEN] upsertToken 시작: userId={}, token={}, deviceType={}",
+                userId, token.substring(0, Math.min(token.length(), 20)) + "...", deviceType);
+
         // 0) 토큰 없으면 스킵 (안전 가드)
-        if (token == null || token.isBlank()) return;
+        if (token == null || token.isBlank()) {
+            log.warn("⚠️ [TOKEN] 토큰이 null 또는 빈 문자열");
+            return;
+        }
 
         // 1) 디바이스 타입 통일 (소문자/널 모두 "WEB"으로)
         String dt = (deviceType == null || deviceType.isBlank())
                 ? "WEB"
                 : deviceType.toUpperCase();
+        log.info("🔍 [TOKEN] 정규화된 deviceType: {}", dt);
 
-        // 2) 같은 유저-디바이스 기존 행 제거 (uq_user_device 충돌 예방)
-        pushTokenMapper.deleteByUserAndDevice(userId, dt);
+        try {
+            // 2) 같은 토큰을 가진 레코드 먼저 삭제 (UNIQUE 제약조건 충돌 방지)
+            int deletedByToken = pushTokenMapper.deleteByToken(token);
+            log.info("✅ [TOKEN] 동일 토큰 삭제: {} rows", deletedByToken);
 
-        // 3) 업서트 (매퍼에서 push_token도 갱신하도록 수정해둔 상태여야 함)
-        pushTokenMapper.insertOrUpdateByToken(userId, token, dt);
+            // 3) 같은 유저-디바이스 기존 행 제거 (uq_user_device 충돌 예방)
+            int deletedByUserDevice = pushTokenMapper.deleteByUserAndDevice(userId, dt);
+            log.info("✅ [TOKEN] 유저-디바이스 토큰 삭제: {} rows", deletedByUserDevice);
+
+            // 4) 업서트 (이제 충돌 없음)
+            int affectedRows = pushTokenMapper.insertOrUpdateByToken(userId, token, dt);
+            log.info("✅ [TOKEN] 토큰 업서트 완료: {} rows affected", affectedRows);
+
+            if (affectedRows == 0) {
+                log.error("❌ [TOKEN] 업서트 실패: 영향받은 행이 0개");
+                throw new RuntimeException("토큰 등록 실패: 영향받은 행이 0개");
+            }
+
+            log.info("🎉 [TOKEN] 토큰 등록 성공");
+
+        } catch (Exception e) {
+            log.error("❌ [TOKEN] 토큰 등록 중 예외 발생", e);
+            throw new RuntimeException("토큰 등록 실패: " + e.getMessage(), e);
+        }
     }
-
     /** 구독(활성) 중인 사용자에게만 일괄 발송 + 로그 저장 + 실패 토큰 정리 */
     @Transactional(rollbackFor = Exception.class) // 실패 시 로그 insert도 롤백
     public int sendToInfluencerSubscribers(NotificationRequestDTO req) throws Exception {
@@ -57,7 +83,7 @@ public class NotificationService {
 
         // 2) 구독자 토큰 조회 (status=ACTIVE 필터)
         List<String> tokens =
-                pushTokenMapper.findTokensByInfluencer(req.getInfluencerId(), MEMBERSHIP_ACTIVE);
+                pushTokenMapper.findTokensByInfluencer(req.getInfluencerId(), MEMBERSHIP_ACTIVE, DEVICE_TYPE_WEB);
         log.info("[NOTI] tokens fetched: size={}", (tokens == null ? 0 : tokens.size()));
         if (tokens == null || tokens.isEmpty()) return 0;
 
