@@ -91,6 +91,9 @@ jobs:
             FIREBASE_CREDENTIALS_PATH=${{ secrets.FIREBASE_CREDENTIALS_PATH }}
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             FIREBASE_CREDENTIALS_JSON=${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+            aws.access-key=${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws.secret-key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws.region=ap-northeast-2
             EOF
             
             # .env 파일 생성 확인
