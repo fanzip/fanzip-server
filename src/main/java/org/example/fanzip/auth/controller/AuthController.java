@@ -2,6 +2,11 @@ package org.example.fanzip.auth.controller;
 
 
 import io.micrometer.core.instrument.Timer;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.fanzip.auth.dto.KakaoUserDTO;
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
+@Api(tags = "인증 관리", description = "카카오 OAuth 로그인 및 JWT 토큰 관리 API")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -32,7 +38,11 @@ public class AuthController {
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
-    //  카카오 로그인 URL 생성
+    @ApiOperation(value = "카카오 로그인 URL 생성", notes = "카카오 OAuth 로그인을 위한 URL을 생성합니다.")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "카카오 로그인 URL 생성 성공"),
+        @ApiResponse(code = 500, message = "서버 오류")
+    })
     @GetMapping("/oauth/kakao-url")
     public ResponseEntity<String> getKakaoLoginUrl(){
         String url = "https://kauth.kakao.com/oauth/authorize"
@@ -42,9 +52,17 @@ public class AuthController {
         return ResponseEntity.ok(url);
     }
 
-    // 카카오 로그인(기존 유저면 로그인 처리, 신규 유저면 회원가입 유도)
+    @ApiOperation(value = "카카오 로그인 콜백", notes = "카카오 OAuth 인증 후 콜백을 처리합니다. 기존 회원은 로그인, 신규 회원은 회원가입 유도")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "기존 회원 로그인 성공 - Authorization 헤더에 Access Token 포함"),
+        @ApiResponse(code = 202, message = "신규 회원 - 회원가입 필요, 카카오 사용자 정보 반환"),
+        @ApiResponse(code = 400, message = "잘못된 인증 코드"),
+        @ApiResponse(code = 500, message = "OAuth 처리 오류")
+    })
     @GetMapping("/oauth/kakao-login")
-    public ResponseEntity<?> kakaoCallback(@RequestParam String code, HttpServletResponse response) throws Exception{
+    public ResponseEntity<?> kakaoCallback(
+            @ApiParam(value = "카카오 인증 코드", required = true) @RequestParam String code, 
+            HttpServletResponse response) throws Exception{
 
         Timer.Sample loginTimer= businessMetricsService.startLoginTimer();
         businessMetricsService.recordLoginAttempt();
@@ -86,9 +104,16 @@ public class AuthController {
 
     }
 
-    //    Access Token 재발급
+    @ApiOperation(value = "Access Token 재발급", notes = "Refresh Token을 사용하여 새로운 Access Token을 발급합니다.")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "토큰 재발급 성공 - Authorization 헤더에 새 Access Token 포함"),
+        @ApiResponse(code = 401, message = "Refresh Token이 만료되었거나 유효하지 않음"),
+        @ApiResponse(code = 400, message = "Refresh Token이 쿠키에 없음")
+    })
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(@CookieValue("refresh-token") String refreshToken, HttpServletResponse response) throws Exception{
+    public ResponseEntity<?> reissue(
+            @ApiParam(value = "HTTP-Only 쿠키의 Refresh Token", required = true) @CookieValue("refresh-token") String refreshToken, 
+            HttpServletResponse response) throws Exception{
         log.info("=========reissue 진입=======");
         if(refreshToken==null||!jwtProcessor.validateToken(refreshToken)){
             return ResponseEntity
@@ -109,7 +134,11 @@ public class AuthController {
                 .body(Map.of("message", "Access token reissued"));
     }
 
-    //    로그아웃: refresh-token 제거
+    @ApiOperation(value = "로그아웃", notes = "HTTP-Only 쿠키에서 Refresh Token을 제거하여 로그아웃 처리합니다.")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "로그아웃 성공"),
+        @ApiResponse(code = 500, message = "서버 오류")
+    })
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response){
         CookieUtil.removeCookie(response, "refresh-token");

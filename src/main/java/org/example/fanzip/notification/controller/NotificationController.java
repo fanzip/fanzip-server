@@ -1,5 +1,6 @@
 package org.example.fanzip.notification.controller;
 
+import io.swagger.annotations.*;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.example.fanzip.global.fcm.FcmService;
@@ -11,6 +12,7 @@ import org.example.fanzip.security.JwtProcessor;
 
 import java.util.List;
 
+@Api(tags = "Notification", description = "알림 및 FCM 푸시 알림 관리 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notifications")
@@ -36,11 +38,19 @@ public class NotificationController {
 //                + ",\"failed\":" + result.invalidTokens().size() + "}");
 //    }
 
-    // 토큰 저장
+    @ApiOperation(value = "FCM 토큰 등록/업데이트", notes = "사용자의 FCM 토큰을 등록하거나 업데이트합니다. 푸시 알림을 받기 위해 필요합니다.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "FCM 토큰 등록/업데이트 성공"),
+            @ApiResponse(code = 400, message = "잘못된 요청 데이터"),
+            @ApiResponse(code = 401, message = "인증 필요"),
+            @ApiResponse(code = 500, message = "서버 오류")
+    })
     @PostMapping("/token")
     public ResponseEntity<?> upsertToken(
             @RequestHeader("Authorization") String authorization,
+            @ApiParam(value = "FCM 디바이스 토큰", required = true)
             @RequestParam String token,
+            @ApiParam(value = "디바이스 타입 (android, ios, web)", example = "android")
             @RequestParam(required = false) String deviceType) {
 
         Long userId;
@@ -62,9 +72,17 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    // NotificationController.java (기존 클래스 안에 추가)
+    @ApiOperation(value = "인플루언서 구독자에게 알림 전송", notes = "인플루언서의 구독자들에게 FCM 푸시 알림을 전송합니다.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "알림 전송 성공"),
+            @ApiResponse(code = 400, message = "잘못된 요청 데이터"),
+            @ApiResponse(code = 401, message = "인증 필요"),
+            @ApiResponse(code = 404, message = "인플루언서를 찾을 수 없음"),
+            @ApiResponse(code = 500, message = "서버 오류")
+    })
     @PostMapping("/send")
     public ResponseEntity<?> sendToSubscribers(
+            @ApiParam(value = "알림 전송 요청 데이터", required = true)
             @RequestBody org.example.fanzip.notification.dto.NotificationRequestDTO req) throws Exception {
         int sent = notificationService.sendToInfluencerSubscribers(req);
         return ResponseEntity.ok("{\"sent\":" + sent + "}");

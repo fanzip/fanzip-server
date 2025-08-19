@@ -34,8 +34,16 @@ public class SwaggerConfig {
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("Fanzip API")
-                .description("Fanzip 서비스 API 문서")
-                .version("1.0")
+                .description("Fanzip 팬미팅 및 인플루언서 플랫폼 서비스 API 문서\n\n" +
+                            "주요 기능:\n" +
+                            "- 팬미팅 관리 및 예약\n" +
+                            "- 인플루언서 관리 및 구독\n" +
+                            "- 멤버십 및 결제 관리\n" +
+                            "- 마켓 상품 관리\n" +
+                            "- 팬카드 및 QR코드 관리\n" +
+                            "- 알림 및 설문조사 관리")
+                .version("1.0.0")
+                .contact(new Contact("Fanzip Team", "https://fanzip.com", "support@fanzip.com"))
                 .build();
     }
 
