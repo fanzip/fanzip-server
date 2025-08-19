@@ -46,8 +46,14 @@ toss:
     client-key: ${TOSS_PAYMENTS_CLIENT_KEY}
     secret-key: ${TOSS_PAYMENTS_SECRET_KEY}
 
-
-
 firebase:
   credentials-path: ${FIREBASE_CREDENTIALS_PATH}
   project-id: ${FIREBASE_PROJECT_ID}
+
+aws:
+  region: ap-northeast-2
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+
+app:
+  web-base-url: https://fanzip.site
