@@ -11,27 +11,28 @@
           AND device_type = #{deviceType}
     </delete>
 
-    <!-- ② 토큰 기준 upsert (중복 토큰이면 소유자/디바이스 이동) -->
+    <!-- ② 토큰 기준 업서트 (중복 토큰이면 소유자/디바이스 이동) -->
     <insert id="insertOrUpdateByToken">
         INSERT INTO user_push_token (user_id, push_token, device_type, created_at, updated_at)
         VALUES (#{userId}, #{pushToken}, #{deviceType}, NOW(), NOW())
         ON DUPLICATE KEY UPDATE
                              user_id     = VALUES(user_id),
                              device_type = VALUES(device_type),
-                             push_token  = VALUES(push_token),
+#                              push_token  = VALUES(push_token),
                              updated_at  = NOW()
     </insert>
 
-    <!-- 구독자 토큰 조회 (status = ACTIVE ) -->
+    <!-- ③ 특정 인플루언서를 구독 중인 유저들의 디바이스 토큰 조회 -->
     <select id="findTokensByInfluencer" resultType="string">
         SELECT upt.push_token
         FROM memberships m
                  JOIN user_push_token upt ON upt.user_id = m.user_id
         WHERE m.influencer_id = #{influencerId}
           AND m.status = #{status}
+          AND upt.device_type = #{deviceType}
     </select>
 
-    <!-- 실패 토큰 일괄 삭제 -->
+    <!-- ④ 실패 토큰 일괄 삭제 -->
     <delete id="deleteTokens">
         DELETE FROM user_push_token
         WHERE push_token IN
@@ -40,7 +41,17 @@
         </foreach>
     </delete>
 
-    <!-- 특정 사용자의 FCM 토큰 조회 (QR 코드 생성용) -->
+    <!-- ⑤ 특정 사용자의 최신 토큰 1개 (디바이스 타입 기준) -->
+    <select id="findLatestTokenByUserId" resultType="string">
+        SELECT push_token
+        FROM user_push_token
+        WHERE user_id = #{userId}
+          AND device_type = #{deviceType}
+        ORDER BY updated_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- ⑦ 특정 사용자의 FCM 토큰 조회 (QR 코드 생성용) -->
     <select id="findTokenByUserId" resultType="string">
         SELECT push_token
         FROM user_push_token
@@ -48,5 +59,10 @@
         ORDER BY updated_at DESC
         LIMIT 1
     </select>
+
+    <delete id="deleteByToken">
+        DELETE FROM user_push_token
+        WHERE push_token = #{pushToken}
+    </delete>
 
 </mapper>
