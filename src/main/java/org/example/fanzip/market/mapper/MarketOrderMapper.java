@@ -21,6 +21,8 @@ public interface MarketOrderMapper {
     List<MarketOrderItemDto> selectOrderItems(@Param("orderId") Long orderId);
     List<Long> selectCartItemIdsByOrderId(@Param("orderId") Long orderId);
     int deleteCartItemsByIds(@Param("ids") List<Long> cartItemIds);
+    // 사용자 ID와 상품 ID 기반으로 장바구니 아이템 삭제 (cart_item_id 없이)
+    int deleteCartItemsByUserAndProducts(@Param("userId") Long userId, @Param("productIds") List<Long> productIds);
     int updateOrderStatus(@Param("orderId") Long orderId,
                           @Param("status") String status);
     // 재고 차감
@@ -40,6 +42,8 @@ public interface MarketOrderMapper {
 
     // payment 연동
     Map<String, Object> selectOrderForPayment(@Param("orderId") Long orderId);
+    // 주문의 사용자 ID 조회
+    Long selectUserIdByOrderId(@Param("orderId") Long orderId);
 
     // 주문 완료 페이지용 주문 상품 조회 (상품 정보 포함)
     List<MarketOrderItemResponseDto> selectOrderItemsWithProductDetails(@Param("orderId") Long orderId);

@@ -60,6 +60,16 @@
         </foreach>
     </delete>
 
+    <delete id="deleteCartItemsByUserAndProducts" parameterType="map">
+        DELETE ci FROM cart_items ci
+        INNER JOIN cart c ON ci.cart_id = c.cart_id
+        WHERE c.user_id = #{userId}
+        AND ci.product_id IN
+        <foreach collection="productIds" item="productId" open="(" close=")" separator=",">
+            #{productId}
+        </foreach>
+    </delete>
+
     <update id="updateOrderStatus" parameterType="map">
         UPDATE orders SET status=#{status} WHERE order_id=#{orderId}
     </update>
@@ -97,6 +107,10 @@
             final_amount as finalAmount
         FROM orders
         WHERE order_id=#{orderId}
+    </select>
+
+    <select id="selectUserIdByOrderId" parameterType="long" resultType="long">
+        SELECT user_id FROM orders WHERE order_id = #{orderId}
     </select>
 
     <!-- 주문 완료 페이지용 주문 상품 조회 (상품 정보 포함) -->
