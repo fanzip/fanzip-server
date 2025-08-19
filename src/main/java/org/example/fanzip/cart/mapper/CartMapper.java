@@ -13,7 +13,7 @@ public interface CartMapper {
     Long findCartIdByUserId(@Param("userId") Long userId);
 
     // 새로운 장바구니 생성
-    Long createCart(@Param("userId") Long userId);
+    void createCart(@Param("userId") Long userId);
 
     // 장바구니에 항목 추가
     Long insertCartItem(

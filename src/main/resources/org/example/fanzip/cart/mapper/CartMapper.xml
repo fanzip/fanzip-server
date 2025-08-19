@@ -11,7 +11,7 @@
     </select>
 
     <!-- 장바구니 없는 경우 생성 -->
-    <insert id="createCart" parameterType="long" useGeneratedKeys="true" keyProperty="cartId">
+    <insert id="createCart" parameterType="long">
         insert into cart (user_id, created_at, updated_at)
         values (#{userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     </insert>
