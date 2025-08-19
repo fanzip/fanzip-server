@@ -38,7 +38,8 @@ public class CartServiceImpl implements CartService {
         // 카트 없으면 생성
         Long cartId = cartMapper.findCartIdByUserId(userId);
         if(cartId == null) {
-            cartId = cartMapper.createCart(userId);
+            cartMapper.createCart(userId);
+            cartId = cartMapper.findCartIdByUserId(userId);
         }
 
         // 동일 상품 카트에 있으면 업데이트
