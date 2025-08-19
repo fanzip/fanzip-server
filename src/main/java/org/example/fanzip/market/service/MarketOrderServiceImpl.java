@@ -118,10 +118,22 @@ public class MarketOrderServiceImpl implements MarketOrderService {
             }
         }
 
-        // 장바구니에서 삭제
+        // 장바구니에서 삭제 (기존 방식 - cart_item_id 기반)
         List<Long> cartItemIds = marketOrderMapper.selectCartItemIdsByOrderId(orderId);
         if(cartItemIds != null && !cartItemIds.isEmpty()) {
             marketOrderMapper.deleteCartItemsByIds(cartItemIds);
+        } else {
+            // cart_item_id가 없는 경우 사용자 ID와 상품 ID 기반으로 삭제
+            Long userId = marketOrderMapper.selectUserIdByOrderId(orderId);
+            if (userId != null) {
+                List<Long> productIds = items.stream()
+                    .map(MarketOrderItemDto::getProductId)
+                    .collect(java.util.stream.Collectors.toList());
+                if (!productIds.isEmpty()) {
+                    int deletedCount = marketOrderMapper.deleteCartItemsByUserAndProducts(userId, productIds);
+                    System.out.println("사용자 기반 장바구니 정리 완료: userId=" + userId + ", 삭제된 아이템=" + deletedCount);
+                }
+            }
         }
 
         // status 업데이트 (PROCESSING->PAID)

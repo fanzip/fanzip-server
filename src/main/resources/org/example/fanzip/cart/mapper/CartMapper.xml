@@ -17,7 +17,7 @@
     </insert>
 
     <!-- 장바구니에 항목 추가 -->
-    <insert id="insertCartItem" parameterType="map" useGeneratedKeys="true" keyProperty="cartId">
+    <insert id="insertCartItem" parameterType="map" useGeneratedKeys="true" keyProperty="cartItemId">
         insert into cart_items (cart_id, product_id, quantity, added_at, is_selected)
         values (#{cartId}, #{productId}, #{quantity}, CURRENT_TIMESTAMP, true)
     </insert>
@@ -76,12 +76,12 @@
     </select>
 
     <!-- 수량, 선택 업데이트 -->
-    <select id="updateCartItem">
+    <update id="updateCartItem">
         update cart_items
         set quantity = #{quantity},
             is_selected = #{isSelected}
         where cart_item_id = #{cartItemId}
-    </select>
+    </update>
     
     <!-- 전체 선택, 해제 -->
     <update id="updateAllSelection">
