@@ -1,43 +1,44 @@
 package org.example.fanzip.meeting.event;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.example.fanzip.notification.dto.NotificationRequestDTO;
-import org.example.fanzip.notification.service.NotificationService;
+import org.example.fanzip.global.fcm.FcmService;
+import org.example.fanzip.influencer.service.InfluencerService;
+import org.example.fanzip.notification.service.NotificationQueryPort;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
-@Slf4j
+import java.util.List;
+
 @RequiredArgsConstructor
 @Component
 public class FanMeetingCreatedListener {
 
-    private final NotificationService notificationService;
+    private final NotificationQueryPort notificationQueryPort;
+    private final FcmService fcmService;
+    private final InfluencerService influencerService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCreated(FanMeetingCreatedEvent e) {
-        // 알림 타이틀/본문/딥링크 구성
-        String title = "새 팬미팅이 등록됐어요 🎉";
-        String body  = "‘" + e.title() + "’";
-        String clickPath = "/reservation/" + e.meetingId();
+        // 1) 구독자 토큰 조회
+        List<String> tokens = notificationQueryPort.findSubscriberTokens(e.influencerId());
+        if (tokens == null || tokens.isEmpty()) return;
 
-        // DTO 구성
-        NotificationRequestDTO req = new NotificationRequestDTO();
-        req.setInfluencerId(e.influencerId());
-        req.setTitle(title);
-        req.setBody(body);
-        req.setTargetUrl(clickPath);
-        // 필요 시 썸네일 등 추가 필드 설정 가능
-        // req.setImageUrl(e.getThumbnailUrl());
+        // 2) 인플루언서 이름 조회 (fallback)
+        String influencerName = notificationQueryPort.findInfluencerName(e.influencerId());
+        if (influencerName == null || influencerName.isBlank()) influencerName = "인플루언서";
+
+        // 3) 푸시 메시지 (⛔ 시간 문구 제거)
+        String title = influencerName + "님의 새 팬미팅이 등록됐어요 🎉";
+        String body  = "‘" + e.title() + "’";
+
+        // 4) 이동 경로 (프로젝트 규칙에 맞춰 선택)
+        String targetUrl = "/reservation/" + e.meetingId();
 
         try {
-            int sent = notificationService.sendToInfluencerSubscribers(req);
-            log.info("[Meeting][Notify] sent={} influencerId={} meetingId={}",
-                    sent, e.influencerId(), e.meetingId());
+            fcmService.sendToTokens(tokens, title, body, targetUrl);
         } catch (Exception ex) {
-            log.error("[Meeting][Notify] send failed influencerId={} meetingId={}",
-                    e.influencerId(), e.meetingId(), ex);
+            System.err.println("[FCM] 팬미팅 알림 전송 실패: " + ex.getMessage());
         }
     }
 }
