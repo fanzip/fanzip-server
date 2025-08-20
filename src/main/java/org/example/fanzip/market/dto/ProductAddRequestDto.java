@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.example.fanzip.market.domain.enums.ProductCategory;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -37,15 +37,15 @@ public class ProductAddRequestDto {
     private List<String> descriptionImages;
     
     // 등급별 판매 오픈 시간
-    private LocalDateTime generalOpenTime;
+    private Instant generalOpenTime;
 
     /** 서버 계산용 – 클라이언트 입력 무시 */
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private LocalDateTime whiteOpenTime;
+    private Instant whiteOpenTime;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private LocalDateTime silverOpenTime;
+    private Instant silverOpenTime;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private LocalDateTime goldOpenTime;
+    private Instant goldOpenTime;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private LocalDateTime vipOpenTime;
+    private Instant vipOpenTime;
 }
