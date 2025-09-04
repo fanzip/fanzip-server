@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.fanzip.fancard.mapper.FancardMapper">
+
+    <!-- Fancard ResultMap -->
+    <resultMap id="fancardResultMap" type="org.example.fanzip.fancard.domain.Fancard">
+        <id property="cardId" column="card_id"/>
+        <result property="membershipId" column="membership_id"/>
+        <result property="cardNumber" column="card_number"/>
+        <result property="cardDesignUrl" column="card_design_url"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 멤버십 ID로 팬카드 목록 조회 -->
+    <select id="findByMembershipId" parameterType="long" resultMap="fancardResultMap">
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
+        FROM fan_cards
+        WHERE membership_id = #{membershipId}
+    </select>
+
+    <!-- 카드 번호로 팬카드 조회 -->
+    <select id="findByCardNumber" parameterType="string" resultMap="fancardResultMap">
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
+        FROM fan_cards
+        WHERE card_number = #{cardNumber}
+    </select>
+
+    <!-- 여러 멤버십 ID의 팬카드 목록 조회 (활성/비활성 모두 포함) -->
+    <select id="findActiveCardsByMembershipIds" resultMap="fancardResultMap">
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
+        FROM fan_cards
+        <where>
+            <if test="membershipIds != null and membershipIds.size() > 0">
+                membership_id IN
+                <foreach item="membershipId" collection="membershipIds" open="(" separator="," close=")">
+                    #{membershipId}
+                </foreach>
+            </if>
+            <if test="membershipIds == null or membershipIds.size() == 0">
+                1 = 0
+            </if>
+        </where>
+        ORDER BY is_active DESC, created_at DESC
+    </select>
+
+    <!-- 멤버십 ID의 활성 팬카드 조회 -->
+    <select id="findActiveCardByMembershipId" parameterType="long" resultMap="fancardResultMap">
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
+        FROM fan_cards
+        WHERE membership_id = #{membershipId}
+        AND is_active = true
+        LIMIT 1
+    </select>
+
+    <!-- 멤버십 ID의 팬카드 조회 (활성/비활성 모두) -->
+    <select id="findCardByMembershipId" parameterType="long" resultMap="fancardResultMap">
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
+        FROM fan_cards
+        WHERE membership_id = #{membershipId}
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 팬카드 활성화 -->
+    <update id="activateCard" parameterType="long">
+        UPDATE fan_cards
+        SET is_active = true
+        WHERE card_id = #{cardId}
+    </update>
+
+    <!-- 팬카드 비활성화 -->
+    <update id="deactivateCard" parameterType="long">
+        UPDATE fan_cards
+        SET is_active = false
+        WHERE card_id = #{cardId}
+    </update>
+
+    <!-- 멤버십 ID로 팬카드 비활성화 -->
+    <update id="deactivateCardByMembershipId" parameterType="long">
+        UPDATE fan_cards
+        SET is_active = false
+        WHERE membership_id = #{membershipId}
+    </update>
+
+    <!-- ID로 팬카드 조회 -->
+    <select id="findById" parameterType="long" resultMap="fancardResultMap">
+        SELECT card_id, membership_id, card_number, 
+               card_design_url, is_active, created_at
+        FROM fan_cards
+        WHERE card_id = #{cardId}
+    </select>
+
+    <!-- 팬카드 등록 -->
+    <insert id="insert" parameterType="org.example.fanzip.fancard.domain.Fancard" useGeneratedKeys="true" keyProperty="cardId">
+        INSERT INTO fan_cards (membership_id, card_number, card_design_url, is_active)
+        VALUES (#{membershipId}, #{cardNumber}, #{cardDesignUrl}, #{isActive})
+    </insert>
+
+    <!-- 팬카드 수정 -->
+    <update id="updateCardDesignByInfluencerId"
+            parameterType="org.example.fanzip.fancard.domain.Fancard">
+        UPDATE FanCards
+        SET card_design_url = #{cardDesignUrl}
+        WHERE membership_id IN (
+            SELECT membership_id
+            FROM memberships
+            WHERE influencer_id = #{influencerId}
+        )
+    </update>
+
+    <!-- 팬카드 삭제 -->
+    <delete id="delete" parameterType="long">
+        DELETE FROM fan_cards
+        WHERE card_id = #{cardId}
+    </delete>
+
+    <!-- 사용자의 멤버십 ID 목록 조회 (모든 상태 포함 - UI에서 팬카드 상태별 표시) -->
+    <select id="findMembershipIdsByUserId" parameterType="long" resultType="long">
+        SELECT membership_id
+        FROM memberships
+        WHERE user_id = #{userId}
+        AND status IN ('ACTIVE', 'CANCELLED')
+        ORDER BY 
+            CASE status 
+                WHEN 'ACTIVE' THEN 1 
+                WHEN 'CANCELLED' THEN 2 
+                ELSE 3 
+            END,
+            membership_id DESC
+    </select>
+
+    <!-- InfluencerDto ResultMap -->
+    <resultMap id="influencerDtoResultMap" type="org.example.fanzip.fancard.dto.response.InfluencerDto">
+        <id property="influencerId" column="influencer_id"/>
+        <result property="influencerName" column="influencer_name"/>
+        <result property="category" column="category"/>
+        <result property="profileImage" column="profile_image"/>
+        <result property="fancardImage" column="fancard_image"/>
+        <result property="isVerified" column="is_verified"/>
+    </resultMap>
+
+    <!-- 멤버십 ID로 인플루언서 정보 조회 -->
+    <select id="findInfluencerByMembershipId" parameterType="long" resultMap="influencerDtoResultMap">
+        SELECT i.influencer_id, i.influencer_name, i.category, i.profile_image, i.fancard_image, i.is_verified
+        FROM influencers i
+        JOIN memberships m ON i.influencer_id = m.influencer_id
+        WHERE m.membership_id = #{membershipId}
+    </select>
+
+    <!-- MembershipGradeDto ResultMap -->
+    <resultMap id="membershipGradeDtoResultMap" type="org.example.fanzip.fancard.dto.response.MembershipGradeDto">
+        <id property="gradeId" column="grade_id"/>
+        <result property="gradeName" column="grade_name"/>
+        <result property="color" column="color"/>
+        <result property="benefitsDescription" column="benefits_description"/>
+    </resultMap>
+
+    <!-- 등급 ID로 멤버십 등급 정보 조회 -->
+    <select id="findMembershipGradeById" parameterType="long" resultMap="membershipGradeDtoResultMap">
+        SELECT grade_id, grade_name, color, benefits_description
+        FROM membership_grades
+        WHERE grade_id = #{gradeId}
+    </select>
+
+    <!-- MembershipDto ResultMap -->
+    <resultMap id="membershipDtoResultMap" type="org.example.fanzip.fancard.dto.response.MembershipDto">
+        <id property="membershipId" column="membership_id"/>
+        <result property="subscriptionStart" column="subscription_start"/>
+        <result property="monthlyAmount" column="monthly_amount"/>
+        <result property="totalPaidAmount" column="total_paid_amount"/>
+        <result property="status" column="status"/>
+        <result property="autoRenewal" column="auto_renewal"/>
+        <association property="grade" resultMap="membershipGradeDtoResultMap"/>
+    </resultMap>
+
+    <!-- 멤버십 ID로 멤버십 정보 조회 -->
+    <select id="findMembershipById" parameterType="long" resultMap="membershipDtoResultMap">
+        SELECT m.membership_id, m.subscription_start, m.monthly_amount, 
+               m.total_paid_amount, m.status, m.auto_renewal,
+               mg.grade_id, mg.grade_name, mg.color, mg.benefits_description
+        FROM memberships m
+        JOIN membership_grades mg ON m.grade_id = mg.grade_id
+        WHERE m.membership_id = #{membershipId}
+    </select>
+
+    <!-- 멤버십 ID로 인플루언서 이름 조회 -->
+    <select id="findInfluencerNameByMembershipId" parameterType="long" resultType="string">
+        SELECT i.influencer_name
+        FROM influencers i
+        JOIN memberships m ON i.influencer_id = m.influencer_id
+        WHERE m.membership_id = #{membershipId}
+    </select>
+    
+    <!-- PaymentHistoryDto ResultMap -->
+    <resultMap id="paymentHistoryDtoResultMap" type="org.example.fanzip.fancard.dto.response.PaymentHistoryDto">
+        <id property="paymentId" column="payment_id"/>
+        <result property="title" column="title"/>
+        <result property="amount" column="amount"/>
+        <result property="paidAt" column="paid_at"/>
+        <result property="status" column="status"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="description" column="description"/>
+        <result property="bold" column="bold"/>
+    </resultMap>
+
+    <!-- 멤버십 ID로 결제 히스토리 조회 (해당 인플루언서와의 추억만) -->
+    <select id="findPaymentHistoryByMembershipId" parameterType="long" resultMap="paymentHistoryDtoResultMap">
+        (
+            -- 해당 인플루언서의 멤버십 결제 이력 (구독 + 해지 모두 포함)
+            SELECT 
+                p.payment_id,
+                CASE 
+                    WHEN p.status = 'CANCELLED' THEN CONCAT(i.influencer_name, ' 멤버십 해지')
+                    ELSE CONCAT(i.influencer_name, ' 멤버십 구독')
+                END as title,
+                p.amount,
+                COALESCE(p.paid_at, p.cancelled_at, p.created_at) as paid_at,
+                p.status,
+                p.payment_method,
+                CASE 
+                    WHEN p.status = 'CANCELLED' THEN CONCAT('등급: ', mg.grade_name, ' 해지')
+                    ELSE CONCAT('등급: ', mg.grade_name)
+                END as description,
+                CASE 
+                    WHEN p.status IN ('APPROVED', 'PAID') THEN true
+                    ELSE false
+                END as bold
+            FROM payments p
+            JOIN memberships m ON p.membership_id = m.membership_id
+            JOIN influencers i ON m.influencer_id = i.influencer_id
+            LEFT JOIN membership_grades mg ON m.grade_id = mg.grade_id
+            JOIN memberships target_m ON target_m.membership_id = #{membershipId}
+            WHERE p.payment_type = 'MEMBERSHIP'
+            AND p.status IN ('APPROVED', 'PAID', 'CANCELLED')  -- 해지 상태도 포함
+            AND i.influencer_id = target_m.influencer_id
+            AND m.user_id = target_m.user_id
+        )
+        UNION ALL
+        (
+            -- 해당 인플루언서의 팬미팅 예약 결제 이력만
+            SELECT 
+                p.payment_id,
+                CONCAT(i.influencer_name, ' 팬미팅 예매') as title,
+                p.amount,
+                COALESCE(p.paid_at, p.cancelled_at, p.created_at) as paid_at,
+                p.status,
+                p.payment_method,
+                CONCAT('팬미팅: ', fm.title) as description,
+                CASE 
+                    WHEN p.status IN ('APPROVED', 'PAID') THEN true
+                    ELSE false
+                END as bold
+            FROM payments p
+            JOIN fan_meeting_reservations fmr ON p.reservation_id = fmr.reservation_id
+            JOIN fan_meetings fm ON fmr.meeting_id = fm.meeting_id
+            JOIN influencers i ON fm.influencer_id = i.influencer_id
+            JOIN memberships target_m ON target_m.membership_id = #{membershipId}
+            WHERE p.payment_type IN ('ORDER', 'MEETING', 'RESERVATION')
+            AND p.reservation_id IS NOT NULL
+            AND p.status IN ('APPROVED', 'PAID')
+            AND i.influencer_id = target_m.influencer_id
+            AND p.user_id = target_m.user_id
+        )
+        UNION ALL
+        (
+            -- 해당 인플루언서의 상품 주문 결제 이력만 (일반 상품 + 공동구매 구분)
+            SELECT 
+                p.payment_id,
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM order_items oi2
+                        JOIN products pr2 ON oi2.product_id = pr2.product_id
+                        WHERE oi2.order_id = o.order_id
+                        AND pr2.group_buy_price IS NOT NULL
+                        AND pr2.group_buy_price > 0
+                        AND oi2.unit_price = pr2.group_buy_price
+                    )
+                    THEN CONCAT(i.influencer_name, ' 공동구매')
+                    ELSE CONCAT(i.influencer_name, ' 상품 구매')
+                END as title,
+                p.amount,
+                COALESCE(p.paid_at, p.cancelled_at, p.created_at) as paid_at,
+                p.status,
+                p.payment_method,
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM order_items oi2
+                        JOIN products pr2 ON oi2.product_id = pr2.product_id
+                        WHERE oi2.order_id = o.order_id
+                        AND pr2.group_buy_price IS NOT NULL
+                        AND pr2.group_buy_price > 0
+                        AND oi2.unit_price = pr2.group_buy_price
+                    )
+                    THEN '공동구매 상품'
+                    ELSE '마켓 상품 구매'
+                END as description,
+                CASE 
+                    WHEN p.status IN ('APPROVED', 'PAID') THEN true
+                    ELSE false
+                END as bold
+            FROM payments p
+            JOIN orders o ON p.order_id = o.order_id
+            JOIN order_items oi ON o.order_id = oi.order_id
+            JOIN influencers i ON oi.influencer_id = i.influencer_id
+            JOIN memberships target_m ON target_m.membership_id = #{membershipId}
+            WHERE p.payment_type = 'ORDER'
+            AND p.reservation_id IS NULL
+            AND p.status IN ('APPROVED', 'PAID')
+            AND i.influencer_id = target_m.influencer_id
+            AND p.user_id = target_m.user_id
+            GROUP BY p.payment_id, i.influencer_name, p.amount, p.paid_at, p.status, p.payment_method, o.order_id
+        )
+        ORDER BY paid_at DESC
+        LIMIT 20
+    </select>
+    
+    <!-- 인플루언서 ID로 인플루언서 정보 조회 -->
+    <select id="findInfluencerById" parameterType="long" resultMap="influencerDtoResultMap">
+        SELECT influencer_id, influencer_name, category, profile_image, fancard_image, is_verified
+        FROM influencers
+        WHERE influencer_id = #{influencerId}
+    </select>
+
+</mapper>

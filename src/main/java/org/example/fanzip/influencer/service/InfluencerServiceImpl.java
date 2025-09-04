@@ -1,0 +1,141 @@
+package org.example.fanzip.influencer.service;
+
+import lombok.RequiredArgsConstructor;
+import org.example.fanzip.fancard.mapper.FancardMapper;
+import org.example.fanzip.influencer.domain.InfluencerVO;
+import org.example.fanzip.influencer.domain.enums.InfluencerCategory;
+import org.example.fanzip.influencer.dto.*;
+import org.example.fanzip.influencer.mapper.InfluencerMapper;
+import org.example.fanzip.membership.dto.MembershipGradeDTO;
+import org.example.fanzip.membership.mapper.MembershipMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class InfluencerServiceImpl implements InfluencerService {
+
+    private final InfluencerMapper influencerMapper;
+    private final FancardMapper fancardMapper;
+    private final MembershipMapper membershipMapper;
+
+    // 전체 목록 조회
+    @Override
+    public List<InfluencerResponseDTO> findAll(InfluencerRequestDTO requestDTO) {
+
+        // 1. 파라미터 구성
+        // userId와 category를 Map으로 묶어 보냄
+        Long userId = requestDTO.getUserId();
+        InfluencerCategory category = requestDTO.getCategory();
+
+        List<InfluencerVO> influencerList = influencerMapper.findAllFiltered(userId, category);
+
+
+        // 2. VO → ResponseDTO로 변환
+        // 각 InfluencerVO 객체를 InfluencerResponseDTO로 변환
+        // 최종적으로 클라이언트에게 반환될 형태의 리스트를 리턴
+        return influencerList.stream()
+                .map(InfluencerResponseDTO::from)
+                .collect(Collectors.toList());
+    }
+
+    // 상세 조회
+    @Override
+    public InfluencerDetailResponseDTO findDetailed(Long userId, Long influencerId) {
+// 1. 인플루언서 기본 정보 조회
+        InfluencerVO influencerDetail = influencerMapper.findDetailed(influencerId);
+
+        if (influencerDetail == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
+        }
+
+        // 2. 멤버십 등급 목록 조회
+        List<MembershipGradeDTO> grades = membershipMapper.findGradesByInfluencerId(influencerId);
+
+        // 3. DTO로 변환 후 반환
+        return InfluencerDetailResponseDTO.from(influencerDetail, grades);
+    }
+
+    // 인플루언서 관리자 마이페이지 프로필 조회
+    @Override
+    @Transactional(readOnly = true)
+    public InfluencerProfileResponseDTO findProfile(Long influencerId, Long userId) {
+        InfluencerVO influencer = influencerMapper.findProfile(influencerId);
+        
+        if (influencer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
+        }
+        
+        // isVerified는 임시로 true로 설정 (실제로는 DB에서 조회하거나 비즈니스 로직에 따라 결정)
+        Boolean isVerified = true;
+        
+        return InfluencerProfileResponseDTO.from(influencer, userId, isVerified);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InfluencerProfileResponseDTO findMyProfile(Long userId) {
+        InfluencerVO influencer = influencerMapper.findMyProfile(userId);
+
+        if (influencer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
+        }
+
+        // isVerified는 임시로 true로 설정 (실제로는 DB에서 조회하거나 비즈니스 로직에 따라 결정)
+        Boolean isVerified = true;
+
+        return InfluencerProfileResponseDTO.from(influencer, userId, isVerified);
+    }
+
+    // 인플루언서 프로필 수정 (공개 API용)
+    @Override
+    @Transactional
+    public void updateInfluencerProfile(Long influencerId, InfluencerProfileUpdateRequestDTO requestDTO, Long userId) {
+        // 인플루언서 존재 여부 확인
+        InfluencerVO influencer = influencerMapper.findProfile(influencerId);
+        if (influencer == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 인플루언서를 찾을 수 없습니다.");
+        }
+
+        // 권한 검증 로직 (필요시 추가)
+        // 예: 해당 인플루언서의 소유자인지 확인
+
+        int updated = influencerMapper.updateProfile(
+                influencerId,
+                requestDTO.getInfluencerName(),
+                requestDTO.getDescription(),
+                requestDTO.getCategory()
+        );
+        
+        if (updated == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "프로필 수정에 실패했습니다.");
+        }
+    }
+
+
+    @Override
+    public List<SubscriberStatsResponseDTO> getSubscriberStatsDaily(Long influencerId) {
+        return influencerMapper.getSubscriberStatsDaily(influencerId);
+    }
+
+    @Override
+    public List<SubscriberStatsResponseDTO> getSubscriberStatsWeekly(Long influencerId) {
+        return influencerMapper.getSubscriberStatsWeekly(influencerId);
+    }
+
+    @Override
+    public List<SubscriberStatsResponseDTO> getSubscriberStatsMonthly(Long influencerId) {
+        return influencerMapper.getSubscriberStatsMonthly(influencerId);
+    }
+
+
+    @Override
+    public SubscriberStatusResponseDTO getSubscriberStatus(Long influencerId) {
+        return influencerMapper.getSubscriberStatus(influencerId);
+    }
+}

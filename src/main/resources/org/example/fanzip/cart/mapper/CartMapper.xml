@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.fanzip.cart.mapper.CartMapper">
+    <!-- 사용자별 장바구니 ID 조회 -->
+    <select id="findCartIdByUserId" resultType="long" parameterType="long">
+        select cart_id as cartId
+        from cart
+        where user_id = #{userId}
+    </select>
+
+    <!-- 장바구니 없는 경우 생성 -->
+    <insert id="createCart" parameterType="long">
+        insert into cart (user_id, created_at, updated_at)
+        values (#{userId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    </insert>
+
+    <!-- 장바구니에 항목 추가 -->
+    <insert id="insertCartItem" parameterType="map" useGeneratedKeys="true" keyProperty="cartItemId">
+        insert into cart_items (cart_id, product_id, quantity, added_at, is_selected)
+        values (#{cartId}, #{productId}, #{quantity}, CURRENT_TIMESTAMP, true)
+    </insert>
+
+    <!-- 장바구니 전체 항목 조회 -->
+    <select id="findItemsByUser" resultType="org.example.fanzip.cart.dto.CartItemDto">
+        select
+            c.cart_item_id      as cartItemId,
+            p.product_id        as productId,
+            p.name              as productName,
+            p.thumbnail_image   as thumbnailImage,
+            p.price             as unitPrice,
+            p.discounted_price  as discountedPrice,
+            c.quantity          as quantity,
+            c.is_selected       as isSelected,
+            i.influencer_id     as influencerId,
+            i.influencer_name   as influencerName,
+            p.shipping_price    as shippingPrice
+        from cart_items c join products p on c.product_id = p.product_id
+                    join influencers i on i.influencer_id = p.influencer_id
+        where c.cart_id = (
+            select cart_id from cart where user_id = #{userId}
+            )
+    </select>
+
+    <!-- 단일 항목 조회 -->
+    <select id="findItemById" parameterType="long" resultType="org.example.fanzip.cart.dto.CartItemDto">
+        select
+            c.cart_item_id                      as cartItemId,
+            c.product_id                        as productId,
+            c.quantity                          as quantity,
+            c.is_selected                       as isSelected,
+            p.name                              as productName,
+            p.thumbnail_image                   as thumbnailImage,
+            p.discounted_price                  as discountedPrice,
+            (c.quantity * p.discounted_price)   as totalPrice,
+            p.shipping_price                    as shippingPirce
+        from cart_items c join products p on c.product_id=p.product_id
+        where c.cart_item_id=#{cartItemId}
+    </select>
+
+    <!-- 특정 유저, 특정 상품 확인 -->
+    <select id="checkCartItem" resultType="java.lang.Integer">
+        select count(*)
+        from cart_items ci join cart c on ci.cart_id = c.cart_id
+        where ci.cart_item_id = #{cartItemId}
+            and c.user_id = #{userId}
+    </select>
+
+    <!-- 상품 id로 cartItemId 확인 -->
+    <select id="findCartItemIdByProductId" resultType="long">
+        select cart_item_id
+        from cart_items ci join cart c on ci.cart_id = c.cart_id
+        where c.user_id = #{userId}
+            and ci.product_id = #{productId}
+    </select>
+
+    <!-- 수량, 선택 업데이트 -->
+    <update id="updateCartItem">
+        update cart_items
+        set quantity = #{quantity},
+            is_selected = #{isSelected}
+        where cart_item_id = #{cartItemId}
+    </update>
+    
+    <!-- 전체 선택, 해제 -->
+    <update id="updateAllSelection">
+        update cart_items ci
+        join cart c on ci.cart_id = c.cart_id
+        set ci.is_selected = #{selectAll}
+        where c.user_id = #{userId}
+    </update>
+
+    <!-- 항목 삭제 -->
+    <delete id="deleteCartItem">
+        delete from cart_items
+        where cart_item_id=#{cartItemId}
+    </delete>
+
+    <!-- 유저 정보 조회 (배송관련) -->
+    <select id="getUserShippingInfo" parameterType="java.lang.Long"
+            resultType="org.example.fanzip.cart.dto.UserShippingInfoDto">
+        select address1, address2, name, phone, zipcode
+        from users
+        where user_id = #{userId}
+    </select>
+</mapper>

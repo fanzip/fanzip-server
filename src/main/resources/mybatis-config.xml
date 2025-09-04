@@ -2,5 +2,22 @@
 <!DOCTYPE configuration
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
 <configuration>
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <setting name="jdbcTypeForNull" value="NULL"/>
+        <setting name="defaultEnumTypeHandler" value="org.apache.ibatis.type.EnumTypeHandler"/>
+    </settings>
+
+    <typeAliases>
+        <typeAlias alias="MembershipVO" type="org.example.fanzip.membership.domain.MembershipVO"/>
+        <typeAlias alias="Payments" type="org.example.fanzip.payment.domain.Payments"/>
+    </typeAliases>
+
+    <mappers>
+        <mapper resource="org/example/fanzip/membership/mapper/MembershipMapper.xml"/>
+        <mapper resource="org/example/fanzip/market/mapper/MarketMapper.xml"/>
+        <mapper resource="org/example/fanzip/survey/mapper/MeetingSurveyMapper.xml"/>
+    </mappers>
 </configuration>

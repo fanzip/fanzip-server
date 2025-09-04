@@ -1,0 +1,27 @@
+global:
+  slack_api_url: 'https://hooks.slack.com/services/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'
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s # 첫 알림 후 대기 시간
+  group_interval: 5m # 같은 그룹 알림 간격
+  repeat_interval: 12h  # 동일 알림 반복 간격
+  receiver: 'slack-alerts'
+
+receivers:
+  - name: 'slack-alerts'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/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'
+        channel: '#alerts'
+        username: 'AlertManager'
+        icon_emoji: ':warning:'
+        title: 'Alert: {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        text: >-
+          {{ range .Alerts }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true
+
+

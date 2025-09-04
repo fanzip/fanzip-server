@@ -1,0 +1,101 @@
+groups:
+  - name: fanzip-server-alerts
+    rules:
+      # 애플리케이션 다운 (가장 중요!)
+      - alert: ApplicationDown
+        expr: up{job="fanzip-application"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: fanzip-server
+        annotations:
+          summary: "🚨 서비스 다운!"
+          description: "Fanzip 서버가 1분간 응답하지 않습니다"
+
+      # 높은 CPU 사용률
+      - alert: HighCpuUsage
+        expr: process_cpu_usage > 0.8
+        for: 3m
+        labels:
+          severity: warning
+          service: fanzip-server
+        annotations:
+          summary: "⚠️ CPU 사용률 높음"
+          description: "CPU 사용률이 {{ $value | humanizePercentage }}로 80%를 초과했습니다"
+
+      # 높은 메모리 사용률
+      - alert: HighMemoryUsage
+        expr: sum(jvm_memory_used_bytes{area="heap"}) / sum(jvm_memory_max_bytes{area="heap"} > 0) > 0.85
+        for: 2m
+        labels:
+          severity: warning
+          service: fanzip-server
+        annotations:
+          summary: "⚠️ 메모리 사용률 높음"
+          description: "힙 메모리 사용률이 {{ $value | humanizePercentage }}로 85%를 초과했습니다"
+
+      # 높은 시스템 로드
+      - alert: HighSystemLoad
+        expr: system_load_average_1m > 6
+        for: 2m
+        labels:
+          severity: warning
+          service: fanzip-server
+        annotations:
+          summary: "⚠️ 시스템 로드 높음"
+          description: "시스템 로드가 {{ $value }}로 6을 초과했습니다"
+
+      # API 에러율 높음
+      - alert: HighApiErrorRate
+        expr: rate(fanzip_api_calls_total{status=~"5.."}[5m]) / rate(fanzip_api_calls_total[5m]) * 100 > 5
+        for: 1m
+        labels:
+          severity: critical
+          service: fanzip-server
+        annotations:
+          summary: "🚨 API 에러율 높음"
+          description: "5xx 에러율이 {{ $value }}%로 5%를 초과했습니다"
+
+      # 로그인 실패율 높음
+      - alert: HighLoginFailureRate
+        expr: rate(fanzip_user_login_failures_total[5m]) / rate(fanzip_user_login_attempts_total[5m]) * 100 > 30
+        for: 2m
+        labels:
+          severity: warning
+          service: fanzip-server
+        annotations:
+          summary: "⚠️ 로그인 실패율 높음"
+          description: "로그인 실패율이 {{ $value }}%로 30%를 초과했습니다"
+
+      # API 응답시간 높음
+      - alert: SlowApiResponse
+        expr: sum(rate(fanzip_api_response_duration_seconds_sum[5m])) / sum(rate(fanzip_api_response_duration_seconds_count[5m])) > 2
+        for: 2m
+        labels:
+          severity: warning
+          service: fanzip-server
+        annotations:
+          summary: "⚠️ API 응답 느림"
+          description: "평균 API 응답시간이 {{ $value }}초로 2초를 초과했습니다"
+
+      # 스레드 수 급증
+      - alert: TooManyThreads
+        expr: jvm_threads_live_threads > 200
+        for: 3m
+        labels:
+          severity: warning
+          service: fanzip-server
+        annotations:
+          summary: "⚠️ 스레드 수 급증"
+          description: "활성 스레드 수가 {{ $value }}개로 200개를 초과했습니다"
+
+      # 신규 가입자 급감 (비즈니스 알림)
+      - alert: LowRegistrations
+        expr: rate(fanzip_user_registrations_total[2h]) * 7200 < 1
+        for: 30m
+        labels:
+          severity: warning
+          service: fanzip-server
+        annotations:
+          summary: "📉 신규 가입자 급감"
+          description: "최근 2시간 동안 신규 가입자가 {{ $value }}명으로 매우 적습니다"

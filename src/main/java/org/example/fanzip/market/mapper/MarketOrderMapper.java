@@ -1,0 +1,53 @@
+package org.example.fanzip.market.mapper;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.example.fanzip.market.dto.MarketOrderItemDto;
+import org.example.fanzip.market.dto.MarketOrderItemResponseDto;
+import org.example.fanzip.market.dto.MarketOrderPaymentDto;
+import org.springframework.security.core.parameters.P;
+
+import java.util.List;
+import java.util.Map;
+
+@Mapper
+public interface MarketOrderMapper {
+    // 결제 요청
+    void insertOrder(Map<String, Object> order);
+    void insertOrderItems(@Param("orderId") Long orderId,
+                          @Param("items") List<MarketOrderItemDto> items);
+
+    // 결제 승인
+    List<MarketOrderItemDto> selectOrderItems(@Param("orderId") Long orderId);
+    List<Long> selectCartItemIdsByOrderId(@Param("orderId") Long orderId);
+    int deleteCartItemsByIds(@Param("ids") List<Long> cartItemIds);
+    // 사용자 ID와 상품 ID 기반으로 장바구니 아이템 삭제 (cart_item_id 없이)
+    int deleteCartItemsByUserAndProducts(@Param("userId") Long userId, @Param("productIds") List<Long> productIds);
+    int updateOrderStatus(@Param("orderId") Long orderId,
+                          @Param("status") String status);
+    // 재고 차감
+    int decreaseProductStock(@Param("productId") Long productId, @Param("quantity") Integer quantity);
+
+    // DB lock (currentStatus 일때만 newStatus로 변경)
+    int updateOrderStatusIfCurrent(@Param("orderId") Long orderId,
+                                   @Param("newStatus") String newStatus,
+                                   @Param("currentStatus") String currentStatus);
+
+    // 현재 상태 조회
+    String selectOrderStatus(@Param("orderId") Long orderId);
+
+    // 결제 실패
+    int deleteOrderItemsByOrderId(@Param("orderId") Long orderId);
+    int deleteOrderById(@Param("orderId") Long orderId);
+
+    // payment 연동
+    Map<String, Object> selectOrderForPayment(@Param("orderId") Long orderId);
+    // 주문의 사용자 ID 조회
+    Long selectUserIdByOrderId(@Param("orderId") Long orderId);
+
+    // 주문 완료 페이지용 주문 상품 조회 (상품 정보 포함)
+    List<MarketOrderItemResponseDto> selectOrderItemsWithProductDetails(@Param("orderId") Long orderId);
+
+    // 주문 완료 페이지용 주문 상세 정보 조회
+    Map<String, Object> selectOrderForDetail(@Param("orderId") Long orderId);
+}

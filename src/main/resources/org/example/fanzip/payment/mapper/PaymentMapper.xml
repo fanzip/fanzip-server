@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--결제 등록-->
+<mapper namespace="org.example.fanzip.payment.mapper.PaymentMapper">
+    <resultMap id="PaymentResultMap" type="org.example.fanzip.payment.domain.Payments">
+        <id property="paymentId" column="payment_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="reservationId" column="reservation_id"/>
+        <result property="membershipId" column="membership_id"/>
+        <result property="influencerId" column="influencer_id"/>
+        <result property="paymentType" column="payment_type"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="amount" column="amount"/>
+        <result property="status" column="status"/>
+        <result property="transactionId" column="transaction_id"/>
+        <result property="paidAt" column="paid_at"/>
+        <result property="cancelledAt" column="cancelled_at"/>
+        <result property="refundedAt" column="refunded_at"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    <insert id="insertPayment" parameterType="org.example.fanzip.payment.domain.Payments"
+            useGeneratedKeys="true" keyProperty="paymentId">
+        INSERT INTO payments(
+            user_id, order_id, reservation_id, membership_id, influencer_id, payment_type,
+            payment_method, amount, status, transaction_id,
+            paid_at, cancelled_at, refunded_at, created_at
+        )
+        VALUES (
+                   #{userId}, #{orderId}, #{reservationId}, #{membershipId}, #{influencerId}, #{paymentType},
+                   #{paymentMethod}, #{amount}, #{status}, #{transactionId},
+                   #{paidAt}, #{cancelledAt}, #{refundedAt}, #{createdAt}
+               )
+    </insert>
+    <select id="selectPaymentForUpdate" parameterType="long" resultMap="PaymentResultMap">
+        SELECT *
+        FROM payments
+        WHERE payment_id = #{paymentId}
+            FOR UPDATE
+    </select>
+    <!--결제 조회-->
+    <select id="selectPaymentById" parameterType="long" resultMap="PaymentResultMap">
+        SELECT *
+        FROM payments
+        WHERE payment_id = #{paymentId}
+    </select>
+    <!-- 사용자 ID로 결제 목록 조회 -->
+    <select id="selectPaymentsByUserId" parameterType="long" resultMap="PaymentResultMap">
+        SELECT *
+        FROM payments
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+    <!--멤버십 결제 유무 확인 - ACTIVE 멤버십만 확인-->
+    <select id="existsByMembershipId" resultType="boolean" parameterType="map">
+        SELECT EXISTS (
+            SELECT 1
+            FROM payments p
+            JOIN memberships m ON p.membership_id = m.membership_id
+            WHERE p.user_id = #{userId}
+              AND p.membership_id = #{membershipId}
+              AND p.payment_type = 'MEMBERSHIP'
+              AND p.status IN ('PENDING', 'PAID')
+              AND m.status = 'ACTIVE'
+              AND m.subscription_end >= CURDATE()
+        )
+    </select>
+    <!--결제 상태 변경-->
+    <update id="updatePayment" parameterType="org.example.fanzip.payment.domain.Payments">
+        UPDATE payments
+        SET
+            status = #{status, jdbcType=VARCHAR},
+            paid_at = #{paidAt},
+            cancelled_at = #{cancelledAt},
+            refunded_at = #{refundedAt}
+        WHERE payment_id = #{paymentId}
+    </update>
+    <!--transacionId 중복 검사-->
+    <select id="existsByTransactionId" parameterType="string" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM payments WHERE transaction_id = #{transactionId}
+        )
+    </select>
+    
+    <!-- 인플루언서 월별 수익 조회 -->
+    <select id="selectMonthlyRevenue" parameterType="long" resultType="org.example.fanzip.payment.dto.RevenueResponseDto">
+        SELECT
+            CONCAT(month_val, '월') as date,
+            SUM(amount) as revenue
+        FROM (
+            SELECT 
+                YEAR(paid_at) as year_val,
+                MONTH(paid_at) as month_val,
+                amount
+            FROM payments
+            WHERE influencer_id = #{influencerId}
+              AND status = 'PAID'
+              AND cancelled_at IS NULL
+              AND refunded_at IS NULL
+        ) sub
+        GROUP BY year_val, month_val
+        ORDER BY year_val ASC, month_val ASC
+    </select>
+    
+    <!-- 인플루언서 오늘 수익 조회 -->
+    <select id="selectTodayRevenue" parameterType="long" resultType="org.example.fanzip.payment.dto.RevenueResponseDto">
+        <![CDATA[
+        SELECT
+            DATE_FORMAT(CURDATE(), '%Y-%m-%d') as date,
+            COALESCE(SUM(amount), 0) as revenue
+        FROM payments
+        WHERE influencer_id = #{influencerId}
+          AND status = 'PAID'
+          AND cancelled_at IS NULL
+          AND refunded_at IS NULL
+          AND DATE(paid_at) = CURDATE()
+        ]]>
+    </select>
+    
+    <!-- 인플루언서 누적 수익 조회 (첫 결제일부터 현재까지) -->
+    <select id="selectTotalRevenue" parameterType="long" resultType="org.example.fanzip.payment.dto.RevenueResponseDto">
+        <![CDATA[
+        SELECT
+            CONCAT(
+                DATE_FORMAT((SELECT MIN(paid_at) FROM payments WHERE influencer_id = #{influencerId} AND status = 'PAID'), '%Y-%m-%d'),
+                ' ~ ',
+                DATE_FORMAT(NOW(), '%Y-%m-%d')
+            ) as date,
+            COALESCE(
+                SUM(CASE 
+                    WHEN status = 'PAID' THEN amount 
+                    WHEN status = 'REFUNDED' THEN -amount 
+                    ELSE 0 
+                END), 0
+            ) as revenue
+        FROM payments
+        WHERE influencer_id = #{influencerId}
+          AND status IN ('PAID', 'REFUNDED')
+          AND cancelled_at IS NULL
+        ]]>
+    </select>
+    
+    <!-- 예약별 결제 조회 -->
+    <select id="findAllByReservationId" parameterType="long" resultMap="PaymentResultMap">
+        SELECT *
+        FROM payments
+        WHERE reservation_id = #{reservationId}
+    </select>
+    
+    <!-- 만료된 PENDING 결제 ID 목록 조회 (cleanup용) -->
+    <select id="selectExpiredPendingPaymentIds" parameterType="int" resultType="long">
+        <![CDATA[
+        SELECT payment_id
+        FROM payments
+        WHERE status = 'PENDING'
+          AND created_at < DATE_SUB(NOW(), INTERVAL #{expiredMinutes} MINUTE)
+        ORDER BY created_at ASC
+        LIMIT 100
+        ]]>
+    </select>
+    
+    <!-- 주문 ID로 인플루언서 ID 조회 -->
+    <select id="selectInfluencerIdByOrderId" parameterType="long" resultType="long">
+        SELECT oi.influencer_id
+        FROM order_items oi
+        WHERE oi.order_id = #{orderId}
+        LIMIT 1
+    </select>
+</mapper>

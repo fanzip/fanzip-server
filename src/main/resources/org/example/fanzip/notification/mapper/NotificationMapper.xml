@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.fanzip.notification.mapper.NotificationMapper">
+
+    <insert id="insert"
+            parameterType="org.example.fanzip.notification.domain.NotificationVO"
+            useGeneratedKeys="true" keyProperty="notificationId">
+        INSERT INTO notifications (influencer_id, title, message, target_url)
+        VALUES (#{influencerId}, #{title}, #{message}, #{targetUrl})
+    </insert>
+
+</mapper>

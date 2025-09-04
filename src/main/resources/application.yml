@@ -1,0 +1,59 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      location: /tmp
+
+  config:
+    import: optional:file:.env[.properties]
+
+mybatis:
+  config-location: classpath:mybatis-config.xml
+  mapper-locations:
+    - classpath:mappers/*.xml
+    - classpath:org/example/fanzip/*/mapper/*.xml
+  type-aliases-package: org.example.fanzip
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    org.mybatis.spring: WARN
+    org.mybatis.spring.SqlSessionUtils: WARN
+    org.mybatis.spring.transaction.SpringManagedTransaction: WARN
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+
+kakao:
+  client-id: ${KAKAO_CLIENT_ID}
+  redirect-uri: ${KAKAO_REDIRECT_URI}
+
+toss:
+  payments:
+    client-key: ${TOSS_PAYMENTS_CLIENT_KEY}
+    secret-key: ${TOSS_PAYMENTS_SECRET_KEY}
+
+firebase:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH}
+  project-id: ${FIREBASE_PROJECT_ID}
+
+aws:
+  region: ap-northeast-2
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+
+app:
+  web-base-url: https://fanzip.site
